@@ -42,10 +42,10 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`fixed top-0 left-0 min-h-screen w-screen z-40  ${dis ? "block" : "hidden"} `}
+      className={`fixed text-gray-200 top-0 left-0 min-h-screen w-screen z-40  ${dis ? "block" : "hidden"} `}
     >
-    <div onClick={toggleSidebar} className={`backdrop-blur-sm duration-500 bg-[#00000053] w-screen h-screen ${op ? "opacity-100" : "opacity-0"}`}></div>
-     <div className={`absolute border-r duration-500 border-gray-800 bg-black top-0 h-full w-[75vw] ${lef ? "left-0" : "left-[-75vw]"}`}>
+    <div onClick={toggleSidebar} className={`backdrop-blur-sm duration-500 bg-[#00000053] absolute top-0 left-0 z-10 w-screen h-screen ${op ? "opacity-100" : "opacity-0"}`}></div>
+     <div className={`absolute z-20 border-r duration-500 border-gray-800 bg-black top-0 h-full w-[75vw] ${lef ? "left-0" : "left-[-75vw]"}`}>
    
       {/* Header with Close Button - Only on mobile when open */}
 
