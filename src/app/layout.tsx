@@ -32,7 +32,9 @@ export default function RootLayout({
       <Providers>
         <Navbar  /> 
         <Sidebar />
+        <div className="relative min-h-screen w-screen">
         {children}
+        </div>
         <Footer />
       </Providers>
       </body>

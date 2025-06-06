@@ -104,8 +104,8 @@ const SongCarousel = () => {
   }, []);
 
   return (
-    <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg overflow-hidden">
-      <h2 className="text-2xl font-bold mb-6 text-center text-white">
+    <div className="text-gray-200 py-3 px-6 rounded-lg shadow-lg overflow-hidden">
+      <h2 className="text-[1.3rem] font-bold mb-3 text-left">
         Featured Playlists
       </h2>
       <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
@@ -121,7 +121,7 @@ const SongCarousel = () => {
                   alt={`${song.title} cover`}
                   width={256}
                   height={128}
-                  className="w-full h-32 object-cover rounded-md"
+                  className="w-full h-44 object-cover rounded-md"
                 />
               </div>
               <div className="flex items-center mb-2">
