@@ -156,7 +156,7 @@ const BeatsList = () => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center mb-2">
-                  <span className="text-xl font-bold text-white">{beat.title}</span>
+                  <span className="text-xl font-bold ">{beat.title}</span>
                 </div>
                 <p className="text-sm text-gray-400">Artist: {beat.artist}</p>
                 <p className="text-sm text-gray-500">Type: {beat.musicType}</p>

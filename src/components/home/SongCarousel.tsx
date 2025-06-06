@@ -125,7 +125,7 @@ const SongCarousel = () => {
                 />
               </div>
               <div className="flex items-center mb-2">
-                <span className="text-xl font-bold text-white">{song.title}</span>
+                <span className="text-xl font-bold ">{song.title}</span>
               </div>
               <p className="text-sm text-gray-400">
                 {song.artists.join(', ')}
