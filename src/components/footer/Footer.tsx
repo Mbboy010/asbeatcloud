@@ -18,7 +18,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-1">
-            <span className="text-xl font-bold text-white">AsBeat</span>
+            <span className="text-xl font-bold text-white">Asbeat</span>
             <span className="text-xl font-bold text-orange-500">Cloud</span>
           </Link>
 
@@ -81,7 +81,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-6 text-center text-gray-500 text-sm">
-          &copy; {currentYear} AsBeatCloud. All rights reserved.
+          &copy; {currentYear} AsbeatCloud. All rights reserved.
         </div>
       </div>
     </motion.footer>
