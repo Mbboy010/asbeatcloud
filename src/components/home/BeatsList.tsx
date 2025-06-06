@@ -19,10 +19,10 @@ const BeatsList = () => {
   const allBeats: Beat[] = [
     { 
       id: 1, 
-      title: 'Hausa Groove', 
+      title: 'Hausa Groove kidan mai dadi yake.mp3 hhh', 
       artist: 'Ali Jita', 
-      imageUrl: 'https://images.unsplash.com/photo-1509114397022-2b9d4e2e5955?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-06-06T13:00:00+01:00', // June 6, 2025, 1:00 PM WAT (updated to after 1:20 PM)
+      imageUrl: 'https://images.unsplash.com/photo-1688143030645-a84f15553f9f?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      dateTime: '2025-06-06T13:00:00+01:00', // June 6, 2025, 1:00 PM WAT
       duration: '4:30',
       musicType: 'Hausa'
     },
@@ -30,7 +30,7 @@ const BeatsList = () => {
       id: 2, 
       title: 'Afro Rhythm', 
       artist: 'Davido', 
-      imageUrl: 'https://images.unsplash.com/photo-1546882062-5e6e6b6d2b1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       dateTime: '2025-06-06T12:30:00+01:00', // June 6, 2025, 12:30 PM WAT
       duration: '3:45',
       musicType: 'Afrobeat'
@@ -57,7 +57,7 @@ const BeatsList = () => {
       id: 5, 
       title: 'Chill Vibes', 
       artist: 'HUGEL', 
-      imageUrl: 'https://images.unsplash.com/photo-1494232410401-ad00a2b76d55?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1709870845122-bb30d361f5de?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       dateTime: '2025-06-04T09:15:00+01:00', // June 4, 2025, 9:15 AM WAT
       duration: '5:00',
       musicType: 'Chill'
@@ -75,7 +75,7 @@ const BeatsList = () => {
       id: 7, 
       title: 'Bassline', 
       artist: 'Chase & Status', 
-      imageUrl: 'https://images.unsplash.com/photo-1513829596324-4b6b4b8b9d5a?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1485278537138-4e8911a13c02?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       dateTime: '2025-06-03T11:30:00+01:00', // June 3, 2025, 11:30 AM WAT
       duration: '3:50',
       musicType: 'Drum and Bass'
@@ -133,11 +133,10 @@ const BeatsList = () => {
       timeZone: 'Africa/Lagos', // WAT timezone
     });
   };
-  
 
   return (
     <div className="text-gray-200 py-3 px-6 rounded-lg shadow-lg">
-      <h2 className="text-[1.3rem] font-bold mb-3 text-left ">
+      <h2 className="text-[1.3rem] font-bold mb-3 text-left">
         Latest Beats
       </h2>
       <div className="flex flex-col space-y-4">
@@ -145,7 +144,7 @@ const BeatsList = () => {
           <Link key={beat.id} href={`/beats/${beat.id}`} passHref>
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="w-full bg-gray-800 rounded-lg p-4 shadow-md cursor-pointer hover:bg-gray-700 transition duration-200 flex items-center space-x-4"
+              className="w-full rounded-lg p-4 shadow-md cursor-pointer hover:bg-gray-700 transition duration-200 flex items-center space-x-4"
             >
               <div className="flex-shrink-0">
                 <img
@@ -161,11 +160,21 @@ const BeatsList = () => {
                 <p className="text-sm text-gray-400">Artist: {beat.artist}</p>
                 <p className="text-sm text-gray-500">Type: {beat.musicType}</p>
                 <p className="text-sm text-gray-500">Duration: {beat.duration}</p>
-                <p className="text-sm text-gray-500">Added: {formatDateTime(beat.dateTime)}</p>
               </div>
             </motion.div>
           </Link>
         ))}
+      </div>
+      <div className="mt-3 ml-4 text-left">
+        <Link href="/beats" passHref>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-6 py-2 bg-gray-700 text-white rounded-lg shadow-md  transition duration-200"
+          >
+            See More
+          </motion.button>
+        </Link>
       </div>
     </div>
   );

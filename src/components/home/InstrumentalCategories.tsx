@@ -17,12 +17,12 @@ const CategoryCard = ({ icon, title, href, isActive = false, iconColor = 'text-g
   <Link href={href} passHref>
     <motion.div
       whileHover={{ scale: 1.05 }}
-      className={`flex items-center p-4 rounded-lg shadow-md cursor-pointer ${
-        isActive ? 'bg-green-800' : 'bg-gray-800'
-      } hover:bg-gray-700 transition duration-200`}
+      className={`flex items-center bg-[#2A2A2A] p-4 rounded-lg shadow-md cursor-pointer ${
+        isActive ? '' : ''
+      }  transition duration-200`}
     >
       <div className={`mr-4 ${iconColor}`}>{icon}</div> {/* Apply dynamic icon color */}
-      <span className="text-gray-200 font-medium">{title}</span>
+      <span className="text-gray-200 hover:text-gray-700 font-medium">{title}</span>
       {isActive && <span className="ml-auto text-green-200 text-xs">● ● ●</span>}
     </motion.div>
   </Link>
@@ -33,7 +33,7 @@ export default function InstrumentalCategories() {
 
   return (
     <div className=" text-gray-200 py-3 px-6 rounded-lg shadow-lg">
-      <h2 className="text-[1.3rem] font-bold mb-3 text-left text-gray-200">
+      <h2 className="text-[1.3rem]  font-bold mb-3 text-left text-gray-200">
         Instrumental Genres
       </h2>
 

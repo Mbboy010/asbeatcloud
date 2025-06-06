@@ -45,11 +45,11 @@ export default function Sidebar() {
       className={`fixed text-gray-200 top-0 left-0 min-h-screen w-screen z-40  ${dis ? "block" : "hidden"} `}
     >
     <div onClick={toggleSidebar} className={`backdrop-blur-sm duration-500 bg-[#00000053] absolute top-0 left-0 z-10 w-screen h-screen ${op ? "opacity-100" : "opacity-0"}`}></div>
-     <div className={`absolute z-20 border-r duration-500 border-gray-800 bg-black top-0 h-full w-[75vw] ${lef ? "left-0" : "left-[-75vw]"}`}>
+     <div className={`absolute z-20 border-r duration-500 border-gray-800 bg-[#121212] top-0 h-full w-[75vw] ${lef ? "left-0" : "left-[-75vw]"}`}>
    
       {/* Header with Close Button - Only on mobile when open */}
 
-        <div className="flex p-5   justify-between bg-gray-900 items-center mb-6 md:hidden">
+        <div className="flex p-5   justify-between bg-[#121212]  items-center mb-6 md:hidden">
           <h2 className="text-xl font-bold">AsbeatCloud</h2>
           <button onClick={toggleSidebar}>
             <X className="h-6 w-6" />

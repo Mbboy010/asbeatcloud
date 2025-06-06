@@ -42,7 +42,7 @@ export default function Navbar() {
         initial={{ y: -50 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-gray-900 shadow-md"
+        className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-[#121212] shadow-md"
       >
         {/* User Profile */}
         <Link href="/profile" className="text-gray-200 bg-gray-600 rounded-full border-gray-200 p-2" aria-label="User profile">
@@ -109,7 +109,7 @@ export default function Navbar() {
           initial={{ y: -100 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed top-16 left-0 right-0 z-10 bg-gray-900 h-screen hidden md:block"
+          className="fixed top-16 left-0 right-0 z-10 bg-[#121212]  h-screen hidden md:block"
         />
       )}
 
@@ -119,7 +119,7 @@ export default function Navbar() {
           initial={{ y: -100 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed top-16 left-0 right-0 z-10 bg-gray-900 h-screen md:hidden"
+          className="fixed top-16 left-0 right-0 z-10 bg-[#121212]  h-screen md:hidden"
         >
           <div className="p-4">
             <form onSubmit={handleSearch} className="relative flex items-center">
