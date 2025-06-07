@@ -112,7 +112,7 @@ const SongCarousel = () => {
   }, []);
 
   return (
-    <div className="text-gray-200 py-3 px-6 rounded-lg shadow-lg overflow-hidden">
+    <div className="text-gray-200 py-3 px-6 rounded-lg overflow-hidden">
       <h2 className="text-[1.3rem] font-bold mb-3 text-left">
         Featured Playlists
       </h2>

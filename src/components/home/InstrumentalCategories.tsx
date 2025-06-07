@@ -32,7 +32,7 @@ export default function InstrumentalCategories() {
   const pathname = usePathname(); // ✅ Now this will work
 
   return (
-    <div className=" text-gray-200 py-3 px-6 rounded-lg shadow-lg">
+    <div className=" text-gray-200 py-3 px-6 rounded-lg ">
       <h2 className="text-[1.3rem]  font-bold mb-3 text-left text-gray-200">
         Instrumental Genres
       </h2>

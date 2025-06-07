@@ -45,7 +45,7 @@ const TopArtists = () => {
   ];
 
   return (
-    <div className="p-6 rounded-lg shadow-lg">
+    <div className="p-6 rounded-lg ">
       <h2 className="text-[1.3rem] font-bold mb-3 text-left">Featured Top Artists</h2>
       <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
         {artists.map((artist) => (

@@ -24,7 +24,7 @@ const AboutWebsite = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className=" p-6 rounded-lg text-gray-200 shadow-lg"
+      className=" p-6 rounded-lg text-gray-200"
     >
       <h2 className="text-2xl font-bold mb-6">AsbeatCloud</h2>
       <div className="space-y-4">
