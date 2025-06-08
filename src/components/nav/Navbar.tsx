@@ -40,10 +40,7 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -50 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
+      <nav
         className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-[#121212] shadow-md"
       >
         {/* User Profile */}
@@ -91,7 +88,7 @@ export default function Navbar() {
                 onClick={handleSearchPcOnClick}
                 placeholder="Search music..."
                 aria-label="Search music"
-                className="pl-10 pr-10 p-2 rounded-md w-full bg-gray-800 text-gray-200 focus:outline-none"
+                className="pl-10 pr-10 p-2 rounded-md w-full bbg-[#2A2A2A] text-gray-200 focus:outline-none"
               />
               <button
                 type="button"
@@ -113,7 +110,7 @@ export default function Navbar() {
             <Menu className="h-6 w-6 text-gray-200" />
           </button>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Desktop Search Overlay (optional UI effect) */}
       {isSearchOpenPc && (
@@ -144,7 +141,7 @@ export default function Navbar() {
                 name="search"
                 placeholder="Search music..."
                 aria-label="Search music"
-                className="pl-10 pr-10 p-2 rounded-md w-full bg-gray-800 text-gray-200 focus:outline-none"
+                className="pl-10 pr-10 p-2 rounded-md w-full bg-[#2A2A2A] text-gray-200 focus:outline-none"
               />
               <button
                 type="button"
