@@ -24,7 +24,7 @@ export default function ProfileClient() {
 
   return (
     <div className="container mx-auto mt-16 min-h-screen bg-[#121212] text-gray-200">
-      <UserProfile username={username} />
+      <UserProfile />
       <div className="mt-8">
         <BeatItem />
       </div>
