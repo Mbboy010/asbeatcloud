@@ -20,8 +20,10 @@ export default function Login() {
     setError('');
     setProgress(0);
 
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
+
     try {
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
@@ -31,11 +33,12 @@ export default function Login() {
       } else {
         throw new Error('Invalid email or password');
       }
+
       clearInterval(progressInterval);
       setProgress(100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      clearInterval(progressInterval);
+      if (progressInterval) clearInterval(progressInterval);
       setProgress(0);
     } finally {
       setIsLoading(null);
@@ -79,17 +82,15 @@ export default function Login() {
 
   return (
     <motion.div
-      initial={{ x: '100vw', opacity: 0 }} // Start from the right
-      animate={{ x: 0, opacity: 1 }} // Slide to center with fade-in
+      initial={{ x: '100vw', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className=" flex p-4 justify-center items-center"
+      className="flex p-4 justify-center items-center"
     >
-      {/* Simulated Navigation (placeholder, adjust as needed) */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
         <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
       </div>
 
-      {/* Progress Bar */}
       {isLoading && (
         <div className="fixed top-[4.5rem] left-0 w-full h-1 z-20">
           <motion.div
@@ -155,7 +156,11 @@ export default function Login() {
               whileTap={{ scale: 0.95 }}
               className="w-1/2 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200 flex items-center justify-center"
             >
-              {isLoading === 'google' ? <Loader2 className="animate-spin h-5 w-5" /> : <FaGoogle className="h-5 w-5 mr-2" />}
+              {isLoading === 'google' ? (
+                <Loader2 className="animate-spin h-5 w-5" />
+              ) : (
+                <FaGoogle className="h-5 w-5 mr-2" />
+              )}
               Google
             </motion.button>
             <motion.button
@@ -165,7 +170,11 @@ export default function Login() {
               whileTap={{ scale: 0.95 }}
               className="w-1/2 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 flex items-center justify-center"
             >
-              {isLoading === 'facebook' ? <Loader2 className="animate-spin h-5 w-5" /> : <FaFacebook className="h-5 w-5 mr-2" />}
+              {isLoading === 'facebook' ? (
+                <Loader2 className="animate-spin h-5 w-5" />
+              ) : (
+                <FaFacebook className="h-5 w-5 mr-2" />
+              )}
               Facebook
             </motion.button>
           </div>
