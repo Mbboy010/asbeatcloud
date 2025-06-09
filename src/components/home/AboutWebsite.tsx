@@ -28,7 +28,7 @@ const AboutWebsite = () => {
     >
       <h2 className="text-2xl font-bold mb-6">AsbeatCloud</h2>
       <div className="space-y-4">
-        <p className=""><strong>AsbeatCloud</strong>, your ultimate destination for discovering and downloading the latest beats and music from top artists worldwide. Launched with a passion for music, we aim to connect artists with fans and provide a seamless experience for music enthusiasts.
+        <p className=""><strong>AsbeatCloud</strong>, your ultimate destination for discovering and downloading the latest beats and music from top artists worldwide. Launched with a passion for music, we aim to connect artists with fans and provide a seamless experience for music enthusiasts. musa
         </p>
 
         <div>
