@@ -7,7 +7,7 @@ import BeatItem from '@/components/profile/BeatItem';
 import UserProfile from '@/components/profile/UserProfile';
 
 export default function ProfileClient() {
-  const [username, setUsername] = useState('AsBeatCloud User');
+  const [username, setUsername] = useState<string>('AsBeatCloud User');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
