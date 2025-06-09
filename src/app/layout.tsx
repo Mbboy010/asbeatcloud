@@ -16,10 +16,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: 'AsbeatCloud',
-  description: 'A platform to upload and share music',
+export const metadata: Metadata = {
+  title: {
+    default: "AsbeatCloud",
+    template: "%s - AsbeatCloud",
+  },
+  description: "Welcome to AsbeatCloud, your ultimate music platform! Explore home features, upload tracks, and discover instrumentals. Log in or sign up to start creating and sharing your music with a vibrant community."
 };
+
 
 export default function RootLayout({
   children,

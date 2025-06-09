@@ -12,55 +12,99 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState<'login' | 'google' | 'facebook' | null>(null); // Track which button is loading
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [progress, setProgress] = useState(0); // Progress bar value (0-100)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading('login');
     setError('');
+    setProgress(0);
 
     try {
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
+      }, 200);
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
       if (email === 'test@example.com' && password === 'password123') {
         console.log('Login successful');
       } else {
         throw new Error('Invalid email or password');
       }
+      clearInterval(progressInterval);
+      setProgress(100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      clearInterval(progressInterval);
+      setProgress(0);
     } finally {
       setIsLoading(null);
+      setProgress(0);
     }
   };
 
   const handleGoogleLogin = () => {
     setIsLoading('google');
+    setProgress(0);
     console.log('Logging in with Google...');
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
+    }, 200);
+
     setTimeout(() => {
+      clearInterval(progressInterval);
+      setProgress(100);
       setIsLoading(null);
+      setProgress(0);
       console.log('Google login successful');
     }, 1000);
   };
 
   const handleFacebookLogin = () => {
     setIsLoading('facebook');
+    setProgress(0);
     console.log('Logging in with Facebook...');
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
+    }, 200);
+
     setTimeout(() => {
+      clearInterval(progressInterval);
+      setProgress(100);
       setIsLoading(null);
+      setProgress(0);
       console.log('Facebook login successful');
     }, 1000);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-[70vh] flex items-center justify-center p-4"
+      initial={{ x: '100vw', opacity: 0 }} // Start from the right
+      animate={{ x: 0, opacity: 1 }} // Slide to center with fade-in
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
+      className=" flex p-4 justify-center items-center"
     >
+      {/* Simulated Navigation (placeholder, adjust as needed) */}
+      <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
+        <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
+      </div>
+
+      {/* Progress Bar */}
+      {isLoading && (
+        <div className="fixed top-[4.5rem] left-0 w-full h-1 z-20">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 1, ease: 'easeInOut' }}
+            className="h-full bg-orange-500"
+          />
+        </div>
+      )}
+
       <div className="w-full max-w-md p-6 rounded-lg">
-        <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Login to AsbeatCloud</h2>
+        <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Login to account</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 my-16">
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -136,4 +180,3 @@ export default function Login() {
     </motion.div>
   );
 }
-

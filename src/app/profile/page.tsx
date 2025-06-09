@@ -1,24 +1,38 @@
-'use client';
+import ProfileClient from '../../components/profile/ProfileClient';
+import type { Metadata } from 'next';
 
-import ArtistProfile from '../../components/profile/ArtistProfile';
-import TopArtists from '@/components/home/TopArtists';
-import BeatItem from '@/components/profile/BeatItem';
-import UserProfile from '@/components/profile/UserProfile';
+export const metadata: Metadata = {
+  title: 'Profile',
+  description:
+    'Explore your AsbeatCloud profile with dynamic content. Manage your username, view beats, top artists, and artist details. Log in to personalize your music experience!',
+  openGraph: {
+    title: 'Profile - AsbeatCloud',
+    description:
+      'Explore your AsbeatCloud profile with dynamic content. Manage your username, view beats, top artists, and artist details. Log in to personalize your music experience!',
+    url: 'https://yourdomain.com/profile', // update with your actual URL
+    siteName: 'AsbeatCloud',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+        width: 1200,
+        height: 630,
+        alt: 'AsbeatCloud Profile Image',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Profile - AsbeatCloud',
+    description:
+      'Explore your AsbeatCloud profile with dynamic content. Manage your username, view beats, top artists, and artist details. Log in to personalize your music experience!',
+    images: [
+      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+    ],
+  },
+};
 
-
-export default function Home() {
-  return (
-    <div className="container mx-auto mt-16 min-h-screen text-gray-200 bg-[#121212]">
-      <UserProfile />
-      <div className="mt-8">
-        <BeatItem />
-      </div>
-      <div className="mt-8">
-        <TopArtists />
-      </div>
-      <div className="mt-8">
-        <ArtistProfile />
-      </div>
-    </div>
-  );
+export default function ProfilePage() {
+  return <ProfileClient />;
 }

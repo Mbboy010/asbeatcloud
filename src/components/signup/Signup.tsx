@@ -155,7 +155,7 @@ export default function Signup() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-[70vh] bg-[#121212] flex items-center justify-center p-4"
+      className="bg-[#121212] flex items-center justify-center p-4"
     >
       {/* Simulated Navigation (replace with actual Navbar if needed) */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
@@ -174,7 +174,7 @@ export default function Signup() {
         </div>
       )}
 
-      <div className="w-full max-w-md  p-6 rounded-lg mt-20">
+      <div className="w-full max-w-md  p-6 rounded-lg">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Register an account</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
