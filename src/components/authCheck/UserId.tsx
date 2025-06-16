@@ -15,7 +15,7 @@ export default function UserId() {
   useEffect(() => {
     
       account.get()
-      .then((user: string) => {
+      .then((user) => {
         setUserId(user.$id);
         dispatch(setAuthId(user.$id))
         dispatch(setIsAuth(true))
