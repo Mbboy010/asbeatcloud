@@ -1,3 +1,4 @@
+import UserId from '../components/authCheck/UserId';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -36,6 +37,7 @@ export default function RootLayout({
       <Providers>
         <Navbar  /> 
         <Sidebar />
+        <UserId />
         <div className="relative min-h-screen w-screen">
         {children}
         </div>

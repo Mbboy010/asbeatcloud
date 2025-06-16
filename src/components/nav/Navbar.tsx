@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { Menu, User, Search, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useAppDispatch } from '@/store/hooks';
+import Pimage from './Pimage';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setIsAside } from '@/store/slices/asideCheck';
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchOpenPc, setIsSearchOpenPc] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const authId = useAppSelector((state) => state.authId.value);
+  const isAuth = useAppSelector((state) => state.isAuth.value);
+  
   const dispatch = useAppDispatch();
   const toggleSidebar = () => dispatch(setIsAside(true));
 
@@ -21,7 +24,18 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(artist)
   };
+
+  
+  // State for dynamic artist data
+  const [artist, setArtist] = useState({
+    name: '',
+    imageUrl: '',
+    hometown: '',
+    birthDate: '',
+    genre: '',
+  });
 
   const handleSearchPc = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +45,41 @@ export default function Navbar() {
     setIsSearchOpenPc(true);
   };
 
+
+const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your Database ID
+  const COLLECTION_ID = '6849aa4f000c032527a9'; // Replace with your Collection ID for artists
+
+   
+  // Fetch artist data from Appwrite
+  useEffect(() => {
+
+    const fetchArtistData = async () => {
+      try {
+        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string);
+        setArtist({
+          name: response.name || 'Unknown Artist',
+          imageUrl: response.profileImageUrl || "none",
+          hometown: response.hometown || 'Location not available',
+          birthDate: response.dob || 'dob not available',
+          genre: response.genre || 'Genre not available',
+          username: response.username
+        });
+        
+        console.log(response)
+      } catch (err) {
+
+      } 
+    };
+
+    fetchArtistData();
+  });
+
+
+
   // Mock authentication state (replace with actual auth logic)
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   // Mock profile image URL (replace with actual user data)
-  const profileImageUrl = isAuthenticated
-    ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80'
-    : null;
+  
 
   return (
     <>
@@ -44,16 +87,17 @@ export default function Navbar() {
         className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-[#121212] shadow-md"
       >
         {/* User Profile */}
-        <Link href="/profile" className="text-gray-200 rounded-full " aria-label="User profile">
-          {isAuthenticated && profileImageUrl ? (
-            <img
-              src={profileImageUrl}
-              alt="User profile"
-              className="h-9 w-9 border-gray-500 border-2 rounded-full object-cover"
-            />
-          ) : (
-            <div  className="text-gray-200 bg-gray-600 rounded-full border-gray-200 p-2">
-            <User className="h-6  w-6" />
+        <Link href={isAuth ? `/profile/${authId}` : "/login"}  className="text-gray-200 rounded-full " aria-label="User profile">
+          {isAuth ?  (
+            <div className="text-gray-200 overflow-hidden h-9 w-9 flex justify-center items-center bg-gray-600 rounded-full border-2 border-gray-600 p-2">
+
+            <Pimage />
+
+            </div>
+            )
+            : (
+              <div  className="text-gray-200  bg-gray-600 rounded-full  p-2">
+            <User className="h-5  w-5" />
             </div>
           )}
         </Link>

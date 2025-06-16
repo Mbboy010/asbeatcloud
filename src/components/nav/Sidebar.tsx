@@ -7,7 +7,9 @@ import Link from 'next/link';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setIsAside } from '@/store/slices/asideCheck';
 import { usePathname } from 'next/navigation'; // Import usePathname for URL detection
-
+import { account } from '../../lib/appwrite'; 
+import { setAuthId } from '@/store/slices/authId';
+import { setIsAuth } from '@/store/slices/isAuth';
 
 interface SidebarProps {
   toggleSidebar: () => void;
@@ -16,6 +18,7 @@ interface SidebarProps {
 export default function Sidebar() {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const asideMode = useAppSelector((state) => state.isAs.value);
+  const isAuth = useAppSelector((state) => state.isAuth.value);
 
   const dispatch = useAppDispatch();
   const toggleSidebar = () => dispatch(setIsAside(false));
@@ -53,6 +56,13 @@ export default function Sidebar() {
       }, 500);
     }
   }, [asideMode]);
+  
+  
+  const logout = async () =>{
+    await account.deleteSession('current');
+        dispatch(setAuthId(""))
+        dispatch(setIsAuth(false))
+  }
 
   return (
     <div
@@ -94,11 +104,11 @@ export default function Sidebar() {
             <Mic className="h-5 w-5" />
             <span>Instrumentals</span>
           </Link>
-          {isAuthenticated ? (
-            <Link href="/logout" className={`flex items-center space-x-2 p-2 rounded`} onClick={() => setIsAuthenticated(false)}>
+          {isAuth ? (
+            <p  className={`flex items-center text-red-500 space-x-2 p-2 rounded`} onClick={logout}>
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
-            </Link>
+            </p>
           ) : (
             <Link href="/login" className={`flex items-center space-x-2 p-2 rounded`}>
               <LogIn className="h-5 w-5" />

@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Lock, Mail, Loader2 } from 'lucide-react';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { account } from '../../lib/appwrite'; // Import Appwrite account client
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { setAuthId } from '@/store/slices/authId';
+import { setIsAuth } from '@/store/slices/isAuth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,7 +17,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [progress, setProgress] = useState(0); // Progress bar value (0-100)
-
+  const dispatch = useAppDispatch();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading('login');
@@ -27,17 +32,25 @@ export default function Login() {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (email === 'test@example.com' && password === 'password123') {
-        console.log('Login successful');
-      } else {
-        throw new Error('Invalid email or password');
-      }
-
+      // Appwrite authentication
+      await account.createEmailPasswordSession(email, password);
+      await account.get()
+      .then((user) => {
+        
+        dispatch(setAuthId(user.$id))
+        dispatch(setIsAuth(true))
+        
+      })
+      .catch((error) => {
+        
+        
+      });
+      // Redirect to profile or dashboard after successful login
+      // Example: window.location.href = `/profile/${userId}`; (implement user ID retrieval)
       clearInterval(progressInterval);
       setProgress(100);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred during login');
       if (progressInterval) clearInterval(progressInterval);
       setProgress(0);
     } finally {
@@ -46,38 +59,55 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading('google');
     setProgress(0);
-    console.log('Logging in with Google...');
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
-    }, 200);
+    try {
+      progressInterval = setInterval(() => {
+        setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
+      }, 200);
 
-    setTimeout(() => {
+      // Appwrite OAuth2 login with Google
+      await account.createOAuth2Session('google', 'http://localhost:3000/profile', 'http://localhost:3000/login');
+      console.log('Google login successful');
       clearInterval(progressInterval);
       setProgress(100);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during Google login');
+      if (progressInterval) clearInterval(progressInterval);
+      setProgress(0);
+    } finally {
       setIsLoading(null);
       setProgress(0);
-      console.log('Google login successful');
-    }, 1000);
+    }
   };
 
-  const handleFacebookLogin = () => {
+  const handleFacebookLogin = async () => {
     setIsLoading('facebook');
     setProgress(0);
-    console.log('Logging in with Facebook...');
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
-    }, 200);
+    try {
+      progressInterval = setInterval(() => {
+        setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
+      }, 200);
 
-    setTimeout(() => {
+      // Appwrite OAuth2 login with Facebook
+      await account.createOAuth2Session('facebook', 'http://localhost:3000/profile', 'http://localhost:3000/login');
+      
       clearInterval(progressInterval);
       setProgress(100);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during Facebook login');
+      if (progressInterval) clearInterval(progressInterval);
+      setProgress(0);
+    } finally {
       setIsLoading(null);
       setProgress(0);
-      console.log('Facebook login successful');
-    }, 1000);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    // Navigate to forgot password page
+    window.location.href = `/forgot-password`; // Adjust route as needed
   };
 
   return (
@@ -179,6 +209,11 @@ export default function Login() {
             </motion.button>
           </div>
         </div>
+        <div className="mt-4 text-center text-sm">
+          <Link href="/forgot-password" className="text-orange-500 hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
         <p className="text-center text-gray-400 mt-4 text-sm">
           Don’t have an account?{' '}
           <Link href="/signup" className="text-orange-500 hover:underline">
@@ -189,3 +224,4 @@ export default function Login() {
     </motion.div>
   );
 }
+

@@ -1,3 +1,4 @@
+import AuthNav from '../../../components/authCheck/AuthNav';
 import Signup from '@/components//signup/Signup';
 
 import type { Metadata } from "next";
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <div className="container mx-auto mt-16 p-4">
+     <AuthNav />
       <Signup />
     </div>
   );

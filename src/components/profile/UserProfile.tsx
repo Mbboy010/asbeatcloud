@@ -2,12 +2,21 @@
 
 import Link from 'next/link';
 import { motion, useAnimation } from 'framer-motion';
-import { Twitter, Instagram, Facebook,Edit } from 'lucide-react';
+import { Twitter, Instagram, Facebook, Edit } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useRouter , useParams } from 'next/navigation';
+import { databases } from '../../lib/appwrite';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 
 const UserProfile = () => {
-  // Current date and time
-  const currentDate = new Date();
+  
+  const router = useRouter();
+  const params = useParams();
+  const userid = params.userid; 
+  
+  const authId = useAppSelector((state) => state.authId.value);
+  // Current date and time (fixed to 11:06 AM WAT, June 12, 2025)
+  const currentDate = new Date('2025-06-12T11:06:00+01:00'); // WAT is UTC+1
   const lastUpdated = currentDate.toLocaleString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -16,126 +25,132 @@ const UserProfile = () => {
     hour: 'numeric',
     minute: 'numeric',
     hour12: true,
-    timeZone: 'Africa/Lagos', // WAT timezone
+    timeZone: 'Africa/Lagos',
   });
 
-  // State for dynamic username
-  const [username, setUsername] = useState('AsBeatCloud User'); // Default username
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Sample user data with social links as an array and follower stats
-  const user = {
-    profileImageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80',
-    headerImageUrl: 'https://plus.unsplash.com/premium_photo-1681540549623-45168929205a?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bXVzaWMlMjBsYW5kc2NhcGV8ZW58MHx8MHx8fDA%3D',
-    bio: 'Welcome to my AsBeatCloud profile! I’m a passionate music enthusiast sharing beats and rhythms from around the world. Inspired by diverse cultures, my journey began in 2023, and I’ve been creating and curating ever since. Check out my latest tracks and follow my journey! @AsBeatCloud #MusicLover',
+  // State for dynamic data
+  const [userData, setUserData] = useState({
+    profileImageUrl: '',
+    headerImageUrl: '',
+    bio: '',
     socialLinks: [
-      { platform: 'Twitter', url: 'https://twitter.com/AsBeatCloud', color: 'text-blue-400 hover:text-blue-300' },
-      { platform: 'Instagram', url: 'https://instagram.com/AsBeatCloud', color: 'text-pink-400 hover:text-pink-300' },
-      { platform: 'Facebook', url: 'https://facebook.com/AsBeatCloud', color: 'text-blue-600 hover:text-blue-400' },
+      { platform: 'Twitter', url: '', color: 'text-blue-400 hover:text-blue-300' },
+      { platform: 'Instagram', url: '', color: 'text-pink-400 hover:text-pink-300' },
+      { platform: 'Facebook', url: '', color: 'text-blue-600 hover:text-blue-400' },
     ],
-    galleryImages: [
-      'https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&auto=format&fit=crop&w=690&h=500&q=80',
-      'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=690&h=500&q=80',
-      'https://plus.unsplash.com/premium_photo-1682125768864-c80b650614f3?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fG11c2ljfGVufDB8fDB8fHww',
-    ],
-    followers: 1250, // Sample follower count
-  };
+    galleryImages: [],
+    followers: 0,
+    firstName: '',
+    lastName: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // State to track follow status
-  const [isFollowing, setIsFollowing] = useState(false);
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const COLLECTION_ID = '6849aa4f000c032527a9';
 
   // Map of platform to icon component
   const platformIcons = {
-    Twitter: Twitter,
-    Instagram: Instagram,
-    Facebook: Facebook,
+    Twitter,
+    Instagram,
+    Facebook,
   };
 
-  // Handle username edit and save
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+  // Fetch user data from Appwrite
+  useEffect(() => {
+    if (!userid) {
+      setError('User ID not provided');
+      setLoading(false);
+      return;
+    }
 
-  const handleSave = () => {
-    if (username.trim()) {
-      localStorage.setItem('username', username); // Store updated username
-      setIsEditing(false);
+    const fetchUserData = async () => {
+      try {
+        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
+        setUserData({
+          profileImageUrl: response.profileImageUrl || 'https://via.placeholder.com/300',
+          headerImageUrl: response.headerImageUrl || 'https://via.placeholder.com/800x200',
+          bio: response.bio || 'No bio available.',
+          socialLinks: [
+            { platform: 'Twitter', url: response.twitterUrl || '', color: 'text-blue-400 hover:text-blue-300' },
+            { platform: 'Instagram', url: response.instagramUrl || '', color: 'text-pink-400 hover:text-pink-300' },
+            { platform: 'Facebook', url: response.facebookUrl || '', color: 'text-blue-600 hover:text-blue-400' },
+          ],
+          galleryImages: response.galleryImages || [],
+          followers: response.followers || 0,
+          firstName: response.firstName || '',
+          lastName: response.lastName || '',
+          username: response.username || '',
+        });
+      } catch (err) {
+        setError('Error fetching user data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  });
+
+  // Check if current user matches the document ID (simplified auth check)
+  const isCurrentUser = authId == userid // Assume currentauthId is stored after login
+
+  // Navigate to edit page
+  const handleEditProfile = () => {
+    if (isCurrentUser ) {
+      router.push(`/profile/edit`);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-  };
-
-  // Simulate fetching username on mount (replace with auth logic)
-  useEffect(() => {
-    const storedUsername = localStorage.getItem('username') || 'AsBeatCloud User';
-    setUsername(storedUsername);
-  }, []);
+  if (loading) return <div className="text-white">Loading...</div>;
+  if (error) return <div className="text-red-500">{error} "user:"{userid}</div>;
 
   return (
     <div className="text-gray-200 p-6 rounded-lg">
       {/* Header Image */}
       <div className="w-full h-32 bg-gray-800 rounded-t-lg overflow-hidden mb-4">
-        <img
-          src={user.headerImageUrl}
-          alt={`${username} header`}
-          className="w-full h-full object-cover"
-        />
+        <img src={userData.headerImageUrl} alt={`${userData.username} header`} className="w-full h-full object-cover" />
       </div>
 
-      {/* Profile Image, Name, and Edit Button with Follow Button */}
+      {/* Profile Image, Name, and Edit Button */}
       <div className="flex items-center mb-6 -mt-12">
         <div className="w-24 h-24 bg-gray-700 rounded-full overflow-hidden border-4 border-gray-900">
-          <img
-            src={user.profileImageUrl}
-            alt={`${username} profile`}
-            className="w-full h-full object-cover"
-          />
+          <img src={userData.profileImageUrl} alt={`${userData.username} profile`} className="w-full h-full object-cover" />
         </div>
         <div className="ml-3 flex-1 mt-2">
-          <div className="flex items-center">
-            <input
-              type="text"
-              value={username}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className="font-bold bg-transparent border-none focus:outline-none text-gray-200 w-full"
-              placeholder="Username"
-            />
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              onClick={isEditing ? handleSave : handleEdit}
-              className="ml-2 text-orange-500 hover:text-orange-400"
-            >
-              {isEditing ? 'Save' : <Edit className="h-5 w-5" />}
-            </motion.button>
+          {/* First Name and Last Name */}
+          <p className="font-bold text-gray-200">{`${userData.firstName} ${userData.lastName}`}</p>
+          <div className="flex items-center justify-between">
+            <p className="  text-sm text-gray-400">@{userData.username}</p>
+            {isCurrentUser && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                onClick={handleEditProfile}
+                className="ml-2 text-blue-500 hover:text-blue-400"
+                title="Edit Profile"
+              >
+                <Edit className="h-5 w-5" />
+              </motion.button>
+            )}
           </div>
-          <p className="text-sm text-gray-500">Followers: {user.followers.toLocaleString()}</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          className={`px-3 py-1 text-white mt-2 rounded transition duration-500 ${isFollowing ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-500 hover:bg-gray-600'}`}
-          onClick={() => setIsFollowing(!isFollowing)}
-        >
-          {isFollowing ? 'Following' : 'Follow'}
-        </motion.button>
       </div>
 
       {/* Bio */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">About</h3>
-        <p className="text-gray-300">{user.bio.replace('@AsBeatCloud', `@${username}`)}</p>
+        <p className="text-gray-300">{userData.bio.replace('@AsBeatCloud', `@${userData.username}`)}</p>
       </div>
 
       {/* Social Links with Icons and Names */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Connect</h3>
         <div className="flex space-x-4">
-          {user.socialLinks.map((link) => {
+          {userData.socialLinks.map((link) => {
             const IconComponent = platformIcons[link.platform as keyof typeof platformIcons];
             return (
-              <Link key={link.platform} href={link.url.replace('AsBeatCloud', username)} target="_blank" rel="noopener noreferrer" title={link.platform}>
+              <Link key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" title={link.platform}>
                 <motion.div whileHover={{ scale: 1.1 }} className={`flex items-center ${link.color} transition duration-200`}>
                   <IconComponent className="w-6 h-6 mr-1" />
                   <span className="text-sm">{link.platform}</span>
@@ -150,21 +165,14 @@ const UserProfile = () => {
       <div>
         <h3 className="text-lg font-semibold mb-2">Gallery</h3>
         <div className="grid grid-cols-3 gap-4">
-          {user.galleryImages.map((image, index) => (
-            <img
-              key={index}
-              src={image}
-              alt={`${username} gallery image ${index + 1}`}
-              className="w-full h-32 object-cover rounded-lg"
-            />
+          {userData.galleryImages.map((image, index) => (
+            <img key={index} src={image} alt={`${userData.username} gallery image ${index + 1}`} className="w-full h-32 object-cover rounded-lg" />
           ))}
         </div>
       </div>
 
       {/* Last Updated */}
-      <p className="text-sm text-gray-500 mt-4">
-        Last Updated: {lastUpdated}
-      </p>
+      <p className="text-sm text-gray-500 mt-4">Last Updated: {lastUpdated}</p>
     </div>
   );
 };

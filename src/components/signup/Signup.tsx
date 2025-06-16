@@ -1,17 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, User2,User, UserCheck, Calendar, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, User2, User, UserCheck, Calendar, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { account, databases } from '../../lib/appwrite';
+import { ID, Query } from 'appwrite';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { setAuthId } from '@/store/slices/authId';
+import { setIsAuth } from '@/store/slices/isAuth';
+
 
 export default function Signup() {
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState<'next' | 'submit' | 'google' | 'facebook' | null>(null); // Track loading actions
+  const [isLoading, setIsLoading] = useState<'next' | 'submit' | 'google' | 'facebook' | null>(null);
   const [error, setError] = useState('');
-  const [progress, setProgress] = useState(0); // Progress bar value (0-100)
-  const [showPassword, setShowPassword] = useState(false); // Password visibility state
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const dispatch = useAppDispatch();
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -21,36 +33,95 @@ export default function Signup() {
     dob: '',
     address: '',
     password: '',
+    confirmPassword: '',
   });
 
-  const handleNext = () => {
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your Database ID
+  const COLLECTION_ID = '6849aa4f000c032527a9'; // Replace with your Collection ID
+
+  // Check if username exists
+  const checkUsernameExists = async (username: string) => {
+    try {
+      console.log('Checking username with DATABASE_ID:', DATABASE_ID, 'COLLECTION_ID:', COLLECTION_ID);
+      const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+        Query.equal('username', username),
+      ]);
+      return response.documents.length > 0;
+    } catch (err: any) {
+      console.error('Error checking username:', err);
+      setUsernameError('Error checking username. Please try again or contact support.');
+      return false;
+    }
+  };
+
+  const handleNext = async () => {
     if (isLoading) return;
     setIsLoading('next');
     setError('');
+    setUsernameError('');
     setProgress(0);
 
-    if (step === 1 && (!formData.firstName || !formData.lastName)) {
+    // Step 1: Validate first name and last name
+    if (step === 1 && (!formData.firstName.trim() || !formData.lastName.trim())) {
       setError('Please fill in both first name and last name.');
       setIsLoading(null);
       setProgress(0);
       return;
     }
-    if (step === 2 && (!formData.username || !formData.email)) {
-      setError('Please fill in both username and email.');
-      setIsLoading(null);
-      setProgress(0);
-      return;
+
+    // Step 2: Validate username and email, check username existence
+    if (step === 2) {
+      if (!formData.username.trim() || !formData.email.trim()) {
+        setError('Please fill in both username and email.');
+        setIsLoading(null);
+        setProgress(0);
+        return;
+      }
+      // Validate username format (e.g., alphanumeric and underscores, 3-20 chars)
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      if (!usernameRegex.test(formData.username)) {
+        setUsernameError('Username must be 3-20 characters long and contain only letters, numbers, and underscores.');
+        setIsLoading(null);
+        setProgress(0);
+        return;
+      }
+      // Check if username exists
+      const usernameExists = await checkUsernameExists(formData.username);
+      if (usernameExists) {
+        setUsernameError('Username already taken.');
+        setIsLoading(null);
+        setProgress(0);
+        return;
+      }
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setError('Please enter a valid email address.');
+        setIsLoading(null);
+        setProgress(0);
+        return;
+      }
     }
-    if (step === 3 && (!formData.gender || !formData.dob || !formData.address)) {
+
+    // Step 3: Validate gender, date of birth, and address
+    if (step === 3 && (!formData.gender.trim() || !formData.dob.trim() || !formData.address.trim())) {
       setError('Please fill in gender, date of birth, and address.');
       setIsLoading(null);
       setProgress(0);
       return;
     }
+
+    // Step 4: Validate password
     if (step === 4) {
       const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
       if (!passwordRegex.test(formData.password)) {
         setError('Password must be at least 8 characters with letters, numbers, and symbols (e.g., @$!%*#?&).');
+        setIsLoading(null);
+        setProgress(0);
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setPasswordError('Passwords do not match.');
         setIsLoading(null);
         setProgress(0);
         return;
@@ -74,6 +145,8 @@ export default function Signup() {
   const handleBack = () => {
     if (isLoading) return;
     setStep(step - 1);
+    setUsernameError('');
+    setPasswordError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,21 +154,76 @@ export default function Signup() {
     if (isLoading) return;
     setIsLoading('submit');
     setError('');
+    setUsernameError('');
+    setPasswordError('');
     setProgress(0);
 
+    let progressInterval;
     try {
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      clearInterval(progressInterval);
+      // Check and remove any active session
+      try {
+        const session = await account.getSession('current');
+        if (session) {
+          await account.deleteSession('current');
+        }
+      } catch (sessionErr) {
+        console.warn('No active session or error deleting:', sessionErr);
+      }
+
+      // Create user account with username as userId
+      await account.create(
+        formData.username,
+        formData.email,
+        formData.password,
+        `${formData.firstName} ${formData.lastName}`
+      );
+
+      // Log the user in after account creation
+      await account.createEmailPasswordSession(formData.email, formData.password);
+
+      // Save user data to database
+      await databases.createDocument(DATABASE_ID, COLLECTION_ID, formData.username, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        username: formData.username,
+        email: formData.email,
+        gender: formData.gender,
+        dob: formData.dob,
+        address: formData.address,
+        createdAt: new Date().toISOString(),
+      });
+      
+      
+
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setProgress(100);
-      console.log('Signup successful', formData);
-      // Redirect or set auth state here
-    } catch (err) {
-      setError('An error occurred during signup.');
+      await account.get()
+      .then((user) => {
+        
+        dispatch(setAuthId(user.$id))
+        dispatch(setIsAuth(true))
+        
+      })
+      .catch((error) => {
+        
+        
+      });
+      // Replace with your redirect logic
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong during signup.');
+      if (err.message.includes('User already exists')) {
+        setUsernameError('This username is already taken.');
+      }
     } finally {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setIsLoading(null);
       setProgress(0);
     }
@@ -105,32 +233,36 @@ export default function Signup() {
     if (isLoading) return;
     setIsLoading('google');
     setProgress(0);
-    console.log('Signing up with Google...');
-    setTimeout(() => {
-      setProgress(100);
+
+    try {
+      account.createOAuth2Session(
+        'google',
+        `${window.location.origin}/dashboard`,
+        `${window.location.origin}/signup`
+      );
+    } catch (err: any) {
+      setError(err.message || 'Google signup failed.');
       setIsLoading(null);
       setProgress(0);
-      console.log('Google signup successful');
-      // Redirect or set auth state here
-    }, 1000);
+    }
   };
 
   const handleFacebookSignup = () => {
     if (isLoading) return;
     setIsLoading('facebook');
     setProgress(0);
-    console.log('Signing up with Facebook...');
+    console.log('Facebook signup not implemented. Enable Facebook OAuth in Appwrite Console.');
     setTimeout(() => {
       setProgress(100);
       setIsLoading(null);
       setProgress(0);
-      console.log('Facebook signup successful');
-      // Redirect or set auth state here
     }, 1000);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === 'username') setUsernameError('');
+    if (e.target.name === 'password' || e.target.name === 'confirmPassword') setPasswordError('');
   };
 
   const slideVariants = {
@@ -157,24 +289,7 @@ export default function Signup() {
       transition={{ duration: 0.5 }}
       className="bg-[#121212] flex items-center justify-center p-4"
     >
-      {/* Simulated Navigation (replace with actual Navbar if needed) */}
-      <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
-        <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
-      </div>
-
-      {/* Progress Bar */}
-      {isLoading && (
-        <div className="fixed top-[4.5rem] left-0 w-full h-1 z-20">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 1, ease: 'easeInOut' }}
-            className="h-full bg-orange-500"
-          />
-        </div>
-      )}
-
-      <div className="w-full max-w-md  p-6 rounded-lg">
+      <div className="w-full max-w-md p-6 rounded-lg">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Register an account</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
@@ -189,6 +304,8 @@ export default function Signup() {
               exit="exit"
               className="space-y-4 my-16"
             >
+              <h3 className="text-lg text-gray-400 mb-4">Step 1: Enter Your Personal Details</h3>
+              <p className="text-sm text-gray-500 mb-2">Provide your basic personal information to get started.</p>
               <div className="relative">
                 <User2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
@@ -266,6 +383,8 @@ export default function Signup() {
               exit="exit"
               className="space-y-4 my-16"
             >
+              <h3 className="text-lg text-gray-400 mb-4">Step 2: Set Up Your Account Credentials</h3>
+              <p className="text-sm text-gray-500 mb-2">Choose a unique username and provide a valid email address.</p>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
@@ -278,6 +397,8 @@ export default function Signup() {
                   required
                 />
               </div>
+              <p className="text-xs text-gray-400 mt-1">Choose a unique username for your account (3-20 chars, letters, numbers, underscores only).</p>
+              {usernameError && <p className="text-red-500 text-sm">{usernameError}</p>}
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
@@ -285,7 +406,7 @@ export default function Signup() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Gmail"
+                  placeholder="Email"
                   className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   required
                 />
@@ -323,6 +444,8 @@ export default function Signup() {
               exit="exit"
               className="space-y-4 my-16"
             >
+              <h3 className="text-lg text-gray-400 mb-4">Step 3: Add Additional Details</h3>
+              <p className="text-sm text-gray-500 mb-2">Provide your gender, date of birth, and address.</p>
               <select
                 name="gender"
                 value={formData.gender}
@@ -391,6 +514,8 @@ export default function Signup() {
               exit="exit"
               className="space-y-4 my-16"
             >
+              <h3 className="text-lg text-gray-400 mb-4">Step 4: Set Your Password</h3>
+              <p className="text-sm text-gray-500 mb-2">Create a secure password to protect your account.</p>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
@@ -411,7 +536,30 @@ export default function Signup() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Must be at least 8 characters with letters, numbers, and symbols (e.g., @$!%*#?&).</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Must be at least 8 characters with letters, numbers, and symbols (e.g., @$!%*#?&).
+              </p>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm Password"
+                  className="w-full pl-10 pr-10 py-2 bg-[#2A2A2A] text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200"
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
               <div className="flex justify-between">
                 <motion.button
                   onClick={handleBack}
