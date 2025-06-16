@@ -7,7 +7,7 @@ import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 
 export default function UserId() {
-  const [userId, setUserId] = useState<string>(null);
+  const [userId, setUserId] = useState<string>("");
   const authId = useAppSelector((state) => state.authId.value);
   const dispatch = useAppDispatch();
   
