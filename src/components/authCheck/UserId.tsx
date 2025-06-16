@@ -7,7 +7,7 @@ import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 
 export default function UserId() {
-  const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState<string>(null);
   const authId = useAppSelector((state) => state.authId.value);
   const dispatch = useAppDispatch();
   
@@ -15,7 +15,7 @@ export default function UserId() {
   useEffect(() => {
     
       account.get()
-      .then((user) => {
+      .then((user: string) => {
         setUserId(user.$id);
         dispatch(setAuthId(user.$id))
         dispatch(setIsAuth(true))
