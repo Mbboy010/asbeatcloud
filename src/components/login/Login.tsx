@@ -5,7 +5,7 @@ import { Lock, Mail, Loader2 } from 'lucide-react';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { account } from '../../lib/appwrite'; // Import Appwrite account client
+import { account } from '../../lib/appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
@@ -13,12 +13,13 @@ import { setIsAuth } from '@/store/slices/isAuth';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState<'login' | 'google' | 'facebook' | null>(null); // Track which button is loading
+  const [isLoading, setIsLoading] = useState<'login' | 'google' | 'facebook' | null>(null);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [progress, setProgress] = useState(0); // Progress bar value (0-100)
+  const [progress, setProgress] = useState(0);
+
   const dispatch = useAppDispatch();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading('login');
@@ -32,23 +33,14 @@ export default function Login() {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      // Appwrite authentication
       await account.createEmailPasswordSession(email, password);
-      await account.get()
-      .then((user) => {
-        
-        dispatch(setAuthId(user.$id))
-        dispatch(setIsAuth(true))
-        
-      })
-      .catch((error) => {
-        
-        
-      });
-      // Redirect to profile or dashboard after successful login
-      // Example: window.location.href = `/profile/${userId}`; (implement user ID retrieval)
+      const user = await account.get();
+      dispatch(setAuthId(user.$id));
+      dispatch(setIsAuth(true));
+
       clearInterval(progressInterval);
       setProgress(100);
+      // window.location.href = `/profile/${user.$id}`; // Optional redirect
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login');
       if (progressInterval) clearInterval(progressInterval);
@@ -62,14 +54,20 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     setIsLoading('google');
     setProgress(0);
+
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
+
     try {
       progressInterval = setInterval(() => {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      // Appwrite OAuth2 login with Google
-      await account.createOAuth2Session('google', 'http://localhost:3000/profile', 'http://localhost:3000/login');
-      console.log('Google login successful');
+      await account.createOAuth2Session(
+        'google',
+        'http://localhost:3000/profile',
+        'http://localhost:3000/login'
+      );
+
       clearInterval(progressInterval);
       setProgress(100);
     } catch (err) {
@@ -85,14 +83,20 @@ export default function Login() {
   const handleFacebookLogin = async () => {
     setIsLoading('facebook');
     setProgress(0);
+
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
+
     try {
       progressInterval = setInterval(() => {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      // Appwrite OAuth2 login with Facebook
-      await account.createOAuth2Session('facebook', 'http://localhost:3000/profile', 'http://localhost:3000/login');
-      
+      await account.createOAuth2Session(
+        'facebook',
+        'http://localhost:3000/profile',
+        'http://localhost:3000/login'
+      );
+
       clearInterval(progressInterval);
       setProgress(100);
     } catch (err) {
@@ -103,11 +107,6 @@ export default function Login() {
       setIsLoading(null);
       setProgress(0);
     }
-  };
-
-  const handleForgotPassword = () => {
-    // Navigate to forgot password page
-    window.location.href = `/forgot-password`; // Adjust route as needed
   };
 
   return (
@@ -224,4 +223,3 @@ export default function Login() {
     </motion.div>
   );
 }
-
