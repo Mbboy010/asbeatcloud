@@ -11,7 +11,6 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 
-
 export default function Signup() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState<'next' | 'submit' | 'google' | 'facebook' | null>(null);
@@ -21,9 +20,9 @@ export default function Signup() {
   const [progress, setProgress] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const dispatch = useAppDispatch();
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -36,11 +35,15 @@ export default function Signup() {
     confirmPassword: '',
   });
 
-  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your Database ID
-  const COLLECTION_ID = '6849aa4f000c032527a9'; // Replace with your Collection ID
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const COLLECTION_ID = '6849aa4f000c032527a9';
 
   // Check if username exists
   const checkUsernameExists = async (username: string) => {
+    if (!DATABASE_ID) {
+      setUsernameError('Database ID is not configured');
+      return false;
+    }
     try {
       console.log('Checking username with DATABASE_ID:', DATABASE_ID, 'COLLECTION_ID:', COLLECTION_ID);
       const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -158,6 +161,13 @@ export default function Signup() {
     setPasswordError('');
     setProgress(0);
 
+    if (!DATABASE_ID) {
+      setError('Database ID is not configured');
+      setIsLoading(null);
+      setProgress(0);
+      return;
+    }
+
     let progressInterval;
     try {
       progressInterval = setInterval(() => {
@@ -196,24 +206,20 @@ export default function Signup() {
         address: formData.address,
         createdAt: new Date().toISOString(),
       });
-      
-      
 
       if (progressInterval) {
         clearInterval(progressInterval);
       }
       setProgress(100);
-      await account.get()
-      .then((user) => {
-        
-        dispatch(setAuthId(user.$id))
-        dispatch(setIsAuth(true))
-        
-      })
-      .catch((error) => {
-        
-        
-      });
+      await account
+        .get()
+        .then((user) => {
+          dispatch(setAuthId(user.$id));
+          dispatch(setIsAuth(true));
+        })
+        .catch((error) => {
+          console.error('Error fetching user:', error);
+        });
       // Replace with your redirect logic
     } catch (err: any) {
       setError(err.message || 'Something went wrong during signup.');
