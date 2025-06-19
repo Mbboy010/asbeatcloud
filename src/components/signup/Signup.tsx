@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Mail, User2, User, UserCheck, Calendar, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { account, databases } from '../../lib/appwrite';
+import { account, databases, OAuthProvider } from '../../lib/appwrite';
 import { ID, Query } from 'appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
@@ -221,6 +221,7 @@ export default function Signup() {
           console.error('Error fetching user:', error);
         });
       // Replace with your redirect logic
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'Something went wrong during signup.');
       if (err.message.includes('User already exists')) {
@@ -242,7 +243,7 @@ export default function Signup() {
 
     try {
       account.createOAuth2Session(
-        'google',
+        OAuthProvider.Google,
         `${window.location.origin}/dashboard`,
         `${window.location.origin}/signup`
       );
