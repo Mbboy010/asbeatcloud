@@ -5,10 +5,8 @@ import { useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite'; // Ensure this path is correct
 
 const ArtistProfile = () => {
-  
-  
   const params = useParams();
-  const  userid = params.userid; 
+  const userid = params.userid;
 
   // State for dynamic artist data
   const [artist, setArtist] = useState({
@@ -17,6 +15,7 @@ const ArtistProfile = () => {
     hometown: '',
     birthDate: '',
     genre: '',
+    username: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +31,12 @@ const ArtistProfile = () => {
       return;
     }
 
+    if (!DATABASE_ID) {
+      setError('Database ID is not configured');
+      setLoading(false);
+      return;
+    }
+
     const fetchArtistData = async () => {
       try {
         const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
@@ -41,18 +46,18 @@ const ArtistProfile = () => {
           hometown: response.hometown || 'Location not available',
           birthDate: response.dob || 'dob not available',
           genre: response.genre || 'Genre not available',
-          username: response.username
+          username: response.username || '',
         });
       } catch (err) {
         setError('Error fetching artist data');
-        console.error(err);
+        console.error('Failed to fetch artist data:', err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchArtistData();
-  }, [userid]);
+  }, [userid, DATABASE_ID]);
 
   if (loading) return <div className="text-white">Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
