@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { databases, storage, ID, account } from '../../lib/appwrite';
 import { motion } from 'framer-motion';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
@@ -9,7 +9,6 @@ import { setNav } from '@/store/slices/navpic';
 
 const EditProfile = () => {
   const router = useRouter();
-  const params = useParams();
   const userid = useAppSelector((state) => state.authId.value);
 
   const dispatch = useAppDispatch();
@@ -137,7 +136,7 @@ const EditProfile = () => {
       const newProfileImageUrl = storage.getFileView(BUCKET_ID, response.$id);
       setProfile((prev) => ({
         ...prev,
-        profileImageUrl: newProfileImageUrl.href,
+        profileImageUrl: newProfileImageUrl, // Use the string URL directly
         profileImageId: response.$id,
       }));
     } catch (err) {
@@ -163,7 +162,7 @@ const EditProfile = () => {
       const newBannerUrl = storage.getFileView(BUCKET_ID, response.$id);
       setProfile((prev) => ({
         ...prev,
-        headerImageUrl: newBannerUrl.href,
+        headerImageUrl: newBannerUrl, // Use the string URL directly
         bannerImageId: response.$id,
       }));
     } catch (err) {
@@ -402,4 +401,4 @@ const EditProfile = () => {
   );
 };
 
-export default EditProfile; 
+export default EditProfile;
