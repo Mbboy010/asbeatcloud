@@ -1,20 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Twitter, Instagram, Facebook, Edit } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useRouter , useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { useAppSelector } from '@/store/hooks';
 
 const UserProfile = () => {
-  
   const router = useRouter();
   const params = useParams();
-  const userid = params.userid; 
-  
+  const userid = params.userid;
+
   const authId = useAppSelector((state) => state.authId.value);
+
   // Current date and time (fixed to 11:06 AM WAT, June 12, 2025)
   const currentDate = new Date('2025-06-12T11:06:00+01:00'); // WAT is UTC+1
   const lastUpdated = currentDate.toLocaleString('en-US', {
@@ -42,6 +42,7 @@ const UserProfile = () => {
     followers: 0,
     firstName: '',
     lastName: '',
+    username: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,6 +61,12 @@ const UserProfile = () => {
   useEffect(() => {
     if (!userid) {
       setError('User ID not provided');
+      setLoading(false);
+      return;
+    }
+
+    if (!DATABASE_ID) {
+      setError('Database ID is not configured');
       setLoading(false);
       return;
     }
@@ -84,21 +91,21 @@ const UserProfile = () => {
         });
       } catch (err) {
         setError('Error fetching user data');
-        console.error(err);
+        console.error('Failed to fetch user data:', err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  });
+  }, [userid, DATABASE_ID]);
 
-  // Check if current user matches the document ID (simplified auth check)
-  const isCurrentUser = authId == userid // Assume currentauthId is stored after login
+  // Check if current user matches the document ID
+  const isCurrentUser = authId === userid;
 
   // Navigate to edit page
   const handleEditProfile = () => {
-    if (isCurrentUser ) {
+    if (isCurrentUser) {
       router.push(`/profile/edit`);
     }
   };
@@ -122,7 +129,7 @@ const UserProfile = () => {
           {/* First Name and Last Name */}
           <p className="font-bold text-gray-200">{`${userData.firstName} ${userData.lastName}`}</p>
           <div className="flex items-center justify-between">
-            <p className="  text-sm text-gray-400">@{userData.username}</p>
+            <p className="text-sm text-gray-400">@{userData.username}</p>
             {isCurrentUser && (
               <motion.button
                 whileHover={{ scale: 1.1 }}
