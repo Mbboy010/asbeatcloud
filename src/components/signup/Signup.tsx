@@ -5,8 +5,8 @@ import { Mail, User2, User, UserCheck, Calendar, MapPin, Lock, Eye, EyeOff } fro
 import { FaGoogle, FaFacebook } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { account, databases, OAuthProvider } from '../../lib/appwrite';
-import { ID, Query } from 'appwrite';
+import { account, databases } from '../../lib/appwrite';
+import { ID, Query, OAuthProvider } from 'appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
@@ -220,7 +220,6 @@ export default function Signup() {
         .catch((error) => {
           console.error('Error fetching user:', error);
         });
-      // Replace with your redirect logic
       window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'Something went wrong during signup.');
@@ -258,12 +257,17 @@ export default function Signup() {
     if (isLoading) return;
     setIsLoading('facebook');
     setProgress(0);
-    console.log('Facebook signup not implemented. Enable Facebook OAuth in Appwrite Console.');
-    setTimeout(() => {
-      setProgress(100);
+    try {
+      account.createOAuth2Session(
+        OAuthProvider.Facebook,
+        `${window.location.origin}/dashboard`,
+        `${window.location.origin}/signup`
+      );
+    } catch (err: any) {
+      setError(err.message || 'Facebook signup failed.');
       setIsLoading(null);
       setProgress(0);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
