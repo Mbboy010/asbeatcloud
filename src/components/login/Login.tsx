@@ -5,10 +5,11 @@ import { Lock, Mail, Loader2 } from 'lucide-react';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { account } from '../../lib/appwrite';
+import { account } from '@/lib/appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
+import type { OAuthProvider } from 'appwrite';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -40,9 +41,10 @@ export default function Login() {
 
       clearInterval(progressInterval);
       setProgress(100);
-      // window.location.href = `/profile/${user.$id}`; // Optional redirect
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during login');
+      // Optional redirect:
+      // window.location.href = `/profile/${user.$id}`;
+    } catch (err: any) {
+      setError(err?.message || 'Login failed');
       if (progressInterval) clearInterval(progressInterval);
       setProgress(0);
     } finally {
@@ -51,8 +53,8 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading('google');
+  const handleOAuthLogin = async (provider: OAuthProvider) => {
+    setIsLoading(provider);
     setProgress(0);
 
     let progressInterval: ReturnType<typeof setInterval> | null = null;
@@ -63,44 +65,15 @@ export default function Login() {
       }, 200);
 
       await account.createOAuth2Session(
-        'google',
-        'http://localhost:3000/profile',
-        'http://localhost:3000/login'
+        provider,
+        `${window.location.origin}/profile`,
+        `${window.location.origin}/login`
       );
 
       clearInterval(progressInterval);
       setProgress(100);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during Google login');
-      if (progressInterval) clearInterval(progressInterval);
-      setProgress(0);
-    } finally {
-      setIsLoading(null);
-      setProgress(0);
-    }
-  };
-
-  const handleFacebookLogin = async () => {
-    setIsLoading('facebook');
-    setProgress(0);
-
-    let progressInterval: ReturnType<typeof setInterval> | null = null;
-
-    try {
-      progressInterval = setInterval(() => {
-        setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
-      }, 200);
-
-      await account.createOAuth2Session(
-        'facebook',
-        'http://localhost:3000/profile',
-        'http://localhost:3000/login'
-      );
-
-      clearInterval(progressInterval);
-      setProgress(100);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during Facebook login');
+    } catch (err: any) {
+      setError(err?.message || `OAuth (${provider}) login failed`);
       if (progressInterval) clearInterval(progressInterval);
       setProgress(0);
     } finally {
@@ -114,12 +87,14 @@ export default function Login() {
       initial={{ x: '100vw', opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="flex p-4 justify-center items-center"
+      className="flex p-4 justify-center items-center min-h-screen bg-[#111]"
     >
+      {/* Appbar */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
         <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
       </div>
 
+      {/* Progress Bar */}
       {isLoading && (
         <div className="fixed top-[4.5rem] left-0 w-full h-1 z-20">
           <motion.div
@@ -131,10 +106,11 @@ export default function Login() {
         </div>
       )}
 
-      <div className="w-full max-w-md p-6 rounded-lg">
+      {/* Login Form */}
+      <div className="w-full max-w-md p-6 rounded-lg bg-[#1c1c1c] shadow-lg">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Login to account</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4 my-16">
+        <form onSubmit={handleSubmit} className="space-y-4 my-8">
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -175,11 +151,13 @@ export default function Login() {
             {isLoading === 'login' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Login'}
           </motion.button>
         </form>
+
+        {/* Social login */}
         <div className="mt-4 text-center">
           <p className="text-gray-400 text-sm mb-2">Or login with</p>
           <div className="flex space-x-4">
             <motion.button
-              onClick={handleGoogleLogin}
+              onClick={() => handleOAuthLogin('google' as OAuthProvider)}
               disabled={isLoading !== null}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -193,7 +171,7 @@ export default function Login() {
               Google
             </motion.button>
             <motion.button
-              onClick={handleFacebookLogin}
+              onClick={() => handleOAuthLogin('facebook' as OAuthProvider)}
               disabled={isLoading !== null}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -208,11 +186,13 @@ export default function Login() {
             </motion.button>
           </div>
         </div>
+
         <div className="mt-4 text-center text-sm">
           <Link href="/forgot-password" className="text-orange-500 hover:underline">
             Forgot Password?
           </Link>
         </div>
+
         <p className="text-center text-gray-400 mt-4 text-sm">
           Don’t have an account?{' '}
           <Link href="/signup" className="text-orange-500 hover:underline">
