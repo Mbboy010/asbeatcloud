@@ -13,8 +13,14 @@ export default function UserId() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+<<<<<<< HEAD
     account.get()
       .then((user: Models.User<Models.Preferences>) => {
+=======
+    
+      account.get()
+      .then((user) => {
+>>>>>>> c0dd9d2cac21787df00ea9937911039d67a54447
         setUserId(user.$id);
         dispatch(setAuthId(user.$id));
         dispatch(setIsAuth(true));
