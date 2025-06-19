@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { account, databases } from '@/lib/appwrite';
 
 export default function SignupForm() {
@@ -8,7 +9,7 @@ export default function SignupForm() {
   const [password, setPassword] = useState('');
   const [status, setStatus]     = useState('');
 
-  const handleSignup = async (e) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('⏳ Creating account...');
 
@@ -18,9 +19,9 @@ export default function SignupForm() {
 
       // 2. Optional: Add to "users" collection
       await databases.createDocument(
-        process.env.NEXT_PUBLIC_USERSDATABASE,         // 🔁 Replace with your DB ID
-        '6849aa4f000c032527a9', // 🔁 Replace with your collection ID
-        username,                   // document ID = username
+        process.env.NEXT_PUBLIC_USERSDATABASE as string, // Ensure this is defined in your .env
+        '6849aa4f000c032527a9',                           // Your collection ID
+        username,                                         // Document ID
         {
           username,
           email,
@@ -32,9 +33,9 @@ export default function SignupForm() {
       setUsername('');
       setEmail('');
       setPassword('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
-      setStatus(`❌ ${error.message}`);
+      setStatus(`❌ ${error?.message || 'Unknown error occurred'}`);
     }
   };
 
@@ -73,7 +74,9 @@ export default function SignupForm() {
         Sign Up
       </button>
 
-      <p className="text-sm text-gray-700">{status}</p>
+      {status && (
+        <p className="text-sm text-gray-700">{status}</p>
+      )}
     </form>
   );
 }
