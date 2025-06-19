@@ -11,9 +11,9 @@ const EditProfile = () => {
   const router = useRouter();
   const params = useParams();
   const userid = useAppSelector((state) => state.authId.value);
-  
+
   const dispatch = useAppDispatch();
-  
+
   // State for profile data, image previews, image IDs, and upload indicators
   const [profile, setProfile] = useState({
     firstName: '',
@@ -24,30 +24,36 @@ const EditProfile = () => {
     address: '',
     email: '',
     profileImageUrl: '',
-    headerImageUrl: '', // Field for banner image
-    profileImageId: '', // New field for profile image ID
-    bannerImageId: '',  // New field for banner image ID
+    headerImageUrl: '',
+    profileImageId: '',
+    bannerImageId: '',
     hometown: '',
     dob: '',
     genre: '',
   });
-  const [previewProfileImage, setPreviewProfileImage] = useState<string | null>(null); // For profile image preview
-  const [previewBannerImage, setPreviewBannerImage] = useState<string | null>(null); // For banner image preview
+  const [previewProfileImage, setPreviewProfileImage] = useState<string | null>(null);
+  const [previewBannerImage, setPreviewBannerImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [uploadingProfileImage, setUploadingProfileImage] = useState(false); // Upload indicator for profile image
-  const [uploadingBannerImage, setUploadingBannerImage] = useState(false); // Upload indicator for banner image
-  const profileImageRef = useRef<HTMLInputElement>(null); // Ref for profile image input
-  const bannerImageRef = useRef<HTMLInputElement>(null); // Ref for banner image input
+  const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
+  const [uploadingBannerImage, setUploadingBannerImage] = useState(false);
+  const profileImageRef = useRef<HTMLInputElement>(null);
+  const bannerImageRef = useRef<HTMLInputElement>(null);
 
-  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your Database ID
-  const COLLECTION_ID = '6849aa4f000c032527a9'; // Replace with your Collection ID for profiles
-  const BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET; // Replace with your Storage Bucket ID
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const COLLECTION_ID = '6849aa4f000c032527a9';
+  const BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
 
   // Fetch profile data from Appwrite
   useEffect(() => {
     if (!userid) {
       setError('User ID not provided');
+      setLoading(false);
+      return;
+    }
+
+    if (!DATABASE_ID) {
+      setError('Database ID is not configured');
       setLoading(false);
       return;
     }
@@ -65,8 +71,8 @@ const EditProfile = () => {
           email: response.email || '',
           profileImageUrl: response.profileImageUrl || '',
           headerImageUrl: response.headerImageUrl || '',
-          profileImageId: response.profileImageId || '', // Fetch existing profile image ID
-          bannerImageId: response.bannerImageId || '',  // Fetch existing banner image ID
+          profileImageId: response.profileImageId || '',
+          bannerImageId: response.bannerImageId || '',
           hometown: response.hometown || '',
           dob: response.dob || '',
           genre: response.genre || '',
@@ -75,18 +81,22 @@ const EditProfile = () => {
         setPreviewBannerImage(response.headerImageUrl || null);
       } catch (err) {
         setError('Error fetching profile data');
-        console.error(err);
+        console.error('Failed to fetch profile data:', err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfileData();
-  }, [userid]);
+  }, [userid, DATABASE_ID]);
 
   // Handle form submission to update profile data
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!DATABASE_ID) {
+      setError('Database ID is not configured');
+      return;
+    }
     try {
       await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid as string, {
         firstName: profile.firstName,
@@ -97,64 +107,70 @@ const EditProfile = () => {
         email: profile.email,
         profileImageUrl: profile.profileImageUrl,
         headerImageUrl: profile.headerImageUrl,
-        profileImageId: profile.profileImageId, // Save profile image ID
-        bannerImageId: profile.bannerImageId,   // Save banner image ID
+        profileImageId: profile.profileImageId,
+        bannerImageId: profile.bannerImageId,
         hometown: profile.hometown,
         dob: profile.dob,
         genre: profile.genre,
       });
       dispatch(setNav(profile.profileImageUrl));
-      await account.updateName(profile.firstName + " " + profile.lastName);
-      router.push(`/profile/${userid}`); // Redirect back to artist profile after saving
+      await account.updateName(profile.firstName + ' ' + profile.lastName);
+      router.push(`/profile/${userid}`);
     } catch (err) {
       setError('Error updating profile data');
-      console.error(err);
+      console.error('Failed to update profile:', err);
     }
   };
 
   // Handle profile image upload and preview
   const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPreviewProfileImage(URL.createObjectURL(file)); // Preview the selected image
-      setUploadingProfileImage(true); // Start upload indicator
-      try {
-        const response = await storage.createFile(BUCKET_ID, ID.unique(), file); // Upload to Appwrite Storage
-        const newProfileImageUrl = storage.getFileView(BUCKET_ID, response.$id); // Use getFileView for full URL
-        setProfile((prev) => ({
-          ...prev,
-          profileImageUrl: newProfileImageUrl.href,
-          profileImageId: response.$id, // Store the image ID
-        }));
-      } catch (err) {
-        setError('Error uploading profile image');
-        console.error(err);
-      } finally {
-        setUploadingProfileImage(false); // Stop upload indicator
-      }
+    if (!file) return;
+    if (!BUCKET_ID) {
+      setError('Storage bucket ID is not configured');
+      return;
+    }
+    setPreviewProfileImage(URL.createObjectURL(file));
+    setUploadingProfileImage(true);
+    try {
+      const response = await storage.createFile(BUCKET_ID, ID.unique(), file);
+      const newProfileImageUrl = storage.getFileView(BUCKET_ID, response.$id);
+      setProfile((prev) => ({
+        ...prev,
+        profileImageUrl: newProfileImageUrl.href,
+        profileImageId: response.$id,
+      }));
+    } catch (err) {
+      setError('Error uploading profile image');
+      console.error('Failed to upload profile image:', err);
+    } finally {
+      setUploadingProfileImage(false);
     }
   };
 
   // Handle banner image upload and preview
   const handleBannerImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPreviewBannerImage(URL.createObjectURL(file));
-      setUploadingBannerImage(true); // Start upload indicator
-      try {
-        const response = await storage.createFile(BUCKET_ID, ID.unique(), file); // Unique ID for banner
-        const newBannerUrl = storage.getFileView(BUCKET_ID, response.$id); // Use getFileView for full URL
-        setProfile((prev) => ({
-          ...prev,
-          headerImageUrl: newBannerUrl.href,
-          bannerImageId: response.$id, // Store the image ID
-        }));
-      } catch (err) {
-        setError('Error uploading banner image');
-        console.error(err);
-      } finally {
-        setUploadingBannerImage(false); // Stop upload indicator
-      }
+    if (!file) return;
+    if (!BUCKET_ID) {
+      setError('Storage bucket ID is not configured');
+      return;
+    }
+    setPreviewBannerImage(URL.createObjectURL(file));
+    setUploadingBannerImage(true);
+    try {
+      const response = await storage.createFile(BUCKET_ID, ID.unique(), file);
+      const newBannerUrl = storage.getFileView(BUCKET_ID, response.$id);
+      setProfile((prev) => ({
+        ...prev,
+        headerImageUrl: newBannerUrl.href,
+        bannerImageId: response.$id,
+      }));
+    } catch (err) {
+      setError('Error uploading banner image');
+      console.error('Failed to upload banner image:', err);
+    } finally {
+      setUploadingBannerImage(false);
     }
   };
 
@@ -386,4 +402,4 @@ const EditProfile = () => {
   );
 };
 
-export default EditProfile;
+export default EditProfile; 
