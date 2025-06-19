@@ -13,14 +13,8 @@ export default function UserId() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-<<<<<<< HEAD
     account.get()
       .then((user: Models.User<Models.Preferences>) => {
-=======
-    
-      account.get()
-      .then((user) => {
->>>>>>> c0dd9d2cac21787df00ea9937911039d67a54447
         setUserId(user.$id);
         dispatch(setAuthId(user.$id));
         dispatch(setIsAuth(true));
@@ -30,7 +24,7 @@ export default function UserId() {
         setUserId(""); // Keep empty string instead of null for string type
         dispatch(setIsAuth(false));
       });
-  }, [dispatch]); // Add dependency array to avoid repeated calls
+  }, [dispatch]);
 
   return <p className="text-sm text-gray-600"></p>;
 }
