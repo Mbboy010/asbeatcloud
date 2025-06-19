@@ -1,6 +1,6 @@
 'use client';
 
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, User, Search, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Pimage from './Pimage';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setIsAside } from '@/store/slices/asideCheck';
+import { databases } from '@/lib/appwrite'; // Import databases from Appwrite config
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -15,7 +16,7 @@ export default function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const authId = useAppSelector((state) => state.authId.value);
   const isAuth = useAppSelector((state) => state.isAuth.value);
-  
+
   const dispatch = useAppDispatch();
   const toggleSidebar = () => dispatch(setIsAside(true));
 
@@ -24,10 +25,9 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(artist)
+    console.log(artist);
   };
 
-  
   // State for dynamic artist data
   const [artist, setArtist] = useState({
     name: '',
@@ -35,6 +35,7 @@ export default function Navbar() {
     hometown: '',
     birthDate: '',
     genre: '',
+    username: '',
   });
 
   const handleSearchPc = (e: React.FormEvent) => {
@@ -45,59 +46,54 @@ export default function Navbar() {
     setIsSearchOpenPc(true);
   };
 
-
-const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your Database ID
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your Database ID
   const COLLECTION_ID = '6849aa4f000c032527a9'; // Replace with your Collection ID for artists
 
-   
   // Fetch artist data from Appwrite
   useEffect(() => {
-
     const fetchArtistData = async () => {
+      if (!authId || !DATABASE_ID) {
+        console.warn('Missing authId or DATABASE_ID');
+        return;
+      }
+
       try {
         const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string);
         setArtist({
           name: response.name || 'Unknown Artist',
-          imageUrl: response.profileImageUrl || "none",
+          imageUrl: response.profileImageUrl || 'none',
           hometown: response.hometown || 'Location not available',
           birthDate: response.dob || 'dob not available',
           genre: response.genre || 'Genre not available',
-          username: response.username
+          username: response.username || '',
         });
-        
-        console.log(response)
+        console.log(response);
       } catch (err) {
-
-      } 
+        console.error('Failed to fetch artist data:', err);
+      }
     };
 
-    fetchArtistData();
-  });
-
-
-
-  // Mock authentication state (replace with actual auth logic)
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  // Mock profile image URL (replace with actual user data)
-  
+    if (isAuth) {
+      fetchArtistData();
+    }
+  }, [authId, isAuth, DATABASE_ID]);
 
   return (
     <>
-      <nav
-        className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-[#121212] shadow-md"
-      >
+      <nav className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-[#121212] shadow-md">
         {/* User Profile */}
-        <Link href={isAuth ? `/profile/${authId}` : "/login"}  className="text-gray-200 rounded-full " aria-label="User profile">
-          {isAuth ?  (
+        <Link
+          href={isAuth ? `/profile/${authId}` : '/login'}
+          className="text-gray-200 rounded-full"
+          aria-label="User profile"
+        >
+          {isAuth ? (
             <div className="text-gray-200 overflow-hidden h-9 w-9 flex justify-center items-center bg-gray-600 rounded-full border-2 border-gray-600 p-2">
-
-            <Pimage />
-
+              <Pimage />
             </div>
-            )
-            : (
-              <div  className="text-gray-200  bg-gray-600 rounded-full  p-2">
-            <User className="h-5  w-5" />
+          ) : (
+            <div className="text-gray-200 bg-gray-600 rounded-full p-2">
+              <User className="h-5 w-5" />
             </div>
           )}
         </Link>
@@ -132,7 +128,7 @@ const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your 
                 onClick={handleSearchPcOnClick}
                 placeholder="Search music..."
                 aria-label="Search music"
-                className="pl-10 pr-10 p-2 rounded-md w-full bbg-[#2A2A2A] text-gray-200 focus:outline-none"
+                className="pl-10 pr-10 p-2 rounded-md w-full bg-[#2A2A2A] text-gray-200 focus:outline-none"
               />
               <button
                 type="button"
@@ -146,11 +142,7 @@ const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE; // Replace with your 
           </div>
 
           {/* Sidebar Toggle */}
-          <button
-            onClick={toggleSidebar}
-            className="p-2"
-            aria-label="Toggle sidebar"
-          >
+          <button onClick={toggleSidebar} className="p-2" aria-label="Toggle sidebar">
             <Menu className="h-6 w-6 text-gray-200" />
           </button>
         </div>
