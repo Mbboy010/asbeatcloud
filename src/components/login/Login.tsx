@@ -53,7 +53,7 @@ export default function Login() {
     }
   };
 
-  const handleOAuthLogin = async (provider: OAuthProvider) => {
+  const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
     setIsLoading(provider);
     setProgress(0);
 
@@ -65,7 +65,7 @@ export default function Login() {
       }, 200);
 
       await account.createOAuth2Session(
-        provider,
+        provider as OAuthProvider, // Cast to OAuthProvider for Appwrite
         `${window.location.origin}/profile`,
         `${window.location.origin}/login`
       );
@@ -157,7 +157,7 @@ export default function Login() {
           <p className="text-gray-400 text-sm mb-2">Or login with</p>
           <div className="flex space-x-4">
             <motion.button
-              onClick={() => handleOAuthLogin('google' as OAuthProvider)}
+              onClick={() => handleOAuthLogin('google')}
               disabled={isLoading !== null}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -171,7 +171,7 @@ export default function Login() {
               Google
             </motion.button>
             <motion.button
-              onClick={() => handleOAuthLogin('facebook' as OAuthProvider)}
+              onClick={() => handleOAuthLogin('facebook')}
               disabled={isLoading !== null}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
