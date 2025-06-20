@@ -64,10 +64,6 @@ export default function Login() {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      await account.createOAuth2Session(
-        provider as OAuthProvider, // Cast to OAuthProvider for Appwrite
-        `${window.location.origin}/profile`,
-        `${window.location.origin}/login`
       );
 
       clearInterval(progressInterval);
