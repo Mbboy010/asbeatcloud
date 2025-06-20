@@ -64,7 +64,7 @@ export default function Login() {
         setProgress((prev) => (prev >= 90 ? 90 : prev + 10));
       }, 200);
 
-      );
+      
 
       clearInterval(progressInterval);
       setProgress(100);
