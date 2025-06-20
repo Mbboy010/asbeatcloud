@@ -1,27 +1,31 @@
+import { Metadata } from 'next';
 import ProfileClient from '@/components/profile/ProfileClient';
-import type { Metadata } from 'next';
 import { databases } from '@/lib/appwrite';
 
 const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE!;
 const COLLECTION_ID = '6849aa4f000c032527a9';
 
-interface PageProps {
+// ✅ Fix type definition here:
+type PageProps = {
   params: {
     userid: string;
   };
-}
+};
 
+// ✅ Your fetch function
 async function getUser(documentId: string) {
   if (!documentId) return null;
 
   try {
-    return await databases.getDocument(DATABASE_ID, COLLECTION_ID, documentId);
+    const user = await databases.getDocument(DATABASE_ID, COLLECTION_ID, documentId);
+    return user;
   } catch (error) {
     console.error('Appwrite error:', error);
     return null;
   }
 }
 
+// ✅ Metadata generation function
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const user = await getUser(params.userid);
 
@@ -33,7 +37,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const fullName = `${user.firstName} ${user.lastName}`;
-  const imageUrl = user.profileImageUrl || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80';
+  const imageUrl =
+    user.profileImageUrl ||
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80';
 
   return {
     title: `${fullName}'s Profile`,
@@ -41,14 +47,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${fullName}'s Profile - AsbeatCloud`,
       description: user.bio || '',
-      url: `https://yourdomain.com/profile/${params.userid}`,
+      url: `https://asbeatcloud.vercel.app/profile/${params.userid}`,
       siteName: 'AsbeatCloud',
-      images: [{
-        url: imageUrl,
-        width: 1200,
-        height: 630,
-        alt: `${fullName}'s Profile Image`,
-      }],
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${fullName}'s Profile Image`,
+        },
+      ],
       locale: 'en_US',
       type: 'website',
     },
@@ -61,6 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// ✅ Page component
 export default async function ProfilePage({ params }: PageProps) {
   const user = await getUser(params.userid);
 
@@ -73,5 +82,5 @@ export default async function ProfilePage({ params }: PageProps) {
     );
   }
 
-  return <ProfileClient />;
+  return <ProfileClient user={user} />;
 }
