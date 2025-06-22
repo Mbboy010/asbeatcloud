@@ -17,7 +17,7 @@ interface UserDocument extends Models.Document {
 }
 
 // Define the user type for your application
-interface User {
+export interface User {
   $id: string;
   userid: string;
   firstName: string;
