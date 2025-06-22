@@ -40,7 +40,7 @@ function mapDocumentToUser(doc: UserDocument): User {
     firstName: doc.firstName,
     lastName: doc.lastName,
     bio: doc.bio,
-    image: doc.profileImageUrl,
+    profileImageUrl: doc.profileImageUrl,
   };
 }
 
