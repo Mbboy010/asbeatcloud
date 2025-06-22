@@ -1,3 +1,4 @@
+
 import { Metadata } from 'next';
 import { databases } from '@/lib/appwrite';
 import { Query, Models } from 'appwrite';
@@ -111,5 +112,5 @@ export default async function ProfilePage({ params }: PageProps) {
   const { userid } = await params;
   const user = await getUser(userid);
 
-  return <ProfileClient />;
+  return <ProfileClient user={user}  />;
 }

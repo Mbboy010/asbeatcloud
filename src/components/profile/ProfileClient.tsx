@@ -1,4 +1,5 @@
 'use client';
+import { User } from '../../app/profile/[userid]/page'; // Import the User interface
 
 import { useState, useEffect } from 'react';
 import ArtistProfile from '../../components/profile/ArtistProfile';
@@ -6,7 +7,12 @@ import TopArtists from '@/components/home/TopArtists';
 import BeatItem from '@/components/profile/BeatItem';
 import UserProfile from '@/components/profile/UserProfile';
 
-export default function ProfileClient() {
+
+interface ProfileClientProps {
+  user: User | null;
+}
+
+const ProfileClient: React.FC<ProfileClientProps> = ({ user }) => {
   const [username, setUsername] = useState<string>('AsBeatCloud User');
 
   useEffect(() => {
@@ -37,3 +43,5 @@ export default function ProfileClient() {
     </div>
   );
 }
+
+export default ProfileClient;
