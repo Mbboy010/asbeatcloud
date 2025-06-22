@@ -108,9 +108,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 // Page component
-export default async function ProfilePage({ params }: PageProps) {
-  const { userid } = await params;
-  const user = await getUser(userid);
-  let m = "k"
-  return <ProfileClient  />;
+export default async function ProfilePage() {
+   return <ProfileClient  />;
 }
