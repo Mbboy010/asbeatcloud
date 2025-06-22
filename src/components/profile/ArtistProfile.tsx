@@ -42,7 +42,7 @@ const ArtistProfile = () => {
         const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
         setArtist({
           name: response.name || 'Unknown Artist',
-          imageUrl: response.profileImageUrl || 'https://via.placeholder.com/800x200',
+          imageUrl: response.profileImageUrl || 'https://fra.cloud.appwrite.io/v1/storage/buckets/6849a34c0027417cde77/files/685801850016a00b3c79/view?project=6840dd66001574a22f81&mode=admin',
           hometown: response.hometown || 'Location not available',
           birthDate: response.dob || 'dob not available',
           genre: response.genre || 'Genre not available',

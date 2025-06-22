@@ -75,7 +75,7 @@ const UserProfile = () => {
       try {
         const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
         setUserData({
-          profileImageUrl: response.profileImageUrl || 'https://via.placeholder.com/300',
+          profileImageUrl: response.profileImageUrl || 'https://fra.cloud.appwrite.io/v1/storage/buckets/6849a34c0027417cde77/files/685801850016a00b3c79/view?project=6840dd66001574a22f81&mode=admin',
           headerImageUrl: response.headerImageUrl || 'https://via.placeholder.com/800x200',
           bio: response.bio || 'No bio available.',
           socialLinks: [

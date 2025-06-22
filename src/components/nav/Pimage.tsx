@@ -30,7 +30,7 @@ export default function Pimage() {
 
         // Ensure these fields match the names in your Appwrite collection
         setUsername(response.username || '');
-        setImageUrl(response.profileImageUrl || '');
+        setImageUrl(response.profileImageUrl || 'https://fra.cloud.appwrite.io/v1/storage/buckets/6849a34c0027417cde77/files/685801850016a00b3c79/view?project=6840dd66001574a22f81&mode=admin');
       } catch (error) {
         console.error('Failed to fetch user data:', error);
       }
