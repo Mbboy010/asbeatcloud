@@ -1,4 +1,3 @@
-
 import { Metadata } from 'next';
 import { databases } from '@/lib/appwrite';
 import { Query, Models } from 'appwrite';
@@ -14,7 +13,7 @@ interface UserDocument extends Models.Document {
   firstName: string;
   lastName: string;
   bio?: string;
-  image?: string;
+  profileImageUrl?: string; // Updated to match Appwrite key
 }
 
 // Define the user type for your application
@@ -24,7 +23,7 @@ export interface User {
   firstName: string;
   lastName: string;
   bio?: string;
-  image?: string;
+  profileImageUrl?: string; // Updated to match Appwrite key
 }
 
 // Props for the page and metadata
@@ -40,7 +39,7 @@ function mapDocumentToUser(doc: UserDocument): User {
     firstName: doc.firstName,
     lastName: doc.lastName,
     bio: doc.bio,
-    profileImageUrl: doc.profileImageUrl,
+    profileImageUrl: doc.profileImageUrl, // Maps to the correct Appwrite key
   };
 }
 
@@ -112,5 +111,6 @@ export default async function ProfilePage({ params }: PageProps) {
   const { userid } = await params;
   const user = await getUser(userid);
 
-  return <ProfileClient user={user}  />;
+  return <ProfileClient user={user} />;
 }
+
