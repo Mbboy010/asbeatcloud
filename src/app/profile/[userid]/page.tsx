@@ -1,4 +1,3 @@
-
 import { Metadata } from 'next';
 import { databases } from '@/lib/appwrite';
 import { Query, Models } from 'appwrite';
@@ -10,7 +9,7 @@ const COLLECTION_ID = process.env.NEXT_PUBLIC_USERS_COLLECTION || '6849aa4f000c0
 
 // Define the Appwrite document type for your collection
 interface UserDocument extends Models.Document {
-  username: string; // Match the field name in Appwrite collection
+  username: string;
   firstName: string;
   lastName: string;
   bio?: string;
@@ -36,11 +35,11 @@ type PageProps = {
 function mapDocumentToUser(doc: UserDocument): User {
   return {
     $id: doc.$id,
-    userid: doc.username, // Map 'username' from Appwrite to 'userid' in User
+    userid: doc.username,
     firstName: doc.firstName,
     lastName: doc.lastName,
     bio: doc.bio,
-    image: doc.image,
+    image: doc.profileImageUrl,
   };
 }
 
@@ -50,7 +49,7 @@ async function getUser(userid: string): Promise<User | null> {
     const response = await databases.listDocuments<UserDocument>(
       DATABASE_ID,
       COLLECTION_ID,
-      [Query.equal('username', userid)] // Query by 'username' field
+      [Query.equal('username', userid)]
     );
 
     if (response.documents.length === 0) {
@@ -108,6 +107,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 // Page component
-export default async function ProfilePage() {
-   return <ProfileClient  />;
+export default async function ProfilePage({ params }: PageProps) {
+  const { userid } = await params;
+  const user = await getUser(userid);
+
+  return <ProfileClient />;
 }
