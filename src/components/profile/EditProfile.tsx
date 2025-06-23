@@ -1,5 +1,6 @@
 'use client';
 
+import SkeletonEditProfile from './SkeletonEditProfile';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { databases, storage, ID, account } from '../../lib/appwrite';
@@ -489,7 +490,8 @@ const EditProfile = () => {
     router.push(`/change-password/${userid}`);
   };
 
-  if (loading) return <div className="text-white text-center py-10">Loading...</div>;
+  if (loading) return <SkeletonEditProfile  />
+;
   if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
 
   return (
