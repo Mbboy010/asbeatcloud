@@ -83,7 +83,7 @@ export default function Login() {
       initial={{ x: '100vw', opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="flex p-4 justify-center items-center min-h-screen bg-[#111]"
+      className="flex p-4 justify-center items-center  bg-[#111]"
     >
       {/* Appbar */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
