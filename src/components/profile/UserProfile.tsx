@@ -235,44 +235,9 @@ const UserProfile = () => {
 
   setFollowLoading(true);
 
-  try {
-    const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
-    const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
-
-    // following: string[]
-    let updatedFollowing: string[] = Array.isArray(currentUser.following) ? [...currentUser.following] : [];
-
-    // followers: number
-    let updatedFollowers: number = typeof profileUser.followers === 'number' ? profileUser.followers : 0;
-
-    if (updatedFollowing.includes(userid)) {
-      // Unfollow
-      updatedFollowing = updatedFollowing.filter((id) => id !== userid);
-      updatedFollowers = Math.max(0, updatedFollowers - 1);
-      setIsFollowing(false);
-    } else {
-      // Follow
-      updatedFollowing.push(userid);
-      updatedFollowers += 1;
-      setIsFollowing(true);
-    }
-
-    // Update current user's following list
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
-      following: updatedFollowing,
-    });
-
-    // Update profile user's followers count
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
-      followers: updatedFollowers,
-    });
-
-    // Update local UI state
-    setUserData((prev) => ({
-      ...prev,
-      followers: updatedFollowers,
-    }));
-  } catch (err: any) {
+  try{
+    
+  }catch (err: any) {
     setError(`Failed to ${isFollowing ? 'unfollow' : 'follow'}: ${err.message}`);
     console.error('Follow toggle error:', err);
   } finally {
