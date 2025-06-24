@@ -76,7 +76,7 @@ const UserProfile = () => {
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const REPORTS_COLLECTION_ID = 'REPORTS_COLLECTION_ID'; // Replace with actual collection ID
-
+  const COLLECTION_ID = "6849aa4f000c032527a9";
   // Click-outside detection for Share Modal
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
