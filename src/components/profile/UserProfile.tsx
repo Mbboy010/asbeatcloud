@@ -226,43 +226,43 @@ const UserProfile = () => {
   };
 
   const handleFollowToggle = async () => {
-    if (!authId || isCurrentUser || followLoading) return;
+  if (!authId || isCurrentUser || followLoading) return;
 
-    setFollowLoading(true);
-    try {
-      const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string);
-      const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
+  setFollowLoading(true);
+  try {
+    const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
+    const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
 
-      let updatedFollowing = currentUser.following || [];
-      let updatedFollowers = profileUser.followers || 0;
+    let updatedFollowing = currentUser.following || [];
+    let updatedFollowers = profileUser.followers || 0;
 
-      if (isFollowing) {
-        updatedFollowing = updatedFollowing.filter((id: string) => id !== userid);
-        updatedFollowers = Math.max(0, updatedFollowers - 1);
-      } else {
-        updatedFollowing = [...updatedFollowing, userid];
-        updatedFollowers += 1;
-      }
-
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId as string, {
-        following: updatedFollowing,
-      });
-
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid as string, {
-        followers: updatedFollowers,
-      });
-
-      setUserData((prev) => ({ ...prev, followers: updatedFollowers }));
-      setIsFollowing(!isFollowing);
-    } catch (err: any) {
-      setError(`Failed to ${isFollowing ? 'unfollow' : 'follow'}: ${err.message}`);
-      console.error('Failed to update follow status:', err);
-      const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
-      setUserData((prev) => ({ ...prev, followers: response.followers || 0 }));
-    } finally {
-      setFollowLoading(false);
+    if (isFollowing) {
+      updatedFollowing = updatedFollowing.filter((id: string) => id !== userid);
+      updatedFollowers = Math.max(0, updatedFollowers - 1);
+    } else {
+      updatedFollowing = [...updatedFollowing, userid];
+      updatedFollowers += 1;
     }
-  };
+
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
+      following: updatedFollowing,
+    });
+
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
+      followers: updatedFollowers,
+    });
+
+    setUserData((prev) => ({ ...prev, followers: updatedFollowers }));
+    setIsFollowing(!isFollowing);
+  } catch (err: any) {
+    setError(`Failed to ${isFollowing ? 'unfollow' : 'follow'}: ${err.message}`);
+    console.error('Failed to update follow status:', err);
+    const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
+    setUserData((prev) => ({ ...prev, followers: response.followers || 0 }));
+  } finally {
+    setFollowLoading(false);
+  }
+};
 
   if (loading) return <SkeletonUserProfile />;
 
