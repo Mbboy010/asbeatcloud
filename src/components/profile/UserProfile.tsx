@@ -237,8 +237,9 @@ const UserProfile = () => {
 
   try{
     
-    const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as any);
-    const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as any);
+    const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string | undefined);
+    
+    const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
 
     // following: string[]
     let updatedFollowing: string[] = Array.isArray(currentUser.following) ? [...currentUser.following] : [];
