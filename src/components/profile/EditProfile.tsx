@@ -168,7 +168,7 @@ const EditProfile = () => {
           lastName: response.lastName || "",
           username: response.username || "",
           gender: response.gender || "",
-          bio: fetchedBio.slice(0, 300), // Ensure bio is ≤ 300 on fetch
+          bio: fetchedBio.slice(0, 100), // Ensure bio is ≤ 100 on fetch
           address: response.address || "",
           email: response.email || "",
           profileImageUrl: response.profileImageUrl || "",
@@ -593,9 +593,9 @@ const EditProfile = () => {
   ) => {
     const { name, value } = e.target;
     if (name !== "email" && name !== "username" && !["dobYear", "dobMonth", "dobDay"].includes(name)) {
-      if (name === "bio" && value.length > 300) {
-        setBioLengthError("Bio must be 300 characters or less.");
-        return; // Prevent adding text beyond 300
+      if (name === "bio" && value.length > 100) {
+        setBioLengthError("Bio must be 100 characters or less.");
+        return; // Prevent adding text beyond 100
       }
       setProfile((prev) => ({ ...prev, [name]: value }));
       // Clear error for the changed field
