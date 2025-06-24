@@ -1,10 +1,7 @@
-"use strict";
-// next.config.ts
-Object.defineProperty(exports, "__esModule", { value: true });
 /** @type {import('next').NextConfig} */
 var nextConfig = {
-    images: {
-        domains: [],
-    },
+    // valid keys only
+    reactStrictMode: true,
+    experimental: {},
 };
-exports.default = nextConfig;
+module.exports = nextConfig;

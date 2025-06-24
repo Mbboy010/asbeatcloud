@@ -1,10 +1,8 @@
-// next.config.ts
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    domains: [],
-  },
+  // valid keys only
+  reactStrictMode: true,
+  experimental: {},
 };
 
-export default nextConfig;
+module.exports = nextConfig;
