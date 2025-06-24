@@ -190,25 +190,7 @@ const UserProfile = () => {
   // Handle report submission
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authId || !reportReason.trim()) {
-      setError('Please provide a reason for reporting');
-      return;
-    }
 
-    try {
-      await databases.createDocument(DATABASE_ID, 'REPORTS_COLLECTION_ID', 'unique()', {
-        reportedUserId: userid,
-        reporterId: authId,
-        reason: reportReason,
-        timestamp: new Date().toISOString(),
-      });
-      setShowReportModal(false);
-      setReportReason('');
-      alert('Report submitted successfully');
-    } catch (err) {
-      setError('Failed to submit report');
-      console.error('Report submission failed:', err);
-    }
   };
 
   const isCurrentUser = authId === userid;
