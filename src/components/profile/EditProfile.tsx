@@ -696,9 +696,9 @@ const EditProfile = () => {
               />
               <div
                   className="absolute  inset-0 flex items-center justify-center text-white   pointer-events-none">
-              <p1 className="text-[1rem] bg-[#0000006f] p-1 rounded-lg backdrop-blur-md font-semibold">
+              <p className="text-[1rem] bg-[#0000006f] p-1 rounded-lg backdrop-blur-md font-semibold">
                 Click to upload or drag and drop
-              </p1>
+              </p>
               </div>
             </div>
           </div>
@@ -732,9 +732,9 @@ const EditProfile = () => {
               />
               <div
                   className="absolute  inset-0 flex items-center justify-center text-white   pointer-events-none">
-              <p1 className="text-[1rem] bg-[#0000006f] p-1 rounded-lg backdrop-blur-md font-semibold">
+              <p className="text-[1rem] bg-[#0000006f] p-1 rounded-lg backdrop-blur-md font-semibold">
                 Click to upload or drag and drop
-              </p1>
+              </p>
               </div>
             </div>
           </div>
