@@ -235,47 +235,52 @@ const UserProfile = () => {
 
   setFollowLoading(true);
 
-  try{
-    
-    const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string | undefined);
-    
-    const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
+  try {
+  // Get both documents in parallel for better performance
+  const [currentUser, profileUser] = await Promise.all([
+    databases.getDocument(DATABASE_ID, COLLECTION_ID, authId),
+    databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string)
+  ]);
 
-    // following: string[]
-    let updatedFollowing: string[] = Array.isArray(currentUser.following) ? [...currentUser.following] : [];
-
-    // followers: number
-    let updatedFollowers: number = typeof profileUser.followers === 'number' ? profileUser.followers : 0;
-
-    if (updatedFollowing.includes(userid)) {
-      // Unfollow
-      updatedFollowing = updatedFollowing.filter((id) => id !== userid);
-      updatedFollowers = Math.max(0, updatedFollowers - 1);
-      setIsFollowing(false);
-    } else {
-      // Follow
-      updatedFollowing.push(userid);
-      updatedFollowers += 1;
-      setIsFollowing(true);
-    }
-
-    // Update current user's following list
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId as string, {
-      following: updatedFollowing,
-    });
-
-    // Update profile user's followers count
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid as string, {
-      followers: updatedFollowers,
-    });
-
-    // Update local UI state
-    setUserData((prev) => ({
-      ...prev,
-      followers: updatedFollowers,
-    }));
+  // Validate and initialize data
+  let updatedFollowing: string[] = Array.isArray(currentUser.following) 
+    ? [...currentUser.following] 
+    : [];
   
-  }catch (err: any) {
+  let updatedFollowers: number = typeof profileUser.followers === 'number' 
+    ? profileUser.followers 
+    : 0;
+
+  const wasFollowing = updatedFollowing.includes(userid);
+  const newFollowingStatus = !wasFollowing;
+
+  // Update arrays/counts
+  if (wasFollowing) {
+    updatedFollowing = updatedFollowing.filter(id => id !== userid);
+    updatedFollowers = Math.max(0, updatedFollowers - 1);
+  } else {
+    updatedFollowing.push(userid);
+    updatedFollowers += 1;
+  }
+
+  // Execute updates as a transaction (if your DB supports it)
+  await Promise.all([
+    databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
+      following: updatedFollowing
+    }),
+    databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
+      followers: updatedFollowers
+    })
+  ]);
+
+  // Only update UI state after successful DB updates
+  setIsFollowing(newFollowingStatus);
+  setUserData(prev => ({
+    ...prev,
+    followers: updatedFollowers
+  }));
+
+}catch (err: any) {
     setError(`Failed to ${isFollowing ? 'unfollow' : 'follow'}: ${err.message}`);
     console.error('Follow toggle error:', err);
   } finally {
