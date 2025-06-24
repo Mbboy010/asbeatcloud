@@ -259,12 +259,12 @@ const UserProfile = () => {
     }
 
     // Update current user's following list
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId as string, {
       following: updatedFollowing,
     });
 
     // Update profile user's followers count
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid as string, {
       followers: updatedFollowers,
     });
 
