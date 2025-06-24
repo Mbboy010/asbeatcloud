@@ -4,7 +4,7 @@ import SkeletonUserProfile from './SkeletonUserProfile';
 import SAndG from './SAndG';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Twitter, Instagram, Facebook, Edit, Flag, Share2, MessageCircle, Link2 } from 'lucide-react'; // Added Link2 for copy link
+import { Twitter, Instagram, Facebook, Edit, Flag, Share2, MessageCircle, Link2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite';
@@ -14,9 +14,9 @@ import { CircleCheckBig } from 'lucide-react';
 const UserProfile = () => {
   const router = useRouter();
   const params = useParams();
-  const userid = params.userid;
+  const userid = params.userid as string | undefined; // Explicitly type userid
 
-  const authId = useAppSelector((state) => state.authId.value);
+  const authId = useAppSelector((state) => state.authId.value) as string | undefined; // Explicitly type authId
 
   // Log authId and userid for debugging
   console.log('authId:', authId, 'userid:', userid);
@@ -70,9 +70,9 @@ const UserProfile = () => {
   const [error, setError] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
-  const [showShareModal, setShowShareModal] = useState(false); // Replaced isShareMenuOpen
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  const shareModalRef = useRef<HTMLDivElement>(null); // For click-outside detection
+  const shareModalRef = useRef<HTMLDivElement>(null);
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '6849aa4f000c032527a9';
@@ -81,7 +81,7 @@ const UserProfile = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
-        
+        setShowShareModal(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -105,10 +105,13 @@ const UserProfile = () => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
-        console.log('User data:', response);
+        // Ensure userid is a string
+        if (!userid) throw new Error('Invalid user ID');
+        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid);
+
+        // Fetch current user data only if authId is defined
         const currentUserResponse = authId
-          ? await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string)
+          ? await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId)
           : null;
 
         setUserData({
@@ -169,28 +172,26 @@ const UserProfile = () => {
         alert('Profile link copied to clipboard!');
         break;
     }
-    setShowShareModal(false); // Close modal after sharing
+    setShowShareModal(false);
   };
-  
-  const [cp,setCp] = useState<boolean>(false)
-  
-  const handleCp = () =>{
-    
-  const profileUrl = `${window.location.origin}/profile/${userid}`;
-    
-    if(!cp){
-      setCp(true)
+
+  const [cp, setCp] = useState<boolean>(false);
+
+  const handleCp = () => {
+    const profileUrl = `${window.location.origin}/profile/${userid}`;
+    if (!cp) {
+      setCp(true);
       navigator.clipboard.writeText(profileUrl);
     }
-    setTimeout(()=>{
-      setCp(false)
-    },2000)
-  }
+    setTimeout(() => {
+      setCp(false);
+    }, 2000);
+  };
 
   // Handle report submission
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    // Implement report submission logic here
   };
 
   const isCurrentUser = authId === userid;
@@ -202,12 +203,14 @@ const UserProfile = () => {
   };
 
   const handleFollowToggle = async () => {
-    if (!authId || isCurrentUser || followLoading) return;
+    if (!authId || isCurrentUser || followLoading || !userid) return;
 
     setFollowLoading(true);
     try {
-      const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string);
-      const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
+      // Ensure authId and userid are strings
+      if (!authId || !userid) throw new Error('Invalid user IDs');
+      const currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
+      const profileUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid);
 
       let updatedFollowing = currentUser.following || [];
       let updatedFollowers = profileUser.followers || 0;
@@ -220,11 +223,11 @@ const UserProfile = () => {
         updatedFollowers += 1;
       }
 
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId as string, {
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
         following: updatedFollowing,
       });
 
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid as string, {
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
         followers: updatedFollowers,
       });
 
@@ -233,15 +236,14 @@ const UserProfile = () => {
     } catch (err: any) {
       setError(`Failed to ${isFollowing ? 'unfollow' : 'follow'}: ${err.message}`);
       console.error('Failed to update follow status:', err);
-      const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
+      const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid);
       setUserData((prev) => ({ ...prev, followers: response.followers || 0 }));
     } finally {
       setFollowLoading(false);
     }
   };
 
-  if (loading) return <SkeletonUserProfile />
- ;
+  if (loading) return <SkeletonUserProfile />;
   if (error) return <div className="text-red-500">{error} "user:"{userid}</div>;
 
   return (
@@ -280,9 +282,8 @@ const UserProfile = () => {
                       isFollowing ? 'bg-red-500' : 'bg-orange-500'
                     } ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    { isFollowing ? 'Unfollow' : 'Follow'}
+                    {isFollowing ? 'Unfollow' : 'Follow'}
                   </motion.button>
-
                 </>
               )}
               {isCurrentUser && (
@@ -331,7 +332,7 @@ const UserProfile = () => {
                 </button>
                 <button
                   onClick={() => shareProfile('facebook')}
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-200  rounded"
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-200 rounded"
                   aria-label="Share on Facebook"
                 >
                   <Facebook className="h-5 text-blue-500 w-5 mr-2" />
@@ -351,14 +352,14 @@ const UserProfile = () => {
                   aria-label="Copy profile link"
                 >
                   <Link2 className="w-5 h-5 mr-2" />
-                  {cp ? <span className="text-green-500">Copied</span> : <span>Copy Link</span> }
+                  {cp ? <span className="text-green-500">Copied</span> : <span>Copy Link</span>}
                 </button>
               </div>
               <div className="flex justify-end mt-4">
                 <button
                   type="button"
                   onClick={() => setShowShareModal(false)}
-                  className="px-4 py-2 bg-orange-500 rounded "
+                  className="px-4 py-2 bg-orange-500 rounded"
                 >
                   Cancel
                 </button>
@@ -399,7 +400,7 @@ const UserProfile = () => {
                   <button
                     type="button"
                     onClick={() => setShowReportModal(false)}
-                    className="px-4 py-2 bg-orange-500 rounded "
+                    className="px-4 py-2 bg-orange-500 rounded"
                   >
                     Cancel
                   </button>
@@ -421,35 +422,35 @@ const UserProfile = () => {
         <h3 className="text-lg font-semibold mb-2">About</h3>
         <p className="text-gray-300">{userData.bio.replace('@AsBeatCloud', `@${userData.username}`)}</p>
       </div>
-      
+
       <div className="mb-6 flex flex-row gap-2">
-           {/* Share Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
-                    title="Share Profile"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('Opening share modal');
-                      setShowShareModal(true);
-                    }}
-                    aria-label="Share profile"
-                  >
-                    <Share2 className="h-5 w-5" />
-                  </motion.button>
-                  {/* Report Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    onClick={() => {
-                      console.log('Opening report modal');
-                      setShowReportModal(true);
-                    }}
-                    className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
-                    title="Report Profile"
-                    aria-label="Report profile"
-                  >
-                    <Flag className="h-5 text-red-500 w-5" />
-                  </motion.button>
+        {/* Share Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
+          title="Share Profile"
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log('Opening share modal');
+            setShowShareModal(true);
+          }}
+          aria-label="Share profile"
+        >
+          <Share2 className="h-5 w-5" />
+        </motion.button>
+        {/* Report Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          onClick={() => {
+            console.log('Opening report modal');
+            setShowReportModal(true);
+          }}
+          className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
+          title="Report Profile"
+          aria-label="Report profile"
+        >
+          <Flag className="h-5 text-red-500 w-5" />
+        </motion.button>
       </div>
 
       <SAndG />
