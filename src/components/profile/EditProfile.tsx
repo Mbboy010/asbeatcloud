@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import SkeletonEditProfile from './SkeletonEditProfile';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { databases, storage, ID, account } from '../../lib/appwrite';
-import { motion } from 'framer-motion';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setNav } from '@/store/slices/navpic';
+import SkeletonEditProfile from "./SkeletonEditProfile";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { databases, storage, ID, account } from "../../lib/appwrite";
+import { motion } from "framer-motion";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { setNav } from "@/store/slices/navpic";
 
 const EditProfile = () => {
   const router = useRouter();
@@ -15,32 +15,41 @@ const EditProfile = () => {
 
   // State for profile data, image previews, and upload indicators
   const [profile, setProfile] = useState({
-    firstName: '',
-    lastName: '',
-    username: '',
-    gender: '',
-    bio: '',
-    address: '',
-    email: '',
-    profileImageUrl: '',
-    headerImageUrl: '',
-    profileImageId: '',
-    bannerImageId: '',
-    hometown: '',
-    dob: '',
-    genre: '',
+    firstName: "",
+    lastName: "",
+    username: "",
+    gender: "",
+    bio: "",
+    address: "",
+    email: "",
+    profileImageUrl: "",
+    headerImageUrl: "",
+    profileImageId: "",
+    bannerImageId: "",
+    hometown: "",
+    dob: "",
+    genre: "",
   });
-  const [dobYear, setDobYear] = useState('');
-  const [dobMonth, setDobMonth] = useState('');
-  const [dobDay, setDobDay] = useState('');
-  const [dobYearError, setDobYearError] = useState('');
-  const [dobMonthError, setDobMonthError] = useState('');
-  const [dobDayError, setDobDayError] = useState('');
-  const [dobAgeError, setDobAgeError] = useState('');
+  const [dobYear, setDobYear] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobYearError, setDobYearError] = useState("");
+  const [dobAgeError, setDobAgeError] = useState("");
+  const [dobMonthError, setDobMonthError] = useState("");
+  const [dobDayError, setDobDayError] = useState("");
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [genderError, setGenderError] = useState("");
+  const [bioError, setBioError] = useState("");
+  const [bioLengthError, setBioLengthError] = useState("");
+  const [addressError, setAddressError] = useState("");
+  const [hometownError, setHometownError] = useState("");
+  const [genreError, setGenreError] = useState("");
   const [previewProfileImage, setPreviewProfileImage] = useState<string | null>(null);
   const [previewBannerImage, setPreviewBannerImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
   const [uploadingBannerImage, setUploadingBannerImage] = useState(false);
   const [isCroppingProfile, setIsCroppingProfile] = useState(false);
@@ -48,9 +57,11 @@ const EditProfile = () => {
   const profileImageRef = useRef<HTMLInputElement>(null);
   const bannerImageRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [hasInvalidInputs, setHasInvalidInputs] = useState(true);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
-  const COLLECTION_ID = '6849aa4f000c032527a9';
+  const COLLECTION_ID = "6849aa4f000c032527a9";
   const BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
 
   // Cleanup object URLs on component unmount
@@ -61,55 +72,124 @@ const EditProfile = () => {
     };
   }, [previewProfileImage, previewBannerImage]);
 
-  // Fetch profile data from Appwrite and split DOB
+  // Check for empty or invalid inputs in real-time
   useEffect(() => {
-    if (!userid) {
-      setError('User ID not provided');
+    const checkInputs = () => {
+      const isEmptyOrInvalid =
+        !profile.firstName.trim() ||
+        !profile.lastName.trim() ||
+        !profile.gender ||
+        !profile.bio.trim() ||
+        !profile.address.trim() ||
+        !profile.hometown.trim() ||
+        !profile.genre.trim() ||
+        !dobYear ||
+        !dobMonth ||
+        !dobDay ||
+        !!firstNameError ||
+        !!lastNameError ||
+        !!genderError ||
+        !!bioError ||
+        !!bioLengthError ||
+        !!addressError ||
+        !!hometownError ||
+        !!genreError ||
+        !!dobYearError ||
+        !!dobAgeError ||
+        !!dobMonthError ||
+        !!dobDayError;
+      setHasInvalidInputs(isEmptyOrInvalid);
+    };
+    checkInputs();
+  }, [
+    profile.firstName,
+    profile.lastName,
+    profile.gender,
+    profile.bio,
+    profile.address,
+    profile.hometown,
+    profile.genre,
+    dobYear,
+    dobMonth,
+    dobDay,
+    firstNameError,
+    lastNameError,
+    genderError,
+    bioError,
+    bioLengthError,
+    addressError,
+    hometownError,
+    genreError,
+    dobYearError,
+    dobAgeError,
+    dobMonthError,
+    dobDayError,
+  ]);
+
+  // Fetch profile data and verify authorization
+  useEffect(() => {
+    // cheek current user ID
+    const currentUser = account.get();
+    
+    if (!currentUser) {
+      setError("User ID not provided");
       setLoading(false);
       return;
     }
-
+    
     if (!DATABASE_ID) {
-      setError('Database ID is not configured');
+      setError("Database ID is not configured");
       setLoading(false);
       return;
     }
 
     const fetchProfileData = async () => {
       try {
-        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid as string);
-        const dob = response.dob || '';
-        let year = '',
-          month = '',
-          day = '';
-        if (dob) {
-          [year, month, day] = dob.split('-');
+        // Verify logged-in user
+        
+        if (!currentUser) {
+          setError("Unauthorized to edit this profile");
+          setLoading(false);
+          return;
         }
+
+        // Fetch profile data
+        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid);
+        const dob = response.dob || "";
+        let year = "",
+          month = "",
+          day = "";
+        if (dob) {
+          [year, month, day] = dob.split("-");
+        }
+        const fetchedBio = response.bio || "";
         setProfile({
-          firstName: response.firstName || '',
-          lastName: response.lastName || '',
-          username: response.username || '',
-          gender: response.gender || '',
-          bio: response.bio || '',
-          address: response.address || '',
-          email: response.email || '',
-          profileImageUrl: response.profileImageUrl || '',
-          headerImageUrl: response.headerImageUrl || '',
-          profileImageId: response.profileImageId || '',
-          bannerImageId: response.bannerImageId || '',
-          hometown: response.hometown || '',
+          firstName: response.firstName || "",
+          lastName: response.lastName || "",
+          username: response.username || "",
+          gender: response.gender || "",
+          bio: fetchedBio.slice(0, 300), // Ensure bio is ≤ 300 on fetch
+          address: response.address || "",
+          email: response.email || "",
+          profileImageUrl: response.profileImageUrl || "",
+          headerImageUrl: response.headerImageUrl || "",
+          profileImageId: response.profileImageId || "",
+          bannerImageId: response.bannerImageId || "",
+          hometown: response.hometown || "",
           dob: dob,
-          genre: response.genre || '',
+          genre: response.genre || "",
         });
+        console.log("Fetched profile image URL:", response.profileImageUrl);
+        console.log("Fetched header image URL:", response.headerImageUrl);
+        setPreviewProfileImage(response.profileImageUrl || null);
+        setPreviewBannerImage(response.headerImageUrl || null);
         setDobYear(year);
         setDobMonth(month);
         setDobDay(day);
-        setPreviewProfileImage(response.profileImageUrl || null);
-        setPreviewBannerImage(response.headerImageUrl || null);
-        validateDob(year, month, day); // Validate on load
+        validateDob(year, month, day); // Validate DOB on load
       } catch (err) {
-        setError('Error fetching profile data');
-        console.error('Failed to fetch profile data:', err);
+        console.error("Failed to fetch profile data:", err);
+        setError("Error fetching profile data");
       } finally {
         setLoading(false);
       }
@@ -119,100 +199,129 @@ const EditProfile = () => {
   }, [userid, DATABASE_ID]);
 
   // Compression function for banner image (~51KB)
-  const compressTo51KB = useCallback((canvas: HTMLCanvasElement): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const targetSize = 51000; // ~51KB in bytes
-      let quality = 0.95;
+  const compressTo51KB = useCallback(
+    (canvas: HTMLCanvasElement): Promise<Blob> => {
+      return new Promise((resolve, reject) => {
+        const targetSize = 51000; // ~51KB in bytes
+        let quality = 0.95;
 
-      const tryCompress = () => {
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error('Failed to create blob'));
-              return;
-            }
-            const size = blob.size;
-            if (size <= targetSize || quality <= 0.01) {
-              if (size <= targetSize) {
-                resolve(blob);
-              } else {
-                reject(new Error('Could not compress to 51KB'));
+        const tryCompress = () => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Failed to create blob"));
+                return;
               }
-              return;
-            }
-            quality -= 0.02;
-            tryCompress();
-          },
-          'image/jpeg',
-          quality
-        );
-      };
+              const size = blob.size;
+              if (size <= targetSize || quality <= 0.01) {
+                if (size <= targetSize) {
+                  resolve(blob);
+                } else {
+                  reject(new Error("Could not compress to 51KB"));
+                }
+                return;
+              }
+              quality -= 0.02;
+              tryCompress();
+            },
+            "image/jpeg",
+            quality
+          );
+        };
 
-      tryCompress();
-    });
-  }, []);
+        tryCompress();
+      });
+    },
+    []
+  );
 
-  // Validate Date of Birth (must be >= 18 years old as of June 23, 2025)
+  // Validate Date of Birth
   const validateDob = (year: string, month: string, day: string) => {
-    setDobYearError('');
-    setDobMonthError('');
-    setDobDayError('');
-    setDobAgeError('');
+    setDobYearError("");
+    setDobAgeError("");
+    setDobMonthError("");
+    setDobDayError("");
 
-    if (!year && !month && !day) {
-      return; // Empty fields are valid
+    // Year validation
+    if (!year) {
+      setDobYearError("Year is required");
+      return;
     }
-
-    // Validate year
     const yearNum = parseInt(year);
     if (!year.match(/^\d{4}$/) || yearNum < 1900 || yearNum > 2007) {
-      setDobYearError('Enter a valid year (1900–2007)');
+      setDobYearError("Enter a valid year (1900–2007)");
+      return;
+    }
+    const age = new Date("2025-06-23").getFullYear() - yearNum;
+    if (age < 18) {
+      setDobAgeError("You must be at least 18 years old.");
       return;
     }
 
-    // Validate month
+    // Month validation
+    if (!month) {
+      setDobMonthError("Month is required");
+      return;
+    }
+    if (month === "0" || month === "00") {
+      setDobMonthError("Month cannot be zero");
+      return;
+    }
     const monthNum = parseInt(month);
-    if (!month.match(/^\d{2}$/) || monthNum < 1 || monthNum > 12) {
-      setDobMonthError('Enter a valid month (01–12)');
+    if (monthNum < 1 || monthNum > 12) {
+      setDobMonthError("Enter a valid month (01–12)");
       return;
     }
 
-    // Validate day
+    // Day validation
+    if (!day) {
+      setDobDayError("Day is required");
+      return;
+    }
+    if (day === "0" || day === "00") {
+      setDobDayError("Day cannot be zero");
+      return;
+    }
     const dayNum = parseInt(day);
-    const maxDays = new Date(yearNum, monthNum, 0).getDate(); // Days in month
-    if (!day.match(/^\d{2}$/) || dayNum < 1 || dayNum > maxDays) {
-      setDobDayError(`Enter a valid day (01–${maxDays.toString().padStart(2, '0')})`);
+    const maxDays = new Date(yearNum, monthNum, 0).getDate();
+    if (dayNum < 1 || dayNum > maxDays) {
+      setDobDayError(`Enter a valid day (01–${maxDays.toString().padStart(2, "0")})`);
       return;
     }
+  };
 
-    // Validate age
-    const dobDate = new Date(yearNum, monthNum - 1, dayNum);
-    const currentDate = new Date('2025-06-23');
-    const age = currentDate.getFullYear() - dobDate.getFullYear();
-    const monthDiff = currentDate.getMonth() - dobDate.getMonth();
-    const dayDiff = currentDate.getDate() - dobDate.getDate();
-    const adjustedAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-
-    if (adjustedAge < 18) {
-      setDobAgeError('You must be at least 18 years old.');
-    }
+  // Validate all inputs for empty fields
+  const validateInputs = () => {
+    setFirstNameError(profile.firstName.trim() ? "" : "First name is required");
+    setLastNameError(profile.lastName.trim() ? "" : "Last name is required");
+    setGenderError(profile.gender ? "" : "Gender is required");
+    setBioError(profile.bio.trim() ? "" : "Bio is required");
+    setAddressError(profile.address.trim() ? "" : "Address is required");
+    setHometownError(profile.hometown.trim() ? "" : "Hometown is required");
+    setGenreError(profile.genre.trim() ? "" : "Genre is required");
+    validateDob(dobYear, dobMonth, dobDay);
   };
 
   // Handle form submission to update profile data
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!DATABASE_ID) {
-      setError('Database ID is not configured');
-      return;
-    }
-    if (dobYearError || dobMonthError || dobDayError || dobAgeError) {
-      setError('Please fix the Date of Birth errors before saving.');
+      setError("Database ID is not configured");
       return;
     }
 
-    const dob = dobYear && dobMonth && dobDay ? `${dobYear}-${dobMonth}-${dobDay}` : '';
+    validateInputs(); // Highlight empty/invalid fields on save attempt
+    if (hasInvalidInputs) {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+      return;
+    }
+
+    setIsSaving(true);
+    const dob = `${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`;
     try {
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid as string, {
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
         firstName: profile.firstName,
         lastName: profile.lastName,
         gender: profile.gender,
@@ -228,35 +337,37 @@ const EditProfile = () => {
         genre: profile.genre,
       });
       dispatch(setNav(profile.profileImageUrl));
-      await account.updateName(profile.firstName + ' ' + profile.lastName);
+      await account.updateName(profile.firstName + " " + profile.lastName);
       router.push(`/profile/${userid}`);
     } catch (err) {
-      setError('Error updating profile data');
-      console.error('Failed to update profile:', err);
+      console.error("Failed to update profile:", err);
+      setError("Error updating profile data");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   // Handle profile image upload with square cropping and compression
   const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
+    if (!file || !file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
       return;
     }
     if (!BUCKET_ID) {
-      setError('Storage bucket ID is not configured');
+      setError("Storage bucket ID is not configured");
       return;
     }
     if (!canvasRef.current) {
-      setError('Canvas not available');
+      setError("Canvas not available");
       return;
     }
 
     setIsCroppingProfile(true);
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) {
-      setError('Canvas context not available');
+      setError("Canvas context not available");
       setIsCroppingProfile(false);
       return;
     }
@@ -266,7 +377,7 @@ const EditProfile = () => {
       const img = new Image();
       img.onload = async () => {
         try {
-          // Step 1: Crop to square
+          // Crop to square
           let sx = 0,
             sy = 0,
             sWidth = img.width,
@@ -278,69 +389,69 @@ const EditProfile = () => {
             sWidth = sHeight = size;
           }
 
-          // Step 2: Resize to 512x512
+          // Resize to 512x512
           const targetSize = 512;
           canvas.width = targetSize;
           canvas.height = targetSize;
           ctx.clearRect(0, 0, targetSize, targetSize);
           ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, targetSize, targetSize);
 
-          // Step 3: Compress with 70% quality
+          // Compress with 70% quality
           canvas.toBlob(
             async (blob) => {
               if (!blob) {
-                setError('Failed to create blob');
+                setError("Failed to create blob");
                 setIsCroppingProfile(false);
                 return;
               }
-              console.log('Profile blob size:', blob.size);
+              console.log("Profile blob size:", blob.size);
               const oldPreview = previewProfileImage;
               setPreviewProfileImage(null);
               if (oldPreview) {
                 URL.revokeObjectURL(oldPreview);
               }
               const previewUrl = URL.createObjectURL(blob);
-              console.log('New profile preview URL:', previewUrl);
+              console.log("New profile preview URL:", previewUrl);
               setPreviewProfileImage(previewUrl);
               setUploadingProfileImage(true);
 
               try {
-                const uploadFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+                const uploadFile = new File([blob], "profile.jpg", { type: "image/jpeg" });
                 const response = await storage.createFile(BUCKET_ID, ID.unique(), uploadFile);
                 const newProfileImageUrl = storage.getFileView(BUCKET_ID, response.$id).toString();
-                console.log('Appwrite profile URL:', newProfileImageUrl);
+                console.log("Appwrite profile URL:", newProfileImageUrl);
                 setProfile((prev) => ({
                   ...prev,
                   profileImageUrl: newProfileImageUrl,
                   profileImageId: response.$id,
                 }));
               } catch (err: any) {
-                setError(`Error uploading profile image: ${err.message || 'Unknown error'}`);
-                console.error('Appwrite upload error:', err);
+                setError(`Error uploading profile image: ${err.message || "Unknown error"}`);
+                console.error("Appwrite upload error:", err);
               } finally {
                 setUploadingProfileImage(false);
                 setIsCroppingProfile(false);
               }
             },
-            'image/jpeg',
+            "image/jpeg",
             0.7
           );
         } catch (err: any) {
-          setError(`Error processing profile image: ${err.message || 'Unknown error'}`);
-          console.error('Processing error:', err);
+          setError(`Error processing profile image: ${err.message || "Unknown error"}`);
+          console.error("Processing error:", err);
           setIsCroppingProfile(false);
         }
       };
       img.onerror = () => {
-        setError('Failed to load image');
-        console.error('Image load error');
+        setError("Failed to load image");
+        console.error("Image load error");
         setIsCroppingProfile(false);
       };
       img.src = reader.result as string;
     };
     reader.onerror = () => {
-      setError('Failed to read file');
-      console.error('FileReader error');
+      setError("Failed to read file");
+      console.error("FileReader error");
       setIsCroppingProfile(false);
     };
     reader.readAsDataURL(file);
@@ -349,24 +460,24 @@ const EditProfile = () => {
   // Handle banner image upload with aspect ratio check
   const handleBannerImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
+    if (!file || !file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
       return;
     }
     if (!BUCKET_ID) {
-      setError('Storage bucket ID is not configured');
+      setError("Storage bucket ID is not configured");
       return;
     }
     if (!canvasRef.current) {
-      setError('Canvas not available');
+      setError("Canvas not available");
       return;
     }
 
     setIsCroppingBanner(true);
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) {
-      setError('Canvas context not available');
+      setError("Canvas context not available");
       setIsCroppingBanner(false);
       return;
     }
@@ -409,43 +520,43 @@ const EditProfile = () => {
             URL.revokeObjectURL(oldPreview);
           }
           const previewUrl = URL.createObjectURL(compressedBlob);
-          console.log('New banner preview URL:', previewUrl);
+          console.log("New banner preview URL:", previewUrl);
           setPreviewBannerImage(previewUrl);
           setUploadingBannerImage(true);
 
           try {
-            const uploadFile = new File([compressedBlob], 'banner.jpg', { type: 'image/jpeg' });
+            const uploadFile = new File([compressedBlob], "banner.jpg", { type: "image/jpeg" });
             const response = await storage.createFile(BUCKET_ID, ID.unique(), uploadFile);
             const newBannerUrl = storage.getFileView(BUCKET_ID, response.$id).toString();
-            console.log('Appwrite banner URL:', newBannerUrl);
+            console.log("Appwrite banner URL:", newBannerUrl);
             setProfile((prev) => ({
               ...prev,
               headerImageUrl: newBannerUrl,
               bannerImageId: response.$id,
             }));
           } catch (err: any) {
-            setError(`Error uploading banner image: ${err.message || 'Unknown error'}`);
-            console.error('Appwrite upload error:', err);
+            setError(`Error uploading banner image: ${err.message || "Unknown error"}`);
+            console.error("Appwrite upload error:", err);
           } finally {
             setUploadingBannerImage(false);
             setIsCroppingBanner(false);
           }
         } catch (err: any) {
-          setError(`Error processing banner image: ${err.message || 'Unknown error'}`);
-          console.error('Processing error:', err);
+          setError(`Error processing banner image: ${err.message || "Unknown error"}`);
+          console.error("Processing error:", err);
           setIsCroppingBanner(false);
         }
       };
       img.onerror = () => {
-        setError('Failed to load image');
-        console.error('Image load error');
+        setError("Failed to load image");
+        console.error("Image load error");
         setIsCroppingBanner(false);
       };
       img.src = reader.result as string;
     };
     reader.onerror = () => {
-      setError('Failed to read file');
-      console.error('FileReader error');
+      setError("Failed to read file");
+      console.error("FileReader error");
       setIsCroppingBanner(false);
     };
     reader.readAsDataURL(file);
@@ -454,34 +565,64 @@ const EditProfile = () => {
   // Handle DOB input changes
   const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    let formattedValue = value.replace(/[^0-9]/g, ''); // Numbers only
+    let formattedValue = value.replace(/[^0-9]/g, "");
 
-    if (name === 'dobYear') {
+    if (name === "dobYear") {
       setDobYear(formattedValue.slice(0, 4));
-    } else if (name === 'dobMonth') {
+      setDobYearError("");
+      setDobAgeError("");
+      validateDob(formattedValue.slice(0, 4), dobMonth, dobDay);
+    } else if (name === "dobMonth") {
       if (formattedValue.length <= 2) {
         setDobMonth(formattedValue);
+        setDobMonthError("");
+        validateDob(dobYear, formattedValue, dobDay);
       }
-    } else if (name === 'dobDay') {
+    } else if (name === "dobDay") {
       if (formattedValue.length <= 2) {
         setDobDay(formattedValue);
+        setDobDayError("");
+        validateDob(dobYear, dobMonth, formattedValue);
       }
     }
-
-    // Validate after updating state
-    const newYear = name === 'dobYear' ? formattedValue.slice(0, 4) : dobYear;
-    const newMonth = name === 'dobMonth' ? formattedValue.slice(0, 2) : dobMonth;
-    const newDay = name === 'dobDay' ? formattedValue.slice(0, 2) : dobDay;
-    validateDob(newYear, newMonth, newDay);
   };
 
-  // Handle other input changes (excluding email, username, and DOB)
+  // Handle other input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    if (name !== 'email' && name !== 'username' && !['dobYear', 'dobMonth', 'dobDay'].includes(name)) {
+    if (name !== "email" && name !== "username" && !["dobYear", "dobMonth", "dobDay"].includes(name)) {
+      if (name === "bio" && value.length > 300) {
+        setBioLengthError("Bio must be 300 characters or less.");
+        return; // Prevent adding text beyond 300
+      }
       setProfile((prev) => ({ ...prev, [name]: value }));
+      // Clear error for the changed field
+      switch (name) {
+        case "firstName":
+          setFirstNameError("");
+          break;
+        case "lastName":
+          setLastNameError("");
+          break;
+        case "gender":
+          setGenderError("");
+          break;
+        case "bio":
+          setBioError("");
+          setBioLengthError("");
+          break;
+        case "address":
+          setAddressError("");
+          break;
+        case "hometown":
+          setHometownError("");
+          break;
+        case "genre":
+          setGenreError("");
+          break;
+      }
     }
   };
 
@@ -490,13 +631,34 @@ const EditProfile = () => {
     router.push(`/change-password/${userid}`);
   };
 
-  if (loading) return <SkeletonEditProfile  />
-;
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
+  // Handle navigation to home page
+  const handleGoHome = () => {
+    router.push("/");
+  };
+
+  if (loading) return <SkeletonEditProfile />;
+  if (error) {
+    return (
+      <div className="text-red-500 w-screen justify-center items-center flex flex-col py-10">
+        {error}
+        {error === "User ID not provided" && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleGoHome}
+            className="mt-4 py-2 px-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300"
+          >
+            Go Home
+          </motion.button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-gray-200 p-6">
       <motion.div
+        ref={formRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -504,23 +666,24 @@ const EditProfile = () => {
       >
         <h1 className="text-2xl font-bold mb-6 text-orange-500 text-center">Edit Your Profile</h1>
         <form onSubmit={handleSave} className="space-y-6">
-          <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+          <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
           {/* Banner Image Upload Section */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Banner Image</label>
             <div className="relative">
               <div className="w-full h-32 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 flex items-center justify-center overflow-hidden">
                 {uploadingBannerImage || isCroppingBanner ? (
-                  <div className="w-8 h-8 border-4 border-t-4 border-orange-500 border-solid rounded-full animate-spin"></div>
+                  <div className="w-12 h-12 border-4 border-t-4 border-orange-500 border-solid rounded-full animate-spin"></div>
                 ) : previewBannerImage ? (
                   <img
                     src={previewBannerImage}
                     alt="Banner Preview"
                     className="w-full h-full object-cover"
                     key={previewBannerImage}
+                    onError={() => setPreviewBannerImage(null)}
                   />
                 ) : (
-                  <span className="text-gray-500">No banner image selected</span>
+                       <span></span>
                 )}
               </div>
               <motion.input
@@ -531,8 +694,11 @@ const EditProfile = () => {
                 ref={bannerImageRef}
                 className="absolute inset-0 w-full h-32 opacity-0 cursor-pointer"
               />
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm pointer-events-none">
+              <div
+                  className="absolute  inset-0 flex items-center justify-center text-white   pointer-events-none">
+              <p1 className="text-[1rem] bg-[#0000006f] p-1 rounded-lg backdrop-blur-md font-semibold">
                 Click to upload or drag and drop
+              </p1>
               </div>
             </div>
           </div>
@@ -543,16 +709,17 @@ const EditProfile = () => {
             <div className="relative">
               <div className="w-full h-48 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 flex items-center justify-center overflow-hidden">
                 {uploadingProfileImage || isCroppingProfile ? (
-                  <div className="w-8 h-8 border-4 border-t-4 border-orange-500 border-solid rounded-full animate-spin"></div>
+                  <div className="w-16 h-16 border-4 border-t-4 border-orange-500 border-solid rounded-full animate-spin"></div>
                 ) : previewProfileImage ? (
                   <img
                     src={previewProfileImage}
                     alt="Profile Preview"
                     className="w-full h-full object-cover"
                     key={previewProfileImage}
+                    onError={() => setPreviewProfileImage(null)}
                   />
                 ) : (
-                  <span className="text-gray-500">No profile image selected</span>
+                  <span className="text-gray-500"></span>
                 )}
               </div>
               <motion.input
@@ -563,13 +730,18 @@ const EditProfile = () => {
                 ref={profileImageRef}
                 className="absolute inset-0 w-full h-48 opacity-0 cursor-pointer z-10"
               />
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm pointer-events-none">
+              <div
+                  className="absolute  inset-0 flex items-center justify-center text-white   pointer-events-none">
+              <p1 className="text-[1rem] bg-[#0000006f] p-1 rounded-lg backdrop-blur-md font-semibold">
                 Click to upload or drag and drop
+              </p1>
               </div>
             </div>
           </div>
 
+          {/* First Name */}
           <div>
+            {profile.firstName =="" && <p className="text-red-500 text-sm mb-2">fill first name is empty</p>}
             <label className="block text-sm font-medium text-gray-400 mb-2">First Name</label>
             <motion.input
               whileFocus={{ scale: 1.02 }}
@@ -581,7 +753,10 @@ const EditProfile = () => {
               placeholder="Enter first name"
             />
           </div>
+
+          {/* Last Name */}
           <div>
+            {profile.lastName =="" && <p className="text-red-500 text-sm mb-2">fill last name is empty</p>}
             <label className="block text-sm font-medium text-gray-400 mb-2">Last Name</label>
             <motion.input
               whileFocus={{ scale: 1.02 }}
@@ -593,10 +768,12 @@ const EditProfile = () => {
               placeholder="Enter last name"
             />
           </div>
+
+          {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Username</label>
             <motion.input
-              whileFocus={{ scale: 1.02 }}
+              whileFocus={{ opacity: 0.8 }}
               type="text"
               name="username"
               value={profile.username}
@@ -605,10 +782,12 @@ const EditProfile = () => {
               placeholder="Username (not editable)"
             />
           </div>
+
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
             <motion.input
-              whileFocus={{ scale: 1.02 }}
+              whileFocus={{ opacity: 0.8 }}
               type="email"
               name="email"
               value={profile.email}
@@ -617,22 +796,34 @@ const EditProfile = () => {
               placeholder="Email (not editable)"
             />
           </div>
+
+          {/* Gender */}
           <div>
+            {profile.gender =="" && <p className="text-red-500 text-sm mb-2">fill gender is empty</p>}
             <label className="block text-sm font-medium text-gray-400 mb-2">Gender</label>
             <motion.select
               whileFocus={{ scale: 1.02 }}
               name="gender"
               value={profile.gender}
               onChange={handleChange}
-              className="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all duration-200 placeholder-gray-500"
+              className="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all duration-200"
             >
-              <option value="">Select gender</option>
+              <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </motion.select>
           </div>
+
+          {/* Bio */}
           <div>
+         {profile.bio =="" && <p className="text-red-500 text-sm mb-2">fill bio is empty</p>}
+            {(bioError || bioLengthError) && (
+              <div className="text-red-500 text-sm mb-2">
+                {bioError && <p>{bioError}</p>}
+                {bioLengthError && <p>{bioLengthError}</p>}
+              </div>
+            )}
             <label className="block text-sm font-medium text-gray-400 mb-2">Bio</label>
             <motion.textarea
               whileFocus={{ scale: 1.02 }}
@@ -643,7 +834,10 @@ const EditProfile = () => {
               placeholder="Enter a brief bio"
             />
           </div>
+
+          {/* Address */}
           <div>
+            {profile.address =="" && <p className="text-red-500 text-sm mb-2">fill address is empty</p>}
             <label className="block text-sm font-medium text-gray-400 mb-2">Address</label>
             <motion.input
               whileFocus={{ scale: 1.02 }}
@@ -655,7 +849,10 @@ const EditProfile = () => {
               placeholder="Enter address"
             />
           </div>
+
+          {/* Hometown */}
           <div>
+            {profile.hometown =="" && <p className="text-red-500 text-sm mb-2">fill home town is empty</p>}
             <label className="block text-sm font-medium text-gray-400 mb-2">Hometown</label>
             <motion.input
               whileFocus={{ scale: 1.02 }}
@@ -667,9 +864,18 @@ const EditProfile = () => {
               placeholder="Enter hometown"
             />
           </div>
+
+          {/* Date of Birth */}
           <div>
+            {(dobYearError || dobAgeError || dobMonthError || dobDayError) && (
+              <div className="text-red-500 text-sm mb-2">
+                {dobYearError && <p>{dobYearError}</p>}
+                {dobAgeError && <p>{dobAgeError}</p>}
+                {dobMonthError && <p>{dobMonthError}</p>}
+                {dobDayError && <p>{dobDayError}</p>}
+              </div>
+            )}
             <label className="block text-sm font-medium text-gray-400 mb-2">Date of Birth</label>
-            {dobAgeError && <p className="text-red-500 text-sm mb-2">{dobAgeError}</p>}
             <div className="flex items-center space-x-2">
               <div className="flex-1">
                 <motion.input
@@ -682,7 +888,6 @@ const EditProfile = () => {
                   placeholder="YYYY"
                   maxLength={4}
                 />
-                {dobYearError && <p className="text-red-500 text-xs mt-1">{dobYearError}</p>}
               </div>
               <span className="text-gray-400">-</span>
               <div className="flex-1">
@@ -696,7 +901,6 @@ const EditProfile = () => {
                   placeholder="MM"
                   maxLength={2}
                 />
-                {dobMonthError && <p className="text-red-500 text-xs mt-1">{dobMonthError}</p>}
               </div>
               <span className="text-gray-400">-</span>
               <div className="flex-1">
@@ -710,10 +914,12 @@ const EditProfile = () => {
                   placeholder="DD"
                   maxLength={2}
                 />
-                {dobDayError && <p className="text-red-500 text-xs mt-1">{dobDayError}</p>}
               </div>
             </div>
           </div>
+
+          {/* Genre */}
+            {profile.genre =="" && <p className="text-red-500 text-sm mb-2">fill genre is empty</p>}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Genre</label>
             <motion.input
@@ -726,13 +932,23 @@ const EditProfile = () => {
               placeholder="Enter genre"
             />
           </div>
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300"
+            disabled={isSaving || hasInvalidInputs}
+            className={`w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold shadow-lg transition-all duration-300 flex items-center justify-center ${
+              isSaving || hasInvalidInputs
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:from-orange-600 hover:to-orange-700"
+            }`}
           >
-            Save Changes
+            {isSaving ? (
+              <div className="w-6 h-6 border-4 border-t-4 border-white border-solid rounded-full animate-spin"></div>
+            ) : (
+              "Save Changes"
+            )}
           </motion.button>
           <div className="text-center mt-4">
             <motion.a

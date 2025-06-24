@@ -51,11 +51,7 @@ const UserProfile = () => {
   const COLLECTION_ID = '6849aa4f000c032527a9';
 
   // Map of platform to icon component
-  const platformIcons = {
-    Twitter,
-    Instagram,
-    Facebook,
-  };
+  
 
   // Fetch user data from Appwrite
   useEffect(() => {
@@ -150,36 +146,7 @@ const UserProfile = () => {
         <p className="text-gray-300">{userData.bio.replace('@AsBeatCloud', `@${userData.username}`)}</p>
       </div>
 
-      {/* Social Links with Icons and Names */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Connect</h3>
-        <div className="flex space-x-4">
-          {userData.socialLinks.map((link) => {
-            const IconComponent = platformIcons[link.platform as keyof typeof platformIcons];
-            return (
-              <Link key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" title={link.platform}>
-                <motion.div whileHover={{ scale: 1.1 }} className={`flex items-center ${link.color} transition duration-200`}>
-                  <IconComponent className="w-6 h-6 mr-1" />
-                  <span className="text-sm">{link.platform}</span>
-                </motion.div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Image Gallery */}
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Gallery</h3>
-        <div className="grid grid-cols-3 gap-4">
-          {userData.galleryImages.map((image, index) => (
-            <img key={index} src={image} alt={`${userData.username} gallery image ${index + 1}`} className="w-full h-32 object-cover rounded-lg" />
-          ))}
-        </div>
-      </div>
-
-      {/* Last Updated */}
-      <p className="text-sm text-gray-500 mt-4">Last Updated: {lastUpdated}</p>
     </div>
   );
 };

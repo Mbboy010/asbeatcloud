@@ -1,5 +1,6 @@
 'use client';
 
+import SkeletonArtistProfile from './SkeletonArtistProfile';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite'; // Ensure this path is correct
@@ -59,7 +60,7 @@ const ArtistProfile = () => {
     fetchArtistData();
   }, [userid, DATABASE_ID]);
 
-  if (loading) return <div className="text-white">Loading...</div>;
+  if (loading) return <SkeletonArtistProfile  />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
@@ -73,7 +74,7 @@ const ArtistProfile = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-50 rounded-lg"></div>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-4  space-y-2">
         <div>
           <h3 className="text-sm font-medium text-gray-400">Hometown</h3>
           <p className="text-md">{artist.hometown}</p>
