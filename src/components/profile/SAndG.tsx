@@ -69,7 +69,7 @@ export default function SAndG() {
       </div>
 
       {/* Last Updated */}
-      <p className="text-sm text-gray-500 mt-4">Last Updated: {lastUpdated}</p>
+      <p className="text-sm text-gray-500 mt-4">Last Updated: </p>
     
     </div>
   )

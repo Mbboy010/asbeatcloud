@@ -1,5 +1,6 @@
 'use client';
 
+import SAndG from './SAndG';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Twitter, Instagram, Facebook, Edit } from 'lucide-react';
@@ -146,6 +147,7 @@ const UserProfile = () => {
         <p className="text-gray-300">{userData.bio.replace('@AsBeatCloud', `@${userData.username}`)}</p>
       </div>
 
+      <SAndG />
 
     </div>
   );
