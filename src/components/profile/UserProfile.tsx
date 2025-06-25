@@ -11,12 +11,31 @@ import { databases } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { CircleCheckBig } from 'lucide-react';
 
+// Define interfaces for type safety
+interface SocialLink {
+  platform: string;
+  url: string;
+  color: string;
+}
+
+interface UserData {
+  profileImageUrl: string;
+  headerImageUrl: string;
+  bio: string;
+  socialLinks: SocialLink[];
+  galleryImages: string[];
+  followers: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  following: string[];
+}
+
 const UserProfile = () => {
   const router = useRouter();
   const params = useParams();
-  const userid = params.userid;
-
-  const authId = useAppSelector((state) => state.authId.value);
+  const userid = typeof params.userid === 'string' ? params.userid : undefined; // Ensure userid is string or undefined
+  const authId = useAppSelector((state) => state.authId.value) as string | undefined;
 
   // Log authId and userid for debugging
   console.log('authId:', authId, 'userid:', userid);
@@ -34,7 +53,7 @@ const UserProfile = () => {
     timeZone: 'Africa/Lagos',
   });
 
-  // Convert numbers
+  // Format numbers
   function formatNumber(num: number): string {
     if (num >= 1_000_000_000) {
       return (num / 1_000_000_000).toFixed(num % 1_000_000_000 === 0 ? 0 : 2) + 'b';
@@ -48,7 +67,7 @@ const UserProfile = () => {
   }
 
   // State for dynamic data
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     profileImageUrl: '',
     headerImageUrl: '',
     bio: '',
@@ -71,12 +90,14 @@ const UserProfile = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [cp, setCp] = useState<boolean>(false);
 
   const shareModalRef = useRef<HTMLDivElement>(null);
 
-  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
   const REPORTS_COLLECTION_ID = 'REPORTS_COLLECTION_ID'; // Replace with actual collection ID
-  const COLLECTION_ID = "6849aa4f000c032527a9";
+  const COLLECTION_ID = '6849aa4f000c032527a9';
+
   // Click-outside detection for Share Modal
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -90,8 +111,8 @@ const UserProfile = () => {
 
   // Fetch user data from Appwrite
   useEffect(() => {
-    if (!userid || typeof userid !== 'string') {
-      setError('User ID not provided or invalid');
+    if (!userid) {
+      setError('User ID not provided');
       setLoading(false);
       return;
     }
@@ -102,39 +123,47 @@ const UserProfile = () => {
       return;
     }
 
+    if (!COLLECTION_ID) {
+      setError('Collection ID is not configured');
+      setLoading(false);
+      return;
+    }
+
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid);
-        console.log('User data:', response);
-        const currentUserResponse = authId
-          ? await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId as string)
-          : null;
+        // Fetch both user documents in parallel
+        const [profileResponse, currentUserResponse] = await Promise.all([
+          databases.getDocument(DATABASE_ID, COLLECTION_ID, userid),
+          authId ? databases.getDocument(DATABASE_ID, COLLECTION_ID, authId) : Promise.resolve(null),
+        ]);
+
+        console.log('Profile data:', profileResponse, 'Current user data:', currentUserResponse);
 
         setUserData({
           profileImageUrl:
-            response.profileImageUrl ||
+            profileResponse.profileImageUrl ||
             'https://fra.cloud.appwrite.io/v1/storage/buckets/6849a34c0027417cde77/files/685801850016a00b3c79/view?project=6840dd66001574a22f81&mode=admin',
-          headerImageUrl: response.headerImageUrl || 'https://via.placeholder.com/800x200',
-          bio: response.bio || 'No bio available.',
+          headerImageUrl: profileResponse.headerImageUrl || 'https://via.placeholder.com/800x200',
+          bio: profileResponse.bio || 'No bio available.',
           socialLinks: [
-            { platform: 'Twitter', url: response.twitterUrl || '', color: 'text-blue-400 hover:text-blue-300' },
-            { platform: 'Instagram', url: response.instagramUrl || '', color: 'text-pink-400 hover:text-pink-300' },
-            { platform: 'Facebook', url: response.facebookUrl || '', color: 'text-blue-600 hover:text-blue-400' },
+            { platform: 'Twitter', url: profileResponse.twitterUrl || '', color: 'text-blue-400 hover:text-blue-300' },
+            { platform: 'Instagram', url: profileResponse.instagramUrl || '', color: 'text-pink-400 hover:text-pink-300' },
+            { platform: 'Facebook', url: profileResponse.facebookUrl || '', color: 'text-blue-600 hover:text-blue-400' },
           ],
-          galleryImages: response.galleryImages || [],
-          followers: response.followers || 0,
-          firstName: response.firstName || '',
-          lastName: response.lastName || '',
-          username: response.username || '',
-          following: response.following || [],
+          galleryImages: profileResponse.galleryImages || [],
+          followers: profileResponse.followers || 0,
+          firstName: profileResponse.firstName || '',
+          lastName: profileResponse.lastName || '',
+          username: profileResponse.username || '',
+          following: profileResponse.following || [],
         });
 
-        if (currentUserResponse && currentUserResponse.following) {
+        if (currentUserResponse && Array.isArray(currentUserResponse.following)) {
           setIsFollowing(currentUserResponse.following.includes(userid));
         }
-      } catch (err) {
-        setError('Error fetching user data');
+      } catch (err: any) {
+        setError(`Error fetching user data: ${err.message}`);
         console.error('Failed to fetch user data:', err);
       } finally {
         setLoading(false);
@@ -142,13 +171,17 @@ const UserProfile = () => {
     };
 
     fetchUserData();
-  }, [userid, authId, DATABASE_ID]);
+  }, [userid, authId, DATABASE_ID, COLLECTION_ID]);
 
-  // Log loading and error states
+  // Log фестив states
   console.log('Loading:', loading, 'Error:', error);
 
   // Share functionality
   const shareProfile = (platform: string) => {
+    if (!userid) {
+      setError('Cannot share: User ID is missing');
+      return;
+    }
     const profileUrl = `${window.location.origin}/profile/${userid}`;
     const shareText = userData.username ? `Check out ${userData.username}'s profile!` : 'Check out this profile!';
     console.log(`Sharing on ${platform}:`, shareText, profileUrl);
@@ -172,9 +205,11 @@ const UserProfile = () => {
     setShowShareModal(false);
   };
 
-  const [cp, setCp] = useState<boolean>(false);
-
   const handleCp = () => {
+    if (!userid) {
+      setError('Cannot copy: User ID is missing');
+      return;
+    }
     const profileUrl = `${window.location.origin}/profile/${userid}`;
     if (!cp) {
       setCp(true);
@@ -188,12 +223,16 @@ const UserProfile = () => {
   // Handle report submission
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authId || !reportReason.trim()) {
-      setError('Please provide a reason for reporting');
+    if (!authId) {
+      setError('Please log in to submit a report');
       return;
     }
-    if (!userid || typeof userid !== 'string') {
+    if (!userid) {
       setError('Invalid user ID');
+      return;
+    }
+    if (!reportReason.trim()) {
+      setError('Please provide a reason for reporting');
       return;
     }
     if (!DATABASE_ID || !REPORTS_COLLECTION_ID) {
@@ -211,8 +250,8 @@ const UserProfile = () => {
       setShowReportModal(false);
       setReportReason('');
       alert('Report submitted successfully');
-    } catch (err) {
-      setError('Failed to submit report');
+    } catch (err: any) {
+      setError(`Failed to submit report: ${err.message}`);
       console.error('Report submission failed:', err);
     }
   };
@@ -226,76 +265,76 @@ const UserProfile = () => {
   };
 
   const handleFollowToggle = async () => {
-  if (!authId) {
-    setError("authId is undefined");
-    return;
-  }
-
-  if (!userid) {
-    setError("userid is undefined");
-    return;
-  }
-
-  if (isCurrentUser || followLoading) return;
-
-  if (!DATABASE_ID || !COLLECTION_ID) {
-    setError("Database configuration is missing");
-    return;
-  }
-
-  setFollowLoading(true);
-
-  try {
-    // Get both documents in parallel for better performance
-    const [currentUser, profileUser] = await Promise.all([
-      databases.getDocument(DATABASE_ID, COLLECTION_ID, authId),
-      databases.getDocument(DATABASE_ID, COLLECTION_ID, userid),
-    ]);
-
-    // following: string[]
-    let updatedFollowing: string[] = Array.isArray(currentUser.following) ? [...currentUser.following] : [];
-
-    // followers: number
-    let updatedFollowers: number = typeof profileUser.followers === "number" ? profileUser.followers : 0;
-
-    if (updatedFollowing.includes(userid)) {
-      // Unfollow
-      updatedFollowing = updatedFollowing.filter((id) => id !== userid);
-      updatedFollowers = Math.max(0, updatedFollowers - 1);
-      setIsFollowing(false);
-    } else {
-      // Follow
-      updatedFollowing.push(userid);
-      updatedFollowers += 1;
-      setIsFollowing(true);
+    if (!authId) {
+      setError('authId is undefined');
+      return;
     }
 
-    // Update both documents in parallel
-    await Promise.all([
-      databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
-        following: updatedFollowing,
-      }),
-      databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
-        followers: updatedFollowers,
-      }),
-    ]);
+    if (!userid) {
+      setError('userid is undefined');
+      return;
+    }
 
-    // Update local UI state
-    setUserData((prev) => ({
-      ...prev,
-      followers: updatedFollowers,
-    }));
-  } catch (err: any) {
-    setError(`Failed to ${isFollowing ? "unfollow" : "follow"}: ${err.message}`);
-    console.error("Follow toggle error:", err);
-  } finally {
-    setFollowLoading(false);
-  }
-};
+    if (isCurrentUser || followLoading) return;
+
+    if (!DATABASE_ID || !COLLECTION_ID) {
+      setError('Database configuration is missing');
+      return;
+    }
+
+    setFollowLoading(true);
+
+    try {
+      // Get both documents in parallel
+      const [currentUser, profileUser] = await Promise.all([
+        databases.getDocument(DATABASE_ID, COLLECTION_ID, authId),
+        databases.getDocument(DATABASE_ID, COLLECTION_ID, userid),
+      ]);
+
+      // following: string[]
+      let updatedFollowing: string[] = Array.isArray(currentUser.following) ? [...currentUser.following] : [];
+
+      // followers: number
+      let updatedFollowers: number = typeof profileUser.followers === 'number' ? profileUser.followers : 0;
+
+      if (updatedFollowing.includes(userid)) {
+        // Unfollow
+        updatedFollowing = updatedFollowing.filter((id) => id !== userid);
+        updatedFollowers = Math.max(0, updatedFollowers - 1);
+        setIsFollowing(false);
+      } else {
+        // Follow
+        updatedFollowing.push(userid);
+        updatedFollowers += 1;
+        setIsFollowing(true);
+      }
+
+      // Update both documents in parallel
+      await Promise.all([
+        databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
+          following: updatedFollowing,
+        }),
+        databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
+          followers: updatedFollowers,
+        }),
+      ]);
+
+      // Update local UI state
+      setUserData((prev) => ({
+        ...prev,
+        followers: updatedFollowers,
+      }));
+    } catch (err: any) {
+      setError(`Failed to ${isFollowing ? 'unfollow' : 'follow'}: ${err.message}`);
+      console.error('Follow toggle error:', err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) return <SkeletonUserProfile />;
 
-  if (error) return <div className="text-red-500">{error} "user:"{userid}</div>;
+  if (error) return <div className="text-red-500">{error}{userid ? ` user: ${userid}` : ''}</div>;
 
   return (
     <div className="text-gray-200 p-6 rounded-lg">
@@ -324,18 +363,16 @@ const UserProfile = () => {
             </div>
             <div className="flex items-center space-x-2 z-50">
               {!isCurrentUser && (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    onClick={handleFollowToggle}
-                    disabled={followLoading}
-                    className={`px-4 py-1 rounded-full text-white ${
-                      isFollowing ? 'bg-red-500' : 'bg-orange-500'
-                    } ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {isFollowing ? 'Unfollow' : 'Follow'}
-                  </motion.button>
-                </>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`px-4 py-1 rounded-full text-white ${
+                    isFollowing ? 'bg-red-500' : 'bg-orange-500'
+                  } ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isFollowing ? 'Unfollow' : 'Follow'}
+                </motion.button>
               )}
               {isCurrentUser && (
                 <motion.button
