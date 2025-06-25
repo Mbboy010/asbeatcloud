@@ -16,7 +16,7 @@ export default function SAndG() {
   };
 
   // Get authenticated user ID from Redux store
-  const userId = useAppSelector((state) => state.authId.value?.$id || null);
+  const userId = useAppSelector((state) => state.authId.value);
   const router = useRouter();
   const params = useParams();
   const useridparams = typeof params.userid === 'string' ? params.userid : null;
