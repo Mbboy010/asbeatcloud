@@ -8,11 +8,14 @@ import { ID, Query } from 'appwrite';
 
 export default function UploadGallery() {
   const router = useRouter();
-  const userId = useAppSelector((state) => state.authId.value);
-  
+  const userId = useAppSelector((state) => state.authId.value?.$id || null);
 
   // State for file inputs and form status
-  const [files, setFiles] = useState({
+  const [files, setFiles] = useState<{
+    galleryone: File | null;
+    gallerytwo: File | null;
+    gallerythree: File | null;
+  }>({
     galleryone: null,
     gallerytwo: null,
     gallerythree: null,
@@ -23,21 +26,21 @@ export default function UploadGallery() {
 
   // Redirect to homepage if not authenticated
   useEffect(() => {
-    if (userId) {
-      
+    if (!userId) {
+      router.push('/');
     }
   }, [userId, router]);
 
   // Handle file input changes
-  const handleFileChange = (e, key) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: 'galleryone' | 'gallerytwo' | 'gallerythree') => {
     setFiles((prev) => ({
       ...prev,
-      [key]: e.target.files[0],
+      [key]: e.target.files?.[0] || null,
     }));
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!userId) {
       setError('You must be logged in to upload images.');
@@ -50,56 +53,39 @@ export default function UploadGallery() {
 
     try {
       const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
-      const COLLECTION_ID = "6849aa4f000c032527a9";
+      const COLLECTION_ID = '6849aa4f000c032527a9';
       const STORAGE_BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
 
-      
-      
-
-      // Fetch the user document to get the document ID
-      const userDocResponse = await databases.listDocuments(
-        DATABASE_ID,
-        COLLECTION_ID,
-        [Query.equal('username', userId)]
-      );
-
-      if (userDocResponse.documents.length === 0) {
-        throw new Error('User document not found.');
+      // Validate environment variables
+      if (!DATABASE_ID || !STORAGE_BUCKET_ID) {
+        throw new Error('Database or storage bucket ID is not configured.');
       }
 
-      const userDoc = userDocResponse.documents[0];
-      const documentId = userDoc.$id;
+      // Fetch the user document using userId as the document ID
+      const userDoc = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userId);
 
       // Upload files to Appwrite Storage and collect URLs
-      const updatedFields = {};
-      for (const key of ['galleryone', 'gallerytwo', 'gallerythree']) {
+      const updatedFields: { [key: string]: string } = {};
+      for (const key of ['galleryone', 'gallerytwo', 'gallerythree'] as const) {
         if (files[key]) {
           // Upload file to storage
-          const file = await storage.createFile(
-            STORAGE_BUCKET_ID,
-            ID.unique(),
-            files[key]
-          );
+          const file = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), files[key]);
 
-          // Generate file URL (adjust based on your Appwrite setup)
+          // Generate file URL
           const fileUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${STORAGE_BUCKET_ID}/files/${file.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
           updatedFields[key] = fileUrl;
         }
       }
 
       // Update user document with new image URLs
-      await databases.updateDocument(
-        DATABASE_ID,
-        COLLECTION_ID,
-        documentId,
-        updatedFields
-      );
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, updatedFields);
 
       setSuccess('Images uploaded successfully!');
       setFiles({ galleryone: null, gallerytwo: null, gallerythree: null }); // Reset form
-      setTimeout(() => router.push('/gallery'), 2000); // Redirect to gallery page after 2 seconds
-    } catch (err) {
-      setError('Failed to upload images: ' + err.message);
+      setTimeout(() => router.push(`/profile/${userId}`), 2000); // Redirect to profile page
+    } catch (err: any) {
+      setError(`Failed to upload images: ${err.message}`);
+      console.error('Error uploading images:', err);
     } finally {
       setUploading(false);
     }
@@ -164,10 +150,11 @@ export default function UploadGallery() {
       </form>
 
       <button
-        onClick={() => router.push('/gallery')}
+        onClick={() => router.push(`/profile/${userId || ''}`)}
         className="mt-4 text-blue-500 hover:underline"
+        disabled={!userId}
       >
-        Back to Gallery
+        Back to Profile
       </button>
     </div>
   );
