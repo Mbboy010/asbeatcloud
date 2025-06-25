@@ -8,7 +8,7 @@ import { ID, Query } from 'appwrite';
 
 export default function UploadGallery() {
   const router = useRouter();
-  const userId = useAppSelector((state) => state.authId.value?.$id || null);
+  const userId = useAppSelector((state) => state.authId.value);
 
   // State for file inputs and form status
   const [files, setFiles] = useState<{
