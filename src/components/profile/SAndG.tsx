@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Twitter, Instagram, Facebook } from 'lucide-react';
+import { Twitter, Instagram, Facebook, LucideIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 
 export default function SAndG() {
-  const platformIcons = {
+  // Define platform icons with explicit type
+  const platformIcons: Record<string, LucideIcon> = {
     Twitter,
     Instagram,
     Facebook,
@@ -30,7 +31,7 @@ export default function SAndG() {
       { platform: 'Twitter', url: '', color: 'text-blue-400 hover:text-blue-300' },
       { platform: 'Instagram', url: '', color: 'text-pink-400 hover:text-pink-300' },
       { platform: 'Facebook', url: '', color: 'text-blue-600 hover:text-blue-400' },
-    ],
+    ] as { platform: 'Twitter' | 'Instagram' | 'Facebook'; url: string; color: string }[],
     galleryone: '',
     gallerytwo: '',
     gallerythree: '',
@@ -86,7 +87,7 @@ export default function SAndG() {
           username: userDoc.username || '',
         });
         setError('');
-      } catch (err : any) {
+      } catch (err: any) {
         setError(`Error fetching user data: ${err.message}`);
         console.error('Error fetching user data:', err);
       }
@@ -110,7 +111,7 @@ export default function SAndG() {
         <h3 className="text-lg font-semibold mb-2">Connect</h3>
         <div className="flex space-x-4">
           {userData.socialLinks.map((link) => {
-            const IconComponent = platformIcons[link.platform];
+            const IconComponent = platformIcons[link.platform] as LucideIcon;
             return (
               <Link
                 key={link.platform}
