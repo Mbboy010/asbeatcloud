@@ -111,7 +111,7 @@ export default function SAndG() {
         <h3 className="text-lg font-semibold mb-2">Connect</h3>
         <div className="flex space-x-4">
           {userData.socialLinks.map((link) => {
-            const IconComponent = platformIcons[link.platform] as LucideIcon;
+            const IconComponent = platformIcons[link.platform];
             return (
               <Link
                 key={link.platform}
