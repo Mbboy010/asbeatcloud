@@ -100,7 +100,7 @@ const UserProfile = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
-        setShowShareModal(false);
+        
       }
     };
     document.addEventListener('click', handleClickOutside);
