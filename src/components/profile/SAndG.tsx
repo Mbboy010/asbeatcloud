@@ -16,7 +16,7 @@ export default function SAndG() {
   };
 
   // Get authenticated user ID from Redux store
-  const userId = useAppSelector((state) => state.authId.value);
+  const userId = useAppSelector((state) => state.authId.value?.$id || null);
   const router = useRouter();
   const params = useParams();
   const useridparams = typeof params.userid === 'string' ? params.userid : null;
@@ -40,24 +40,32 @@ export default function SAndG() {
     username: '',
   });
 
+  // State for error handling
+  const [error, setError] = useState('');
+
   // Fetch user data from Appwrite
   useEffect(() => {
     const fetchUserData = async () => {
       if (!useridparams) {
-        console.error('No user ID provided in URL parameters');
+        setError('No user ID provided in URL parameters');
+        return;
+      }
+
+      // Validate DATABASE_ID
+      const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+      if (!DATABASE_ID) {
+        setError('Database ID is not configured');
         return;
       }
 
       try {
-        // Replace with your actual database and collection IDs
-        const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
         const COLLECTION_ID = '6849aa4f000c032527a9';
 
         // Fetch user document from the users collection
         const userDoc = await databases.getDocument(
           DATABASE_ID,
           COLLECTION_ID,
-          useridparams // Use useridparams as the document ID
+          useridparams
         );
 
         setUserData({
@@ -77,13 +85,15 @@ export default function SAndG() {
           lastName: userDoc.lastName || '',
           username: userDoc.username || '',
         });
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+        setError('');
+      } catch (err) {
+        setError(`Error fetching user data: ${err.message}`);
+        console.error('Error fetching user data:', err);
       }
     };
 
     fetchUserData();
-  }, [useridparams]); // Add useridparams to dependency array
+  }, [useridparams]);
 
   // Handle navigation to upload gallery
   const handleUploadNavigation = () => {
@@ -91,7 +101,10 @@ export default function SAndG() {
   };
 
   return (
-    <div>
+    <div className="p-4">
+      {/* Error Display */}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
       {/* Social Links with Icons and Names */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Connect</h3>
@@ -123,8 +136,13 @@ export default function SAndG() {
       <div>
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold">Gallery</h3>
-          {(
-           <p className="h-2 w-2"></p>
+          {userId && userId === useridparams && (
+            <button
+              onClick={handleUploadNavigation}
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-200"
+            >
+              Upload Image
+            </button>
           )}
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -148,17 +166,6 @@ export default function SAndG() {
                 No Image
               </div>
             )
-          )}
-        </div>
-         <div className="flex justify-between mt-4 items-center mb-2">
-          <h3 className="text-lg w-2 h-2 font-semibold"></h3>
-          {(
-            <button
-              onClick={handleUploadNavigation}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg transition duration-200"
-            >
-              Upload Image
-            </button>
           )}
         </div>
       </div>
