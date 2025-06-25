@@ -86,7 +86,7 @@ export default function SAndG() {
           username: userDoc.username || '',
         });
         setError('');
-      } catch (err) {
+      } catch (err : any) {
         setError(`Error fetching user data: ${err.message}`);
         console.error('Error fetching user data:', err);
       }
