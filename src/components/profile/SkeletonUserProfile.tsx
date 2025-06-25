@@ -20,7 +20,6 @@ const SkeletonUserProfile = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div className="h-8 w-20 bg-gray-800 rounded-full animate-pulse"></div>
-              <div className="h-8 w-8 bg-gray-800 rounded-full animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -41,6 +40,16 @@ const SkeletonUserProfile = () => {
         <div className="h-10 w-10 bg-gray-800 rounded-full animate-pulse"></div>
         <div className="h-10 w-10 bg-gray-800 rounded-full animate-pulse"></div>
       </div>
+      
+      <div className="mb-6 ">
+        <div className="h-6 w-20 bg-gray-700 rounded animate-pulse mb-2"></div>
+        <div className="flex items-center gap-4 flex-row">
+          <div className="h-4 w-20 bg-gray-800 rounded animate-pulse"></div>
+          <div className="h-4 w-20 bg-gray-800 rounded animate-pulse"></div>
+          <div className="h-4 w-20 bg-gray-800 rounded animate-pulse"></div>
+        </div>
+      </div>
+
 
       {/* Skeleton for SAndG Component */}
       <div className="space-y-4">

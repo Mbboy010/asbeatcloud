@@ -102,7 +102,7 @@ const UserProfile = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
-        setShowShareModal(false);
+        
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -202,7 +202,7 @@ const UserProfile = () => {
         alert('Profile link copied to clipboard!');
         break;
     }
-    setShowShareModal(false);
+    
   };
 
   const handleCp = () => {
@@ -361,7 +361,7 @@ const UserProfile = () => {
                 <p className="text-sm text-gray-400">Followers: {formatNumber(userData.followers)}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 z-50">
+            <div className="flex items-center space-x-2 ">
               {!isCurrentUser && (
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -518,8 +518,6 @@ const UserProfile = () => {
           className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
           title="Share Profile"
           onClick={(e) => {
-            e.stopPropagation();
-            console.log('Opening share modal');
             setShowShareModal(true);
           }}
           aria-label="Share profile"
