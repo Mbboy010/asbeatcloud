@@ -34,11 +34,9 @@ interface UserData {
 const UserProfile = () => {
   const router = useRouter();
   const params = useParams();
-  const userid = typeof params.userid === 'string' ? params.userid : undefined; // Ensure userid is string or undefined
+  const userid = typeof params.userid === 'string' ? params.userid : undefined;
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
-
-  // Log authId and userid for debugging
-  console.log('authId:', authId, 'userid:', userid);
+  const isAuth = useAppSelector((state) => state.isAuth.value);
 
   // Current date and time
   const currentDate = new Date();
@@ -102,12 +100,19 @@ const UserProfile = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
-        
+        setShowShareModal(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  // Reset isFollowing when user is not authenticated
+  useEffect(() => {
+    if (!isAuth) {
+      setIsFollowing(false);
+    }
+  }, [isAuth]);
 
   // Fetch user data from Appwrite
   useEffect(() => {
@@ -173,9 +178,6 @@ const UserProfile = () => {
     fetchUserData();
   }, [userid, authId, DATABASE_ID, COLLECTION_ID]);
 
-  // Log фестив states
-  console.log('Loading:', loading, 'Error:', error);
-
   // Share functionality
   const shareProfile = (platform: string) => {
     if (!userid) {
@@ -202,7 +204,6 @@ const UserProfile = () => {
         alert('Profile link copied to clipboard!');
         break;
     }
-    
   };
 
   const handleCp = () => {
@@ -265,6 +266,12 @@ const UserProfile = () => {
   };
 
   const handleFollowToggle = async () => {
+    // If user is not authenticated, navigate to login page
+    if (!isAuth) {
+      router.push('/login');
+      return;
+    }
+
     if (!authId) {
       setError('authId is undefined');
       return;
@@ -285,16 +292,12 @@ const UserProfile = () => {
     setFollowLoading(true);
 
     try {
-      // Get both documents in parallel
       const [currentUser, profileUser] = await Promise.all([
         databases.getDocument(DATABASE_ID, COLLECTION_ID, authId),
         databases.getDocument(DATABASE_ID, COLLECTION_ID, userid),
       ]);
 
-      // following: string[]
       let updatedFollowing: string[] = Array.isArray(currentUser.following) ? [...currentUser.following] : [];
-
-      // followers: number
       let updatedFollowers: number = typeof profileUser.followers === 'number' ? profileUser.followers : 0;
 
       if (updatedFollowing.includes(userid)) {
@@ -309,7 +312,6 @@ const UserProfile = () => {
         setIsFollowing(true);
       }
 
-      // Update both documents in parallel
       await Promise.all([
         databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
           following: updatedFollowing,
@@ -319,7 +321,6 @@ const UserProfile = () => {
         }),
       ]);
 
-      // Update local UI state
       setUserData((prev) => ({
         ...prev,
         followers: updatedFollowers,
@@ -517,9 +518,7 @@ const UserProfile = () => {
           whileHover={{ scale: 1.1 }}
           className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
           title="Share Profile"
-          onClick={(e) => {
-            setShowShareModal(true);
-          }}
+          onClick={() => setShowShareModal(true)}
           aria-label="Share profile"
         >
           <Share2 className="h-5 w-5" />
