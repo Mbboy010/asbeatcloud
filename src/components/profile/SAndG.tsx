@@ -102,13 +102,13 @@ export default function SAndG() {
   };
 
   return (
-    <div className="p-4">
+    <div className="">
       {/* Error Display */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {/* Social Links with Icons and Names */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Connect</h3>
+        <h3 className="text-lg font-semibold mb-2">Social</h3>
         <div className="flex space-x-4">
           {userData.socialLinks.map((link) => {
             const IconComponent = platformIcons[link.platform];
@@ -135,16 +135,8 @@ export default function SAndG() {
 
       {/* Image Gallery */}
       <div>
-        <div className="flex justify-between items-center mb-2">
+        <div className="mb-2">
           <h3 className="text-lg font-semibold">Gallery</h3>
-          {userId && userId === useridparams && (
-            <button
-              onClick={handleUploadNavigation}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-200"
-            >
-              Upload Image
-            </button>
-          )}
         </div>
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -162,13 +154,24 @@ export default function SAndG() {
             ) : (
               <div
                 key={index}
-                className="w-full h-40 bg-gray-800 rounded-lg flex items-center justify-center text-gray-200"
+                className="w-full h-40 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400"
               >
                 No Image
               </div>
             )
           )}
         </div>
+        {/* Upload Button at Bottom */}
+        {userId && userId === useridparams && (
+          <div className="mt-4 text-right">
+            <button
+              onClick={handleUploadNavigation}
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition duration-200"
+            >
+              Upload Image
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

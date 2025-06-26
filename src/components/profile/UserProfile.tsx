@@ -268,8 +268,7 @@ const UserProfile = () => {
   const handleFollowToggle = async () => {
     // If user is not authenticated, navigate to login page
     if (!isAuth) {
-      router.push('/login');
-      return;
+      return router.push(`/`);
     }
 
     if (!authId) {
