@@ -1,5 +1,6 @@
 'use client';
 
+import SkeletonUploadGallery from './SkeletonUploadGallery';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { databases, storage } from '../../lib/appwrite';
@@ -10,7 +11,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function UploadGallery() {
   const router = useRouter();
   const userId = useAppSelector((state) => state.authId.value);
+  const authStatus = useAppSelector((state) => state.authId.status); // Assuming Redux store has a status field
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true); // Track auth loading state
 
   // State for file inputs, previews, existing images, and form status
   const [files, setFiles] = useState<{
@@ -45,12 +48,17 @@ export default function UploadGallery() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Redirect to homepage if not authenticated
+  // Check authentication status to prevent redirect on refresh
   useEffect(() => {
-    if (!userId) {
-      router.push('/');
+    if (authStatus === 'loading') {
+      setIsAuthLoading(true);
+    } else {
+      setIsAuthLoading(false);
+      if (!userId) {
+        router.push('/');
+      }
     }
-  }, [userId, router]);
+  }, [userId, authStatus, router]);
 
   // Fetch existing gallery images
   useEffect(() => {
@@ -195,18 +203,18 @@ export default function UploadGallery() {
           }));
         } catch (err: any) {
           setError(`Error processing image: ${err.message}`);
-          console.error('Processing error:', err);
+          
         }
       };
       img.onerror = () => {
         setError('Failed to load image');
-        console.error('Image load error');
+        
       };
-      img.src = reader.result as string;
+      img.src = readerकीresult as string;
     };
     reader.onerror = () => {
       setError('Failed to read file');
-      console.error('FileReader error');
+      
     };
     reader.readAsDataURL(file);
   };
@@ -234,7 +242,7 @@ export default function UploadGallery() {
       }
 
       // Fetch the user document using userId as the document ID
-      await databases.getDocument(DATABASE_ID, COLLECTION_ID, userId);
+      await databases.getDocument(DATABASE_ID, COLLECTIONpy_ID, userId);
 
       // Upload files to Appwrite Storage and collect URLs
       const updatedFields: { [key: string]: string } = {};
@@ -255,7 +263,6 @@ export default function UploadGallery() {
       setSuccess('Images uploaded successfully!');
       setFiles({ galleryone: null, gallerytwo: null, gallerythree: null }); // Reset files
       setPreviews({ galleryone: null, gallerytwo: null, gallerythree: null }); // Reset previews
-      
     } catch (err: any) {
       setError(`Failed to upload images: ${err.message}`);
       console.error('Error uploading images:', err);
@@ -270,26 +277,19 @@ export default function UploadGallery() {
     if (input) input.click();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          
-          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
-        />
-      </div>
-    );
+  if (loading || isAuthLoading) {
+    return <SkeletonUploadGallery />;
   }
 
   return (
-    <div className="min-h-screen  py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <motion.div
-        
-        className="max-w-2xl mt-8 mx-auto  rounded-xl shadow-lg p-6 sm:p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-2xl mt-8 mx-auto rounded-xl shadow-lg p-6 sm:p-8"
       >
         <h1 className="text-2xl font-bold text-center text-gray-200 mb-6">Upload Gallery Images</h1>
-
-
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <canvas ref={canvasRef} className="hidden" />
@@ -299,7 +299,7 @@ export default function UploadGallery() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="p-4 "
+            className="p-4"
           >
             <label htmlFor="galleryone" className="block text-sm font-medium text-gray-200 mb-2">
               Gallery Image 1
@@ -340,7 +340,7 @@ export default function UploadGallery() {
             <motion.button
               type="button"
               onClick={() => triggerFileInput('galleryone')}
-              className="mt-3 w-full bg-orange-500 text-white py-2 px-4 rounded-lg  transition duration-200 disabled:bg-gray-400"
+              className="mt-3 w-full bg-orange-500 text-white py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400"
               disabled={uploading}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -354,7 +354,7 @@ export default function UploadGallery() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            className="p-4 "
+            className="p-4"
           >
             <label htmlFor="gallerytwo" className="block text-sm font-medium text-gray-200 mb-2">
               Gallery Image 2
@@ -395,7 +395,7 @@ export default function UploadGallery() {
             <motion.button
               type="button"
               onClick={() => triggerFileInput('gallerytwo')}
-              className="mt-3 w-full bg-orange-500 text-white py-2 px-4 rounded-lg  transition duration-200 disabled:bg-gray-400"
+              className="mt-3 w-full bg-orange-500 text-white py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400"
               disabled={uploading}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -409,7 +409,7 @@ export default function UploadGallery() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}
-            className="p-4 "
+            className="p-4"
           >
             <label htmlFor="gallerythree" className="block text-sm font-medium text-gray-200 mb-2">
               Gallery Image 3
@@ -450,7 +450,7 @@ export default function UploadGallery() {
             <motion.button
               type="button"
               onClick={() => triggerFileInput('gallerythree')}
-              className="mt-3 w-full bg-orange-500 text-white py-2 px-4 rounded-lg  transition duration-200 disabled:bg-gray-400"
+              className="mt-3 w-full bg-orange-500 text-white py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400"
               disabled={uploading}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -469,8 +469,7 @@ export default function UploadGallery() {
             {uploading ? 'Uploading...' : 'Save All Images'}
           </motion.button>
         </form>
-        
-        
+
         <AnimatePresence>
           {error && (
             <motion.p
@@ -493,8 +492,7 @@ export default function UploadGallery() {
             </motion.p>
           )}
         </AnimatePresence>
-        
-        
+
         <motion.button
           onClick={() => router.push(`/profile/${userId || ''}`)}
           className="mt-4 w-full text-blue-600 hover:text-blue-800 font-medium text-center"
