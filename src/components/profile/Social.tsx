@@ -151,7 +151,17 @@ export default function Social() {
           socialthree: JSON.stringify(formData[2])
         }
       );
-      setSocials(formData.filter((s) => s.platform && s.url));
+
+      // Map formData to include color property
+      const updatedSocials = formData
+        .filter((s) => s.platform && s.url)
+        .map((s) => ({
+          platform: s.platform,
+          url: s.url,
+          color: platformColors[s.platform] || 'text-gray-400' // Default color if not found
+        }));
+
+      setSocials(updatedSocials);
       setShown(false);
       setErrors([
         { platform: '', url: '' },
@@ -251,7 +261,7 @@ export default function Social() {
                   className="p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 transition-colors duration-200"
                   aria-label="Close modal"
                 >
-                  <X className="w-5 h-5 sm:w-6 sm:h-6 textinke-gray-300 hover:text-orange-400" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 hover:text-orange-400" />
                 </button>
               </div>
 
