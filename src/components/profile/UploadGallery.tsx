@@ -50,13 +50,17 @@ export default function UploadGallery() {
   // Redirect to homepage if not authenticated
   useEffect(() => {
     
+    setTimeout(() => {
+      setCu(true)
+    }, 4000);
+    
     if(cu){
       if (userId != cuid) {
       router.push('/');
     }
     }
     
-  },[cu,userId]);
+  },[cu,userId,router]);
 
   // Fetch existing gallery images
   useEffect(() => {
@@ -79,9 +83,7 @@ export default function UploadGallery() {
           gallerytwo: userDoc.gallerytwo || null,
           gallerythree: userDoc.gallerythree || null,
         });
-       if(!userDoc){
-         setCu(true);
-       }
+
        await setCuid(userDoc.username)
        await setCu(true)
       } catch (err: any) {

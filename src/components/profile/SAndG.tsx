@@ -1,5 +1,6 @@
 'use client';
 
+import Social from './Social';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Twitter, Instagram, Facebook, LucideIcon } from 'lucide-react';
@@ -40,6 +41,7 @@ export default function SAndG() {
     lastName: '',
     username: '',
   });
+  
 
   // State for error handling
   const [error, setError] = useState('');
@@ -107,31 +109,8 @@ export default function SAndG() {
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {/* Social Links with Icons and Names */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Social</h3>
-        <div className="flex space-x-4">
-          {userData.socialLinks.map((link) => {
-            const IconComponent = platformIcons[link.platform];
-            return (
-              <Link
-                key={link.platform}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={link.platform}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className={`flex items-center ${link.color} transition duration-200`}
-                >
-                  <IconComponent className="w-6 h-6 mr-1" />
-                  <span className="text-sm">{link.platform}</span>
-                </motion.div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+       <Social />
+
 
       {/* Image Gallery */}
       <div>
