@@ -12,7 +12,8 @@ export default function UploadGallery() {
   const router = useRouter();
   const userId = useAppSelector((state) => state.authId.value);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  const [cu,setCu] = useState<boolean>(false)
+  const [cuid,setCuid] = useState<string>("")
   // State for file inputs, previews, existing images, and form status
   const [files, setFiles] = useState<{
     galleryone: File | null;
@@ -49,16 +50,18 @@ export default function UploadGallery() {
   // Redirect to homepage if not authenticated
   useEffect(() => {
     
-    if (!userId) {
+    if(cu){
+      if (userId != cuid) {
       router.push('/');
     }
+    }
     
-  },[userId]);
+  },[cu,userId]);
 
   // Fetch existing gallery images
   useEffect(() => {
     const fetchGalleryImages = async () => {
-      if (!userId) return;
+      if (!userId) return 
 
       const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
       const COLLECTION_ID = '6849aa4f000c032527a9';
@@ -76,9 +79,14 @@ export default function UploadGallery() {
           gallerytwo: userDoc.gallerytwo || null,
           gallerythree: userDoc.gallerythree || null,
         });
+       if(!userDoc){
+         setCu(true);
+       }
+       await setCuid(userDoc.username)
+       await setCu(true)
       } catch (err: any) {
         setError(`Failed to fetch gallery images: ${err.message}`);
-        console.error('Error fetching gallery images:', err);
+        
       } finally {
         setLoading(false);
       }
