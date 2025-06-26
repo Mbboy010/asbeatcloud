@@ -1,6 +1,6 @@
 
-import { Metadata } from 'next';
 import AuthNav from '@/components/authCheck/AuthNav';
+import { Metadata } from 'next';
 import EditProfile from '@/components/profile/EditProfile';
 
 
