@@ -55,41 +55,47 @@ export default function Social() {
     { platform: '', url: '' }
   ]);
 
-  useEffect(() => {
-    const fetchSocials = async () => {
-      try {
-        const doc = await databases.getDocument(
-          process.env.NEXT_PUBLIC_USERSDATABASE!,
-          '6849aa4f000c032527a9',
-          params.userid as string
-        );
+ useEffect(() => {
+  const fetchSocials = async () => {
+    try {
+      const doc = await databases.getDocument(
+        process.env.NEXT_PUBLIC_USERSDATABASE!,
+        '6849aa4f000c032527a9',
+        params.userid as string
+      );
 
-        const social1 = JSON.parse(doc.socialone || '{}');
-        const social2 = JSON.parse(doc.socialtwo || '{}');
-        const social3 = JSON.parse(doc.socialthree || '{}');
+      const social1 = JSON.parse(doc.socialone || '{}');
+      const social2 = JSON.parse(doc.socialtwo || '{}');
+      const social3 = JSON.parse(doc.socialthree || '{}');
 
-        const all = [social1, social2, social3].filter((s) => s.platform);
-        setSocials(all);
+      const all = [social1, social2, social3]
+        .filter((s) => s.platform && s.url)
+        .map((s) => ({
+          platform: s.platform,
+          url: s.url,
+          color: platformColors[s.platform] || 'text-gray-400'
+        }));
+      setSocials(all);
 
-        setFormData([
-          social1 || { platform: '', url: '' },
-          social2 || { platform: '', url: '' },
-          social3 || { platform: '', url: '' }
-        ]);
-        setErrors([
-          { platform: '', url: '' },
-          { platform: '', url: '' },
-          { platform: '', url: '' }
-        ]);
-      } catch (err) {
-        console.error('Failed to load social links:', err);
-      }
-    };
-
-    if (params.userid) {
-      fetchSocials();
+      setFormData([
+        social1 || { platform: '', url: '' },
+        social2 || { platform: '', url: '' },
+        social3 || { platform: '', url: '' }
+      ]);
+      setErrors([
+        { platform: '', url: '' },
+        { platform: '', url: '' },
+        { platform: '', url: '' }
+      ]);
+    } catch (err) {
+      console.error('Failed to load social links:', err);
     }
-  }, [userId, params.userid]);
+  };
+
+  if (params.userid) {
+    fetchSocials();
+  }
+}, [userId, params.userid]);
 
   const handleInputChange = (index: number, field: 'platform' | 'url', value: string) => {
     const newFormData = [...formData];
@@ -151,31 +157,41 @@ export default function Social() {
     return isValid;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+  if (!validateForm()) {
+    return;
+  }
 
-    try {
-      await databases.updateDocument(
-        process.env.NEXT_PUBLIC_USERSDATABASE!,
-        '6849aa4f000c032527a9',
-        params.userid as string,
-        {
-          socialone: JSON.stringify(formData[0] || { platform: '', url: '' }),
-          socialtwo: JSON.stringify(formData[1] || { platform: '', url: '' }),
-          socialthree: JSON.stringify(formData[2] || { platform: '', url: '' })
-        }
-      );
-      setSocials(formData.filter((s) => s.platform && s.url));
-      setShown(false);
-      setErrors(formData.map(() => ({ platform: '', url: '' })));
-    } catch (err) {
-      console.error('Failed to update social links:', err);
-    }
-  };
+  try {
+    await databases.updateDocument(
+      process.env.NEXT_PUBLIC_USERSDATABASE!,
+      '6849aa4f000c032527a9',
+      params.userid as string,
+      {
+        socialone: JSON.stringify(formData[0] || { platform: '', url: '' }),
+        socialtwo: JSON.stringify(formData[1] || { platform: '', url: '' }),
+        socialthree: JSON.stringify(formData[2] || { platform: '', url: '' })
+      }
+    );
+
+    // Map formData to include the color property
+    const updatedSocials = formData
+      .filter((s) => s.platform && s.url)
+      .map((s) => ({
+        platform: s.platform,
+        url: s.url,
+        color: platformColors[s.platform] || 'text-gray-400' // Fallback color
+      }));
+
+    setSocials(updatedSocials);
+    setShown(false);
+    setErrors(formData.map(() => ({ platform: '', url: '' })));
+  } catch (err) {
+    console.error('Failed to update social links:', err);
+  }
+};
 
   const canc = () => {
     setShown(false);
