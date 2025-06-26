@@ -30,14 +30,14 @@ export default function Social() {
   const [socials, setSocials] = useState<
     { platform: string; url: string; color: string }[]
   >([]);
-
+   const d = params.userid
   useEffect(() => {
     const fetchSocials = async () => {
       try {
         const doc = await databases.getDocument(
           process.env.NEXT_PUBLIC_USERSDATABASE!,
           '6849aa4f000c032527a9',
-          useridparams
+          d as string 
         );
 
         // Parse each social attribute
