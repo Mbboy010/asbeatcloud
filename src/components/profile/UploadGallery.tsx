@@ -1,5 +1,6 @@
 'use client';
 
+import SkeletonUploadGallery from './SkeletonUploadGallery';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { databases, storage } from '../../lib/appwrite';
@@ -47,10 +48,12 @@ export default function UploadGallery() {
 
   // Redirect to homepage if not authenticated
   useEffect(() => {
+    
     if (!userId) {
       router.push('/');
     }
-  }, [userId, router]);
+    
+  },[userId]);
 
   // Fetch existing gallery images
   useEffect(() => {
@@ -271,14 +274,8 @@ export default function UploadGallery() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          
-          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
-        />
-      </div>
-    );
+    return <SkeletonUploadGallery />;
+
   }
 
   return (

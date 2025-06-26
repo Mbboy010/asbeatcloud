@@ -179,8 +179,7 @@ const EditProfile = () => {
           dob: dob,
           genre: response.genre || "",
         });
-        console.log("Fetched profile image URL:", response.profileImageUrl);
-        console.log("Fetched header image URL:", response.headerImageUrl);
+        
         setPreviewProfileImage(response.profileImageUrl || null);
         setPreviewBannerImage(response.headerImageUrl || null);
         setDobYear(year);
@@ -188,7 +187,7 @@ const EditProfile = () => {
         setDobDay(day);
         validateDob(year, month, day); // Validate DOB on load
       } catch (err) {
-        console.error("Failed to fetch profile data:", err);
+        
         setError("Error fetching profile data");
       } finally {
         setLoading(false);
