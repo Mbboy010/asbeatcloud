@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef,Suspense } from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { account, databases, storage } from '../../lib/appwrite';
