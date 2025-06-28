@@ -207,7 +207,7 @@ function LoginAuthContent() {
       await account.createOAuth2Session(
         OAuthProvider.Google,
         `${window.location.origin}/signup?provider=google`,
-        `${window.location.origin}/signup?error=auth_failed`
+        `${window.location.origin}/signup?error=auth_fa`
       );
     } catch (error: any) {
       console.error('Google signup error:', error.message || error);
