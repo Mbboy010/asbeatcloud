@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { account, databases, storage } from '../../lib/appwrite';
@@ -10,7 +10,8 @@ import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginAuth() {
+// Create a separate component to handle useSearchParams
+function LoginAuthContent() {
   const authId = useAppSelector((state) => state.authId.value);
   const isAuth = useAppSelector((state) => state.isAuth.value);
   const dispatch = useAppDispatch();
@@ -148,7 +149,6 @@ export default function LoginAuth() {
         }
 
         const user = await account.get();
-        
 
         const nameParts = user.name ? user.name.split(' ') : ['', ''];
         const firstName = nameParts[0] || 'User';
@@ -239,5 +239,13 @@ export default function LoginAuth() {
         Sign up with Google
       </motion.button>
     </div>
+  );
+}
+
+export default function LoginAuth() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginAuthContent />
+    </Suspense>
   );
 }
