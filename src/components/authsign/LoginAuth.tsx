@@ -180,7 +180,7 @@ function LoginAuthContent() {
         }
 
         // Create user document with image URLs
-        await databases.createDocument(DATABASE_ID!, COLLECTION_ID!, user.$id, {
+        await databases.createDocument(DATABASE_ID, COLLECTION_ID, user.$id, {
           firstName,
           lastName,
           username: user.$id, // Use auth ID as username
