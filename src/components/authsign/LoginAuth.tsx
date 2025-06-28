@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, Suspense } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { account, databases, storage } from '../../lib/appwrite';
@@ -9,9 +9,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-// Create a separate component to handle useSearchParams
-function LoginAuthContent() {
+ function LoginAuthContent() {
   const authId = useAppSelector((state) => state.authId.value);
   const isAuth = useAppSelector((state) => state.isAuth.value);
   const dispatch = useAppDispatch();
@@ -149,6 +147,7 @@ function LoginAuthContent() {
         }
 
         const user = await account.get();
+        
 
         const nameParts = user.name ? user.name.split(' ') : ['', ''];
         const firstName = nameParts[0] || 'User';
@@ -180,7 +179,7 @@ function LoginAuthContent() {
         }
 
         // Create user document with image URLs
-        await databases.createDocument(DATABASE_ID, COLLECTION_ID, user.$id, {
+        await databases.createDocument(DATABASE_ID!, COLLECTION_ID!, user.$id, {
           firstName,
           lastName,
           username: user.$id, // Use auth ID as username
@@ -207,7 +206,7 @@ function LoginAuthContent() {
       await account.createOAuth2Session(
         OAuthProvider.Google,
         `${window.location.origin}/signup?provider=google`,
-        `${window.location.origin}/signup?error=auth_fa`
+        `${window.location.origin}/signup?error=auth_failed`
       );
     } catch (error: any) {
       console.error('Google signup error:', error.message || error);
