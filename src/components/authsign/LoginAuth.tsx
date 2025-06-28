@@ -243,7 +243,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginAuth() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Loading....</div>}>
       <LoginAuthContent />
     </Suspense>
   );
