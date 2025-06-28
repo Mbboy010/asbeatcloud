@@ -417,6 +417,7 @@ const EditProfile = () => {
               try {
                 const uploadFile = new File([blob], "profile.jpg", { type: "image/jpeg" });
                 const response = await storage.createFile(BUCKET_ID, ID.unique(), uploadFile);
+                
                 const newProfileImageUrl = storage.getFileView(BUCKET_ID, response.$id).toString();
                 console.log("Appwrite profile URL:", newProfileImageUrl);
                 setProfile((prev) => ({

@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import LoginAuth from '../authsign/LoginAuth';
+import { useRouter, useParams } from 'next/navigation';
+import React, { useState,useEffect } from 'react';
 import { Lock, Mail, Loader2 } from 'lucide-react';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';
@@ -20,6 +22,19 @@ export default function Login() {
   const [progress, setProgress] = useState(0);
 
   const dispatch = useAppDispatch();
+  
+  const authId = useAppSelector((state) => state.authId.value) as string | undefined;
+  const isAuth = useAppSelector((state) => state.isAuth.value);
+  const router = useRouter();
+  const params = useParams();
+  
+  
+  useEffect(()=>{
+    if(isAuth){
+      return router.push(`profile/${authId}`)
+    }
+  },[authId])
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,11 +51,11 @@ export default function Login() {
 
       await account.createEmailPasswordSession(email, password);
       const user = await account.get();
-      dispatch(setAuthId(user.$id));
-      dispatch(setIsAuth(true));
-
-      clearInterval(progressInterval);
-      setProgress(100);
+    await  dispatch(setAuthId(user.$id));
+    await  dispatch(setIsAuth(true));
+    await  router.push(`profile/${user.$id}`)
+    await  clearInterval(progressInterval);
+    await  setProgress(100);
       // Optional redirect:
       // window.location.href = `/profile/${user.$id}`;
     } catch (err: any) {
@@ -80,10 +95,8 @@ export default function Login() {
 
   return (
     <motion.div
-      initial={{ x: '100vw', opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="flex p-4 justify-center items-center  bg-[#111]"
+      
+      className="flex p-4 min-h-[75vh] justify-center items-center"
     >
       {/* Appbar */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
@@ -103,7 +116,7 @@ export default function Login() {
       )}
 
       {/* Login Form */}
-      <div className="w-full max-w-md p-6 rounded-lg bg-[#1c1c1c] shadow-lg">
+      <div className="w-full max-w-md p-6 rounded-lg ">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Login to account</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4 my-8">
@@ -150,37 +163,10 @@ export default function Login() {
 
         {/* Social login */}
         <div className="mt-4 text-center">
-          <p className="text-gray-400 text-sm mb-2">Or login with</p>
-          <div className="flex space-x-4">
-            <motion.button
-              onClick={() => handleOAuthLogin('google')}
-              disabled={isLoading !== null}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-1/2 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200 flex items-center justify-center"
-            >
-              {isLoading === 'google' ? (
-                <Loader2 className="animate-spin h-5 w-5" />
-              ) : (
-                <FaGoogle className="h-5 w-5 mr-2" />
-              )}
-              Google
-            </motion.button>
-            <motion.button
-              onClick={() => handleOAuthLogin('facebook')}
-              disabled={isLoading !== null}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-1/2 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 flex items-center justify-center"
-            >
-              {isLoading === 'facebook' ? (
-                <Loader2 className="animate-spin h-5 w-5" />
-              ) : (
-                <FaFacebook className="h-5 w-5 mr-2" />
-              )}
-              Facebook
-            </motion.button>
-          </div>
+        <p className="text-gray-400 text-sm mb-2">Or login with</p>
+          <div>
+          <LoginAuth />
+        </div>
         </div>
 
         <div className="mt-4 text-center text-sm">
