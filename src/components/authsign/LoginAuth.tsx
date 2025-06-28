@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef,Suspense } from 'react';
@@ -9,7 +10,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
- function LoginAuthContent() {
+function LoginAuthContent() {
   const authId = useAppSelector((state) => state.authId.value);
   const isAuth = useAppSelector((state) => state.isAuth.value);
   const dispatch = useAppDispatch();
@@ -243,7 +244,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginAuth() {
   return (
-    <Suspense fallback={<div>Loading....</div>}>
+    <Suspense fallback={<div>Loading...</div>}>
       <LoginAuthContent />
     </Suspense>
   );
