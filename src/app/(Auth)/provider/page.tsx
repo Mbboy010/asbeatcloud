@@ -95,7 +95,7 @@ export default function ProviderPage() {
           createdAt: new Date().toISOString(),
         });
 
-        window.open(`${window.location.origin}/profile/${user.$id}`, '_blank');
+        window.location.href = `${window.location.origin}/profile/${user.$id}`;
       } catch (err) {
         console.error('OAuth callback error:', err);
         router.push('/signup?error=auth_failed');
@@ -106,7 +106,7 @@ export default function ProviderPage() {
   }, [dispatch, router]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen w-screen">
+    <div className="flex z-50 justify-center items-center min-h-screen w-screen">
      <p className="text-white">Logging you in...</p>
     </div>
     )
