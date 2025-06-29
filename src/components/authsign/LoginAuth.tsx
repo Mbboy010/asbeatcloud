@@ -205,9 +205,9 @@ function LoginAuthContent() {
   const handleGoogleSignup = async () => {
     try {
       await account.createOAuth2Session(
-        OAuthProvider.Google,
-        `${window.location.origin}/signup?provider=google`,
-        `${window.location.origin}/signup?error=auth_failed`
+        OAuthProvider.Google,             // Provider name
+        `/profile/${authId}`,            // Success redirect
+        `/login`                         // Failure redirect
       );
     } catch (error: any) {
       console.error('Google signup error:', error.message || error);
