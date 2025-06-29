@@ -95,7 +95,7 @@ export default function ProviderPage() {
           createdAt: new Date().toISOString(),
         });
 
-        window.open(`${window.location.origin}/profile/${userId}`, '_blank');
+        window.open(`${window.location.origin}/profile/${user.$id}`, '_blank');
       } catch (err) {
         console.error('OAuth callback error:', err);
         router.push('/signup?error=auth_failed');
