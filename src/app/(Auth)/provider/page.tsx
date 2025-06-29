@@ -105,5 +105,9 @@ export default function ProviderPage() {
     run();
   }, [dispatch, router]);
 
-  return <p className="text-center mt-10">Logging you in...</p>;
+  return (
+    <div className="flex justify-center items-center min-h-screen w-screen">
+     <p className="text-white">Logging you in...</p>
+    </div>
+    )
 }

@@ -37,7 +37,7 @@ export default function Pimage() {
     };
 
     fetchUserData();
-  }, [authId, navImg, DATABASE_ID]);
+  });
 
   return imageUrl ? (
     <img className="scale-[2]" src={imageUrl} alt="User profile" />
