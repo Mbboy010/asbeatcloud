@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { databases } from '@/lib/appwrite'; // Make sure this path is correct
 import { useAppSelector } from '@/store/hooks';
+import { useRouter } from 'next/navigation';
 
 export default function Pimage() {
+  const router = useRouter();
   const authId = useAppSelector((state) => state.authId.value); // User ID from Redux store
   const navImg = useAppSelector((state) => state.nav.value); // Nav image from Redux store
   const [username, setUsername] = useState('');
@@ -37,9 +39,9 @@ export default function Pimage() {
     };
 
     fetchUserData();
-  });
+  },[authId,router]);
 
-  return imageUrl ? (
+  return(
     <img className="scale-[2]" src={imageUrl} alt="User profile" />
-  ) : null;
+  );
 }
