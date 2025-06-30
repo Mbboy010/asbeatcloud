@@ -47,7 +47,7 @@ export default function Verification() {
 
     const fetchFunc = async () => {
       try {
-        const response = await databases.getDocument<UserDocument>(
+        const response = await databases.getDocument(
           DATABASE_ID,
           COLLECTION_ID,
           authId
@@ -119,7 +119,7 @@ export default function Verification() {
     }
 
     try {
-      const response = await databases.getDocument<UserDocument>(
+      const response = await databases.getDocument(
         DATABASE_ID,
         COLLECTION_ID,
         authId!
@@ -169,7 +169,7 @@ export default function Verification() {
         targetTimeV: vtargetTime,
       });
 
-      const response = await databases.getDocument<UserDocument>(
+      const response = await databases.getDocument(
         DATABASE_ID,
         COLLECTION_ID,
         authId!
