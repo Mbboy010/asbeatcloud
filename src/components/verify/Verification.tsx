@@ -1,28 +1,30 @@
-'use client';
+"use client";
 
-
-import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
+
 export default function Verification() {
   const [verificationCode, setVerificationCode] = useState('');
-  const [isLoading, setIsLoading] = useState<'verify' | null>(null); // Track verification loading
+  const [email, setEmail] = useState('mbboy010@gmail.com');
+  const [isLoading, setIsLoading] = useState<'verify' | 'resend' | null>(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [resendDisabled, setResendDisabled] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0); // Time left in seconds
+  const [timeLeft, setTimeLeft] = useState(0);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading('verify');
     setError('');
+    setSuccess('');
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-      if (verificationCode === '123456') { // Mock verification code
-        console.log('Verification successful');
+      if (verificationCode === '123456') {
+        setSuccess('Verification successful!');
       } else {
         throw new Error('Invalid verification code');
       }
@@ -35,18 +37,24 @@ export default function Verification() {
 
   const handleResendCode = async () => {
     if (isLoading || resendDisabled) return;
-    setIsLoading('verify');
+    setIsLoading('resend');
+    setError('');
+    setSuccess('');
     setResendDisabled(true);
-    setTimeLeft(300); // 5 minutes = 300 seconds
-    
-    console.log('Resending verification code...');
-    setTimeout(() => {
+    setTimeLeft(300);
+
+    try {
+      
+      setSuccess('Verification code resent successfully!');
+      console.log('Resend result:', result);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to resend verification code');
+      console.error('Error resending code:', error);
+    } finally {
       setIsLoading(null);
-      console.log('Verification code resent');
-    }, 1000); // Simulate resend delay
+    }
   };
 
-  // Timer for resend cooldown
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (resendDisabled && timeLeft > 0) {
@@ -59,35 +67,32 @@ export default function Verification() {
     return () => clearInterval(timer);
   }, [resendDisabled, timeLeft]);
 
-  // Format time left as MM:SS
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-    
   };
-  
-  const handleSendEmail = async () => {
-    try {
-      const result = await sendVerification();
-      console.log('Email sent:', result);
-    } catch (error) {
-      console.error('Error sending email:', error);
-    }
-  };
-  
+
   return (
-    <motion.div
-      className="min-h-[65vh] flex p-4 justify-center items-center"
-    >
-
-
-      <div className="w-full max-w-md p-6  mt-20">
+    <motion.div className="min-h-[65vh] flex p-4 justify-center items-center">
+      <div className="w-full max-w-md p-6 mt-20">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Verify Your Account</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
         <form onSubmit={handleVerify} className="space-y-4">
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+              required
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
               type="text"
               value={verificationCode}
@@ -122,32 +127,8 @@ export default function Verification() {
           <Link href="/logout" className="text-orange-500 hover:underline">
             Logout
           </Link>
-          <button onClick={ handleSendEmail }>send</button>
         </p>
       </div>
     </motion.div>
   );
 }
-
-// utils/sendVerification.ts
-const sendVerification = async () => {
-  const response = await fetch('https://asbeatcloudmailer.vercel.app/verification', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      to: 'mbboy010@gmail.com',
-      subject: 'otp',
-      text1: 'Musa hakilu',
-      text2: '864223',
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to send verification email');
-  }
-
-  const data = await response.json();
-  return data;
-};

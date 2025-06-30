@@ -1,7 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /** @type {import('next').NextConfig} */
 var nextConfig = {
-    // valid keys only
     reactStrictMode: true,
     experimental: {},
+    env: {
+        NEXT_PUBLIC_MAILER_API_URL: process.env.NEXT_PUBLIC_MAILER_API_URL,
+    },
 };
-module.exports = nextConfig;
+exports.default = nextConfig;
