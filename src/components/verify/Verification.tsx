@@ -46,7 +46,7 @@ export default function Verification() {
     try {
       
       setSuccess('Verification code resent successfully!');
-      console.log('Resend result:', result);
+      console.log('Resend result:');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to resend verification code');
       console.error('Error resending code:', error);
