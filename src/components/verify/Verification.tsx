@@ -1,5 +1,7 @@
 'use client';
 
+
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -31,12 +33,12 @@ export default function Verification() {
     }
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     if (isLoading || resendDisabled) return;
     setIsLoading('verify');
     setResendDisabled(true);
     setTimeLeft(300); // 5 minutes = 300 seconds
-
+    
     console.log('Resending verification code...');
     setTimeout(() => {
       setIsLoading(null);
@@ -62,8 +64,18 @@ export default function Verification() {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    
   };
-
+  
+  const handleSendEmail = async () => {
+    try {
+      const result = await sendVerification();
+      console.log('Email sent:', result);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  };
+  
   return (
     <motion.div
       className="min-h-[65vh] flex p-4 justify-center items-center"
@@ -110,8 +122,32 @@ export default function Verification() {
           <Link href="/logout" className="text-orange-500 hover:underline">
             Logout
           </Link>
+          <button onClick={ handleSendEmail }>send</button>
         </p>
       </div>
     </motion.div>
   );
 }
+
+// utils/sendVerification.ts
+const sendVerification = async () => {
+  const response = await fetch('https://asbeatcloudmailer.vercel.app/verification', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: 'mbboy010@gmail.com',
+      subject: 'otp',
+      text1: 'Musa hakilu',
+      text2: '864223',
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to send verification email');
+  }
+
+  const data = await response.json();
+  return data;
+};
