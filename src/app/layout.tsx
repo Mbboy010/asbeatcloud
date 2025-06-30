@@ -1,3 +1,4 @@
+import Veried from '../components/authCheck/Veried';
 import UserId from '../components/authCheck/UserId';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -38,6 +39,7 @@ export default function RootLayout({
         <Navbar  /> 
         <Sidebar />
         <UserId />
+        <Veried />
         <div className="relative min-h-screen w-screen">
         {children}
         </div>

@@ -1,19 +1,110 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { databases } from '../../lib/appwrite';
+import { useAppSelector } from '@/store/hooks';
+import { useRouter } from 'next/navigation';
+import { sendMessage } from '@/utils/sendMessage';
 
+interface UserDocument {
+  verified: boolean;
+  verifyCode?: number;
+  currentTime?: number;
+  targetTimeV?: number;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+}
 
 export default function Verification() {
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
+  const COLLECTION_ID = process.env.NEXT_PUBLIC_USERS_COLLECTION_ID || '6849aa4f000c032527a9';
+
+  const authId = useAppSelector((state) => state.authId.value) as string | undefined;
+  const isAuth = useAppSelector((state) => state.isAuth.value);
+  const router = useRouter();
+
   const [verificationCode, setVerificationCode] = useState('');
-  const [email, setEmail] = useState('mbboy010@gmail.com');
   const [isLoading, setIsLoading] = useState<'verify' | 'resend' | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [resendDisabled, setResendDisabled] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+
+  // Fetch user data and initialize timeLeft
+  useEffect(() => {
+    if (!isAuth || !authId) {
+      return;
+    }
+
+    if (!DATABASE_ID || !COLLECTION_ID) {
+      setError('Database configuration is missing');
+      return;
+    }
+
+    const fetchFunc = async () => {
+      try {
+        const response = await databases.getDocument<UserDocument>(
+          DATABASE_ID,
+          COLLECTION_ID,
+          authId
+        );
+
+        // Calculate timeLeft from currentTime and targetTimeV
+        if (response.currentTime && response.targetTimeV) {
+          const currentTimeMs = response.currentTime;
+          const targetTimeMs = response.targetTimeV;
+          const diffSeconds = Math.max(0, Math.floor((targetTimeMs - Date.now()) / 1000));
+          setTimeLeft(diffSeconds);
+          setResendDisabled(diffSeconds > 0);
+        }
+
+        if (!response.verified && !response.verifyCode) {
+          const codeG = Math.floor(100000 + Math.random() * 900000);
+          const dte = new Date();
+          const vcurrentTime = dte.getTime(); // Milliseconds
+          const vtargetTime = dte.getTime() + 5 * 60 * 1000; // +5 minutes
+          await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
+            verifyCode: codeG,
+            currentTime: vcurrentTime,
+            targetTimeV: vtargetTime,
+          });
+
+          await sendMessage({
+            to: response.email,
+            subject: 'Your verification code is',
+            text1: `${response.firstName
+            } ${response.lastName}`,
+            text2: `${codeG}`,
+          });
+        }
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Failed to fetch user data');
+      }
+    };
+
+    fetchFunc();
+  }, [isAuth, authId]);
+
+  // Real-time countdown for timeLeft
+  useEffect(() => {
+    if (resendDisabled && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          const newTimeLeft = prev - 1;
+          if (newTimeLeft <= 0) {
+            setResendDisabled(false);
+            return 0;
+          }
+          return newTimeLeft;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resendDisabled, timeLeft]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +112,36 @@ export default function Verification() {
     setError('');
     setSuccess('');
 
+    if (!/^\d{6}$/.test(verificationCode)) {
+      setError('Verification आवेदन करें code must be 6 digits');
+      setIsLoading(null);
+      return;
+    }
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-      if (verificationCode === '123456') {
+      const response = await databases.getDocument<UserDocument>(
+        DATABASE_ID,
+        COLLECTION_ID,
+        authId!
+      );
+
+      // Check if code is expired
+      if (response.targetTimeV && Date.now() > response.targetTimeV) {
+        setError('Verification code has expired');
+        setIsLoading(null);
+        return;
+      }
+
+      const inputCode = Number(verificationCode);
+      if (response.verifyCode === inputCode) {
+        await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId!, {
+          verified: true,
+          verifyCode: null,
+          currentTime: null,
+          targetTimeV: null,
+        });
         setSuccess('Verification successful!');
+        setTimeout(() => router.push('/dashboard'), 2000);
       } else {
         throw new Error('Invalid verification code');
       }
@@ -40,32 +157,40 @@ export default function Verification() {
     setIsLoading('resend');
     setError('');
     setSuccess('');
-    setResendDisabled(true);
-    setTimeLeft(300);
 
     try {
-      
+      const codeG = Math.floor(100000 + Math.random() * 900000);
+      const dte = new Date();
+      const vcurrentTime = dte.getTime(); // Milliseconds
+      const vtargetTime = dte.getTime() + 5 * 60 * 1000; // +5 minutes
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId!, {
+        verifyCode: codeG,
+        currentTime: vcurrentTime,
+        targetTimeV: vtargetTime,
+      });
+
+      const response = await databases.getDocument<UserDocument>(
+        DATABASE_ID,
+        COLLECTION_ID,
+        authId!
+      );
+
+      await sendMessage({
+        to: response.email,
+        subject: 'Your verification code is',
+        text1: `${response.firstName} ${response.lastName}`,
+        text2: `${codeG}`,
+      });
+
       setSuccess('Verification code resent successfully!');
-      console.log('Resend result:');
+      setResendDisabled(true);
+      setTimeLeft(Math.floor((vtargetTime - Date.now()) / 1000));
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to resend verification code');
-      console.error('Error resending code:', error);
     } finally {
       setIsLoading(null);
     }
   };
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (resendDisabled && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && resendDisabled) {
-      setResendDisabled(false);
-    }
-    return () => clearInterval(timer);
-  }, [resendDisabled, timeLeft]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -80,17 +205,6 @@ export default function Verification() {
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
         {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
         <form onSubmit={handleVerify} className="space-y-4">
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
-              required
-            />
-          </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
