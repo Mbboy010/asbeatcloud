@@ -12,7 +12,7 @@ import { sendMessage } from '@/utils/sendMessage';
 interface UserDocument {
   verified: boolean;
   verifyCode?: number;
-  currentTime?: number;
+
   targetTimeV?: number;
   email?: string;
   firstName?: string;
@@ -34,10 +34,10 @@ export default function Verification() {
   const [resendDisabled, setResendDisabled] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Fetch user data and initialize timeLeft
+  // Fetch user data and send verification code
   useEffect(() => {
     if (!isAuth || !authId) {
-      return;
+      return router.push('/login');
     }
 
     if (!DATABASE_ID || !COLLECTION_ID) {
@@ -55,14 +55,12 @@ export default function Verification() {
 
         // Calculate timeLeft from currentTime and targetTimeV
         if (response.currentTime && response.targetTimeV) {
-          const currentTimeMs = response.currentTime;
           const targetTimeMs = response.targetTimeV;
           const diffSeconds = Math.max(0, Math.floor((targetTimeMs - Date.now()) / 1000));
           setTimeLeft(diffSeconds);
           setResendDisabled(diffSeconds > 0);
-        }
-
-        if (!response.verified && !response.verifyCode) {
+        } else {
+          // Send new verification code and start countdown
           const codeG = Math.floor(100000 + Math.random() * 900000);
           const dte = new Date();
           const vcurrentTime = dte.getTime(); // Milliseconds
@@ -76,10 +74,13 @@ export default function Verification() {
           await sendMessage({
             to: response.email,
             subject: 'Your verification code is',
-            text1: `${response.firstName
-            } ${response.lastName}`,
+            text1: `${response.firstName} ${response.lastName}`,
             text2: `${codeG}`,
           });
+
+          // Start countdown timer immediately
+          setTimeLeft(5 * 60); // 5 minutes in seconds
+          setResendDisabled(true);
         }
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Failed to fetch user data');
@@ -113,7 +114,7 @@ export default function Verification() {
     setSuccess('');
 
     if (!/^\d{6}$/.test(verificationCode)) {
-      setError('Verification आवेदन करें code must be 6 digits');
+      setError('Verification code must be 6 digits');
       setIsLoading(null);
       return;
     }
@@ -134,6 +135,7 @@ export default function Verification() {
 
       const inputCode = Number(verificationCode);
       if (response.verifyCode === inputCode) {
+        // Only set verified to true upon successful code entry
         await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId!, {
           verified: true,
           verifyCode: null,
@@ -184,7 +186,7 @@ export default function Verification() {
 
       setSuccess('Verification code resent successfully!');
       setResendDisabled(true);
-      setTimeLeft(Math.floor((vtargetTime - Date.now()) / 1000));
+      setTimeLeft(5 * 60); // 5 minutes in seconds
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to resend verification code');
     } finally {

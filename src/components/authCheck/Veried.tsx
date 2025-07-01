@@ -17,7 +17,6 @@ export default function Verified() {
 
   useEffect(() => {
     if (!authId) {
-      router.push('/login'); // Redirect to login if no authId
       return;
     }
 
@@ -29,24 +28,21 @@ export default function Verified() {
           authId
         );
 
-        if (!response.verified && pathname !== '/verification') {
+        if (!response.verified || response.verified == null && pathname !== '/verification') {
+          
+          if(pathname == '/provider') return 
+          
           router.push('/verification');
-        } else if (response.verified && pathname === '/verification') {
-          router.push(`/profile/${authId}`);
-        } else if(response.verified == null){
-          await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId!, {
-            verified: true,
-        });
-        }
+        } 
       } catch (error) {
         console.error('Error fetching document:', error);
         // Handle error appropriately
-        router.push('/error'); // Optional: redirect to error page
+        // Optional: redirect to error page
       }
     };
 
     fetchDb();
-  }, [authId, pathname, router]); // Added pathname to dependencies
+  }); // Added pathname to dependencies
 
   return null; // Return null since component doesn't render anything visible
 }

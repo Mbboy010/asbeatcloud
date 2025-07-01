@@ -380,6 +380,7 @@ export default function Signup() {
         address: formData.address,
         profileImageUrl,
         headerImageUrl,
+        verified: false,
         createdAt: new Date().toISOString(),
       });
 
@@ -396,7 +397,7 @@ export default function Signup() {
         .catch((error) => {
           console.error('Error fetching user:', error);
         });
-      router.push(`profile/${formData.username}`);
+      router.push(`/verification`);
     } catch (err: any) {
       setError(err.message || 'Something went wrong during signup.');
       if (err.message.includes('User already exists')) {
