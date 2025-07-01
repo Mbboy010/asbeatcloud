@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { databases } from '../../lib/appwrite';
+import { databases,account } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
 import { sendMessage } from '@/utils/sendMessage';
@@ -276,9 +276,9 @@ export default function Verification() {
             </button>
           </p>
           <p className="text-center text-gray-400 mt-2 text-sm">
-            <Link href="/logout" className="text-orange-500 hover:underline">
+            <button onClick={() => account.deleteSession('current');} className="text-orange-500 hover:underline">
               Logout
-            </Link>
+            </button>
           </p>
         </div>
       )}
