@@ -37,7 +37,7 @@ export default function Verification() {
   
   useEffect(() =>{
     
-    if(authId) return;
+    if(!authId) return;
     
     const checAu = async () =>{
       const response = await databases.getDocument(
