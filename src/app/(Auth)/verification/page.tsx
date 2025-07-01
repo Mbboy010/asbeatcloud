@@ -3,10 +3,6 @@ import Verification from '../../../components/verify/Verification';
 
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "verification",
-  description: "get verification code in your email"
-};
 
 
 export default function LoginPage() {

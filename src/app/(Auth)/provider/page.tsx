@@ -92,6 +92,7 @@ export default function ProviderPage() {
           email,
           profileImageUrl,
           headerImageUrl,
+          verified: true,
           createdAt: new Date().toISOString(),
         });
 
@@ -107,7 +108,7 @@ export default function ProviderPage() {
 
   return (
     <div className="flex z-50 justify-center items-center min-h-screen w-screen">
-     <p className="text-white">Logging you in...</p>
+     <p className="text-white">please wait...</p>
     </div>
     )
 }

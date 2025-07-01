@@ -12,7 +12,6 @@ import { sendMessage } from '@/utils/sendMessage';
 interface UserDocument {
   verified: boolean;
   verifyCode?: number;
-
   targetTimeV?: number;
   email?: string;
   firstName?: string;
@@ -29,6 +28,7 @@ export default function Verification() {
 
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState<'verify' | 'resend' | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // New state for initial fetch
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [resendDisabled, setResendDisabled] = useState(false);
@@ -42,6 +42,7 @@ export default function Verification() {
 
     if (!DATABASE_ID || !COLLECTION_ID) {
       setError('Database configuration is missing');
+      setIsInitialLoading(false);
       return;
     }
 
@@ -63,8 +64,8 @@ export default function Verification() {
           // Send new verification code and start countdown
           const codeG = Math.floor(100000 + Math.random() * 900000);
           const dte = new Date();
-          const vcurrentTime = dte.getTime(); // Milliseconds
-          const vtargetTime = dte.getTime() + 5 * 60 * 1000; // +5 minutes
+          const vcurrentTime = dte.getTime();
+          const vtargetTime = dte.getTime() + 5 * 60 * 1000;
           await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId, {
             verifyCode: codeG,
             currentTime: vcurrentTime,
@@ -78,12 +79,13 @@ export default function Verification() {
             text2: `${codeG}`,
           });
 
-          // Start countdown timer immediately
-          setTimeLeft(5 * 60); // 5 minutes in seconds
+          setTimeLeft(5 * 60);
           setResendDisabled(true);
         }
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Failed to fetch user data');
+      } finally {
+        setIsInitialLoading(false); // Stop initial loading
       }
     };
 
@@ -126,7 +128,6 @@ export default function Verification() {
         authId!
       );
 
-      // Check if code is expired
       if (response.targetTimeV && Date.now() > response.targetTimeV) {
         setError('Verification code has expired');
         setIsLoading(null);
@@ -135,7 +136,6 @@ export default function Verification() {
 
       const inputCode = Number(verificationCode);
       if (response.verifyCode === inputCode) {
-        // Only set verified to true upon successful code entry
         await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId!, {
           verified: true,
           verifyCode: null,
@@ -143,7 +143,7 @@ export default function Verification() {
           targetTimeV: null,
         });
         setSuccess('Verification successful!');
-        setTimeout(() => router.push('/dashboard'), 2000);
+        setTimeout(() => router.push(`/profile/${authId}`), 2000);
       } else {
         throw new Error('Invalid verification code');
       }
@@ -163,8 +163,8 @@ export default function Verification() {
     try {
       const codeG = Math.floor(100000 + Math.random() * 900000);
       const dte = new Date();
-      const vcurrentTime = dte.getTime(); // Milliseconds
-      const vtargetTime = dte.getTime() + 5 * 60 * 1000; // +5 minutes
+      const vcurrentTime = dte.getTime();
+      const vtargetTime = dte.getTime() + 5 * 60 * 1000;
       await databases.updateDocument(DATABASE_ID, COLLECTION_ID, authId!, {
         verifyCode: codeG,
         currentTime: vcurrentTime,
@@ -186,7 +186,7 @@ export default function Verification() {
 
       setSuccess('Verification code resent successfully!');
       setResendDisabled(true);
-      setTimeLeft(5 * 60); // 5 minutes in seconds
+      setTimeLeft(5 * 60);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to resend verification code');
     } finally {
@@ -200,51 +200,70 @@ export default function Verification() {
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // Skeleton UI component
+  const SkeletonLoader = () => (
+    <div className="w-full max-w-md p-6 mt-20">
+      <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
+      <div className="space-y-4">
+        <div className="relative">
+          <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+        </div>
+        <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+        <div className="h-4 bg-gray-700 rounded w-2/3 mx-auto animate-pulse"></div>
+        <div className="h-4 bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
+      </div>
+    </div>
+  );
+
   return (
     <motion.div className="min-h-[65vh] flex p-4 justify-center items-center">
-      <div className="w-full max-w-md p-6 mt-20">
-        <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Verify Your Account</h2>
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
-        <form onSubmit={handleVerify} className="space-y-4">
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              placeholder="Enter 6-digit verification code"
-              maxLength={6}
-              className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              required
-            />
-          </div>
-          <motion.button
-            type="submit"
-            disabled={isLoading !== null}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
-          >
-            {isLoading === 'verify' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify'}
-          </motion.button>
-        </form>
-        <p className="text-center text-gray-400 mt-4 text-sm">
-          Didn’t receive the code?{' '}
-          <button
-            onClick={handleResendCode}
-            disabled={isLoading !== null || resendDisabled}
-            className="text-orange-500 hover:underline"
-          >
-            {resendDisabled ? `Resend Code (${formatTime(timeLeft)})` : 'Resend Code'}
-          </button>
-        </p>
-        <p className="text-center text-gray-400 mt-2 text-sm">
-          <Link href="/logout" className="text-orange-500 hover:underline">
-            Logout
-          </Link>
-        </p>
-      </div>
+      {isInitialLoading ? (
+        <SkeletonLoader />
+      ) : (
+        <div className="w-full max-w-md p-6 mt-20">
+          <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Verify Your Account</h2>
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
+          <form onSubmit={handleVerify} className="space-y-4">
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter 6-digit verification code"
+                maxLength={6}
+                className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                required
+              />
+            </div>
+            <motion.button
+              type="submit"
+              disabled={isLoading !== null}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
+            >
+              {isLoading === 'verify' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify'}
+            </motion.button>
+          </form>
+          <p className="text-center text-gray-400 mt-4 text-sm">
+            Didn’t receive the code?{' '}
+            <button
+              onClick={handleResendCode}
+              disabled={isLoading !== null || resendDisabled}
+              className="text-orange-500 hover:underline"
+            >
+              {resendDisabled ? `Resend Code (${formatTime(timeLeft)})` : 'Resend Code'}
+            </button>
+          </p>
+          <p className="text-center text-gray-400 mt-2 text-sm">
+            <Link href="/logout" className="text-orange-500 hover:underline">
+              Logout
+            </Link>
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 }
