@@ -17,6 +17,8 @@ const ArtistProfile = () => {
     birthDate: '',
     genre: '',
     username: '',
+    firstName: '',
+    lastName: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
