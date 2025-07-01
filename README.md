@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AsbeatCloud
 
-## Getting Started
+Welcome to **AsbeatCloud**, a dynamic music platform where users can create, share, and discover beats and rhythms. This project is built with Next.js, featuring a modern UI with animations, authentication flows, and profile management. Explore the codebase to see how we’ve implemented a seamless music experience!
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Pages](#pages)
+- [Components](#components)
+- [Technologies](#technologies)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **User Authentication**: Secure login, signup, and logout functionality with email/password and social login options (Google, Facebook).
+- **Profile Management**: Dynamic user profiles with editable usernames, bio, social links, and galleries.
+- **Verification System**: Email/phone verification with a 5-minute resend cooldown.
+- **Interactive UI**: Smooth animations (e.g., slide-in effects) and responsive design.
+- **Music Features**: Upload tracks, view personal beats, and explore top artists.
+- **Dark Theme**: Consistent dark mode UI with orange accents.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Installation
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/asbeatcloud.git
+   cd asbeatcloud
