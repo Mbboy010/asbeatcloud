@@ -1,7 +1,9 @@
 import React from 'react'
 
-export default function BeatPage() {
+export default function page() {
   return (
-    <div></div>
+  <div>
+  
+  </div>
   )
-}
+  }
