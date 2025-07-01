@@ -276,7 +276,9 @@ export default function Verification() {
             </button>
           </p>
           <p className="text-center text-gray-400 mt-2 text-sm">
-            <button onClick={() => account.deleteSession('current');} className="text-orange-500 hover:underline">
+            <button onClick={async () => {
+              await account.deleteSession('current')
+            }}className="text-orange-500 hover:underline">
               Logout
             </button>
           </p>
