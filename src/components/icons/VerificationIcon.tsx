@@ -1,6 +1,6 @@
 import React from 'react';
 
-const VerificationIcon = ({ size = 20, color = '#1DA1F2' }) => {
+const VerificationIcon = ({ size = 22, color = '#1DA1F2' }) => {
 return (
 <svg
   xmlns="http://www.w3.org/2000/svg"

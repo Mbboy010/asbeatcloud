@@ -359,7 +359,7 @@ return (
     >
     {`${userData.firstName} ${userData.lastName}`}
   </p>
-   <span className="mt-[0.20rem]">  {userData.followers >= 1000 && <VerificationIcon className="ml-1  h-5 w-5" />}</span>
+   <span className="mt-[0.25rem]">  {userData.followers >= 1000 && <VerificationIcon />}</span>
   </div>
               <div>
                 <p className="text-sm text-gray-400">
