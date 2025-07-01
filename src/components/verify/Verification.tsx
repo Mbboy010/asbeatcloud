@@ -8,6 +8,8 @@ import { databases,account } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
 import { sendMessage } from '@/utils/sendMessage';
+import { setAuthId } from '@/store/slices/authId';
+import { setIsAuth } from '@/store/slices/isAuth';
 
 interface UserDocument {
   verified: boolean;
@@ -25,7 +27,8 @@ export default function Verification() {
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
   const isAuth = useAppSelector((state) => state.isAuth.value);
   const router = useRouter();
-
+ const dispatch = useAppDispatch();
+ 
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState<'verify' | 'resend' | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true); // New state for initial fetch
@@ -277,7 +280,12 @@ export default function Verification() {
           </p>
           <p className="text-center text-gray-400 mt-2 text-sm">
             <button onClick={async () => {
+              
+              
               await account.deleteSession('current')
+              dispatch(setAuthId(""))
+              dispatch(setIsAuth(false))
+              
             }}className="text-orange-500 hover:underline">
               Logout
             </button>
