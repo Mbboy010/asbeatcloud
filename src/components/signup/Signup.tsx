@@ -377,6 +377,7 @@ export default function Signup() {
         email: formData.email,
         gender: formData.gender,
         dob: formData.dob,
+        password: formData.password,
         address: formData.address,
         profileImageUrl,
         headerImageUrl,

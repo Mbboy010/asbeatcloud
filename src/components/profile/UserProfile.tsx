@@ -526,8 +526,7 @@ const UserProfile = () => {
         <motion.button
           whileHover={{ scale: 1.1 }}
           onClick={() => {
-            console.log('Opening report modal');
-            setShowReportModal(true);
+            isAuth ? setShowReportModal(true) : router.push('/login');
           }}
           className="p-2 rounded-full bg-gray-800 hover:bg-gray-800"
           title="Report Profile"

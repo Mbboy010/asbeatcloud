@@ -48,6 +48,8 @@ const ArtistProfile = () => {
           birthDate: response.dob || 'dob not available',
           genre: response.genre || 'Genre not available',
           username: response.username || '',
+          firstName: response.firstName || '',
+          lastName: response.lastName || '',
         });
       } catch (err) {
         setError('Error fetching artist data');
@@ -65,7 +67,7 @@ const ArtistProfile = () => {
 
   return (
     <div className="text-gray-200 p-6 rounded-xl max-w-md mx-auto my-6">
-      <h1 className="text-[1.2rem] font-bold mb-4">{artist.username}</h1>
+      <h1 className="text-[1.2rem] font-bold mb-4">{artist.firstName} {artist.lastName}</h1>
       <div className="relative mt-7">
         <img
           src={artist.imageUrl}

@@ -31,8 +31,24 @@ export default function Verification() {
   const [isInitialLoading, setIsInitialLoading] = useState(true); // New state for initial fetch
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [email, setEmail] = useState('');
   const [resendDisabled, setResendDisabled] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  
+  useEffect(() =>{
+    
+    if(authId) return;
+    
+    const checAu = async () =>{
+      const response = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTION_ID,
+        authId!
+      );
+      setEmail(response.email)
+    }
+    checAu()
+  },[authId])
 
   // Fetch user data and send verification code
   useEffect(() => {
@@ -222,6 +238,7 @@ export default function Verification() {
       ) : (
         <div className="w-full max-w-md p-6 mt-20">
           <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Verify Your Account</h2>
+
           {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
           {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
           <form onSubmit={handleVerify} className="space-y-4">
@@ -246,6 +263,7 @@ export default function Verification() {
             >
               {isLoading === 'verify' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify'}
             </motion.button>
+         <p className="text-green-500 text-sm mb-2 text-center">Check your verification code in this email {email}</p>
           </form>
           <p className="text-center text-gray-400 mt-4 text-sm">
             Didn’t receive the code?{' '}
