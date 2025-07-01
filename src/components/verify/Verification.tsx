@@ -263,7 +263,7 @@ export default function Verification() {
             >
               {isLoading === 'verify' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify'}
             </motion.button>
-         <p className="text-gray-200 text-sm mb-2 text-center">Check your verification code in this email {email}</p>
+         <p className="text-gray-400 text-sm mb-2 text-center">Check your verification code in this email <span className="text-gray-300 font-semibold">{email}</span></p>
           </form>
           <p className="text-center text-gray-400 mt-4 text-sm">
             Didn’t receive the code?{' '}
