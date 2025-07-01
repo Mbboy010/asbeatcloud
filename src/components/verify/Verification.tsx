@@ -5,7 +5,7 @@ import { Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { databases,account } from '../../lib/appwrite';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
 import { sendMessage } from '@/utils/sendMessage';
 import { setAuthId } from '@/store/slices/authId';
