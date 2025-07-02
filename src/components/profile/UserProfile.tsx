@@ -40,6 +40,12 @@ const UserProfile = () => {
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
   const isAuth = useAppSelector((state) => state.isAuth.value);
 
+  // Refs for focus management
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const shareModalRef = useRef<HTMLDivElement>(null);
+  const successModalRef = useRef<HTMLDivElement>(null);
+
   // Current date and time
   const currentDate = new Date();
   const lastUpdated = currentDate.toLocaleString('en-US', {
@@ -91,11 +97,8 @@ const UserProfile = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false); // New state for success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [cp, setCp] = useState<boolean>(false);
-
-  const shareModalRef = useRef<HTMLDivElement>(null);
-  const successModalRef = useRef<HTMLDivElement>(null); // Ref for success modal
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
   const REPORTS_COLLECTION_ID = process.env.NEXT_PUBLIC_REPORTS_COLLECTION_ID || '68651f14000d0d69786e';
@@ -147,7 +150,7 @@ const UserProfile = () => {
     }
 
     if (!DATABASE_ID || !COLLECTION_ID) {
-      return; // Error already set in previous useEffect
+      return;
     }
 
     const fetchUserData = async () => {
@@ -264,7 +267,6 @@ const UserProfile = () => {
     }
 
     try {
-      // Fetch current user's data
       let currentUser;
       try {
         currentUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
@@ -274,10 +276,8 @@ const UserProfile = () => {
         return;
       }
 
-      // Sanitize inputs
       const sanitizedReason = reportReason.trim().slice(0, 1000);
 
-      // Submit report
       await databases.createDocument(DATABASE_ID, REPORTS_COLLECTION_ID, 'unique()', {
         profileId: userData.$id,
         senderId: authId,
@@ -290,7 +290,7 @@ const UserProfile = () => {
       setShowReportModal(false);
       setReportReason('');
       setError('');
-      setShowSuccessModal(true); // Show success modal
+      setShowSuccessModal(true);
     } catch (err: any) {
       setError(`Failed to submit report: ${err.message}`);
       console.error('Report submission failed:', err);
@@ -299,13 +299,11 @@ const UserProfile = () => {
 
   // Focus management for accessibility
   useEffect(() => {
-    if (showReportModal) {
-      const textarea = document.querySelector('textarea[aria-label="Report reason"]');
-      if (textarea) textarea.focus();
+    if (showReportModal && textareaRef.current) {
+      textareaRef.current.focus();
     }
-    if (showSuccessModal) {
-      const button = document.querySelector('button[aria-label="Close success modal"]');
-      if (button) button.focus();
+    if (showSuccessModal && closeButtonRef.current) {
+      closeButtonRef.current.focus();
     }
   }, [showReportModal, showSuccessModal]);
 
@@ -351,12 +349,10 @@ const UserProfile = () => {
       let updatedFollowers: number = typeof profileUser.followers === 'number' ? profileUser.followers : 0;
 
       if (updatedFollowing.includes(userid)) {
-        // Unfollow
         updatedFollowing = updatedFollowing.filter((id) => id !== userid);
         updatedFollowers = Math.max(0, updatedFollowers - 1);
         setIsFollowing(false);
       } else {
-        // Follow
         updatedFollowing.push(userid);
         updatedFollowers += 1;
         setIsFollowing(true);
@@ -383,18 +379,14 @@ const UserProfile = () => {
     }
   };
 
-  
   if (loading) return <SkeletonUserProfile />;
-
 
   return (
     <div className="text-gray-200 p-6 rounded-lg">
-      {/* Header Image */}
       <div className="w-full h-32 bg-gray-800 rounded-t-lg overflow-hidden mb-4">
         <img src={userData.headerImageUrl} alt={`${userData.username} header`} className="w-full h-full object-cover" />
       </div>
 
-      {/* Profile Image, Name, and Buttons */}
       <div className="flex items-center mb-6 -mt-12">
         <div className="w-24 h-24 bg-gray-700 rounded-full overflow-hidden border-4 border-gray-900">
           <img src={userData.profileImageUrl} alt={`${userData.username} profile`} className="w-full h-full object-cover" />
@@ -446,7 +438,6 @@ const UserProfile = () => {
         </div>
       </div>
 
-      {/* Share Modal */}
       <AnimatePresence>
         {showShareModal && (
           <motion.div
@@ -513,7 +504,6 @@ const UserProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Report Modal */}
       <AnimatePresence>
         {showReportModal && (
           <motion.div
@@ -538,6 +528,7 @@ const UserProfile = () => {
               </h3>
               <form onSubmit={handleReportSubmit}>
                 <textarea
+                  ref={textareaRef}
                   className="w-full p-2 mb-4 bg-gray-900 text-gray-200 rounded"
                   rows={4}
                   placeholder="Please provide the reason for reporting this profile"
@@ -573,7 +564,6 @@ const UserProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Success Modal */}
       <AnimatePresence>
         {showSuccessModal && (
           <motion.div
@@ -600,6 +590,7 @@ const UserProfile = () => {
               <p className="text-gray-200 mb-4">Your report has been submitted successfully. Thank you for your feedback.</p>
               <div className="flex justify-end">
                 <button
+                  ref={closeButtonRef}
                   type="button"
                   onClick={() => setShowSuccessModal(false)}
                   className="px-4 py-2 bg-orange-500 rounded hover:bg-orange-400"
@@ -613,7 +604,6 @@ const UserProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Bio */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">About</h3>
         <p className="text-gray-300">
@@ -622,7 +612,6 @@ const UserProfile = () => {
       </div>
 
       <div className="mb-6 flex flex-row gap-2">
-        {/* Share Button */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           className="p-2 rounded-full bg-gray-800 hover:bg-gray-700"
@@ -632,7 +621,6 @@ const UserProfile = () => {
         >
           <Share2 className="h-5 w-5" />
         </motion.button>
-        {/* Report Button */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           onClick={() => {
@@ -651,5 +639,5 @@ const UserProfile = () => {
     </div>
   );
 };
- 
- export default UserProfile;
+
+export default UserProfile;
