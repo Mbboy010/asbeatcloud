@@ -1,5 +1,6 @@
 'use client';
 
+import VerificationIcon from '../icons/VerificationIcon';
 import SkeletonArtistProfile from './SkeletonArtistProfile';
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
@@ -19,6 +20,8 @@ const ArtistProfile = () => {
     username: '',
     firstName: '',
     lastName: '',
+    followers: null
+    
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,6 +55,7 @@ const ArtistProfile = () => {
           username: response.username || '',
           firstName: response.firstName || '',
           lastName: response.lastName || '',
+          followers: response.followers || null,
         });
       } catch (err) {
         setError('Error fetching artist data');
@@ -65,12 +69,21 @@ const ArtistProfile = () => {
   }, [userid, DATABASE_ID]);
 
   if (loading) return <SkeletonArtistProfile  />;
-  if (error) return <div className="text-red-500">{error}</div>;
+    if (error) return <div className="text-red-500"></div>;
 
   return (
     <div className="text-gray-200 p-6 rounded-xl max-w-md mx-auto my-6">
-      <h1 className="text-[1.2rem] font-bold mb-4">{artist.firstName} {artist.lastName}</h1>
-      <div className="relative mt-7">
+  <div className="flex items-center flex-row ">
+  <p
+    className="font-bold text-[1.2rem] text-gray-200 "
+    title={`${artist.firstName} ${artist.lastName}`}
+    >
+    {`${artist.firstName} ${artist.lastName}`}
+  </p>
+   <span className="mt-[0.22rem]">{artist.followers >= 1000 && (<VerificationIcon />) }</span>
+  </div>
+    {artist.followers >= 1000 &&  <p className="font-[300] text-green-500">Artist is verified</p>}
+      <div className="relative mt-5">
         <img
           src={artist.imageUrl}
           alt={`${artist.username} profile`}
