@@ -20,7 +20,7 @@ const ArtistProfile = () => {
     username: '',
     firstName: '',
     lastName: '',
-    followers: null
+    followers: 0
     
   });
   const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ const ArtistProfile = () => {
           username: response.username || '',
           firstName: response.firstName || '',
           lastName: response.lastName || '',
-          followers: response.followers || null,
+          followers: response.followers || 0,
         });
       } catch (err) {
         setError('Error fetching artist data');
