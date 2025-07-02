@@ -22,13 +22,6 @@ export default function Pimage() {
         console.error('DATABASE_ID is not defined');
         return;
       }
-
-      if (!authId) {
-        console.warn('No authId provided');
-        router.push('/login'); // Redirect to login if no authId
-        return;
-      }
-
       try {
         const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
 
@@ -45,14 +38,14 @@ export default function Pimage() {
 
   return (
     <>
-      {imageUrl && (
+      {imageUrl ? (
         <img
           className="scale-[2]"
           src={imageUrl}
           alt={`${username}'s profile`}
           onError={() => setImageUrl(DEFAULT_IMAGE_URL)} // Fallback on image load error
         />
-      )}
+      ) : null}
     </>
   );
 }
