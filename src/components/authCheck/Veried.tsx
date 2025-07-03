@@ -14,6 +14,14 @@ export default function Verified() {
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
   const COLLECTION_ID = '6849aa4f000c032527a9';
+  
+  useEffect(() =>{
+    if(pathname != '/forgot-password') {
+      localStorage.removeItem('resetStep');
+       localStorage.removeItem('resetEmail');
+       localStorage.removeItem('resetTargetTime');
+    } 
+  })
 
   useEffect(() => {
     if (!authId) {
