@@ -436,7 +436,7 @@ export default function ForgotPassword() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() =>{
-                  router.push(`/profile/${gid}`);
+                  router.push(`/profile/${gId}`);
                   setIsLoading("profile")
                 }}
                 className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
