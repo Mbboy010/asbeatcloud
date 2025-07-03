@@ -628,7 +628,7 @@ const EditProfile = () => {
 
   // Handle navigation to change password page
   const handleChangePassword = () => {
-    router.push(`/change-password/${userid}`);
+    router.push(`/profile/change-password`);
   };
 
   // Handle navigation to home page
