@@ -328,7 +328,7 @@ export default function ForgotPassword() {
   };
 
   const SkeletonLoader = () => (
-    <div className="w-full max-w-md p-6 rounded-lg bg-gray-800 mt-20">
+    <div className="w-full max-w-md p-6 rounded-lg bg-gray-800 mt-8">
       <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
       <div className="space-y-4">
         <div className="relative">
@@ -342,10 +342,10 @@ export default function ForgotPassword() {
 
   return (
     <motion.div
-      initial={{ x: '10vw', opacity: 0 }}
+      initial={{ x: '0vw', opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="min-h-[60vh] flex p-4 justify-center items-center"
+      className="min-h-[55vh] flex p-4 justify-center items-center"
     >
       {isInitialLoading && step === 2 ? (
         <SkeletonLoader />
