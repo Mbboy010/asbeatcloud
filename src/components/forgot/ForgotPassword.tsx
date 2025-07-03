@@ -33,7 +33,7 @@ export default function ForgotPassword() {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState<'submit' | 'verify' | 'reset' | 'resend' | null>(null);
+  const [isLoading, setIsLoading] = useState<'submit' | 'verify' | 'reset' | 'resend' | 'login' | 'profile' |null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
