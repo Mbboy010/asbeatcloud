@@ -21,6 +21,13 @@ export default function Verified() {
        localStorage.removeItem('resetEmail');
        localStorage.removeItem('resetTargetTime');
     } 
+    if(pathname == '/profile') {
+      if(authId){
+        router.push(`/profile/${authId}`);
+      } else{
+        router.push('/login');
+      }
+    } 
   })
 
   useEffect(() => {
