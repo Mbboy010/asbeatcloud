@@ -13,6 +13,7 @@ export default function ChangePassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -25,16 +26,21 @@ export default function ChangePassword() {
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
   const COLLECTION_ID = process.env.NEXT_PUBLIC_USERS_COLLECTION_ID || '6849aa4f000c032527a9';
 
-  // Password validation regex: at least 8 characters, one letter, one number
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
 
   useEffect(() => {
-    if(isLoading){
-      if (!authId) {
-      router.push('/login');
-    }
-    }
-  }, [authId, router,isLoading]);
+    // Delay auth check to ensure auth state is initialized
+    const checkAuth = async () => {
+      try {
+        await account.get(); // Verify session
+        setIsInitialLoading(false);
+      } catch (err) {
+        router.push('/login');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +48,6 @@ export default function ChangePassword() {
     setError('');
     setSuccess('');
 
-    // Validate password requirements
     if (!passwordRegex.test(newPassword)) {
       setError('Password must be at least 8 characters long and contain both letters and numbers');
       setIsLoading(false);
@@ -56,19 +61,15 @@ export default function ChangePassword() {
     }
 
     try {
-      // Update password in Appwrite auth
       await account.updatePassword(newPassword, currentPassword);
 
-      // Update password in database (assuming you store a hashed version)
       if (authId && DATABASE_ID && COLLECTION_ID) {
         await databases.updateDocument(
           DATABASE_ID,
           COLLECTION_ID,
           authId,
           {
-            // Note: Storing passwords in database is not recommended unless absolutely necessary
-            // and should be properly hashed. This is just an example.
-            password:newPassword,
+            password: newPassword,
           }
         );
       }
@@ -78,7 +79,6 @@ export default function ChangePassword() {
       setNewPassword('');
       setConfirmPassword('');
 
-      // Redirect to profile after 2 seconds
       setTimeout(() => {
         router.push(`/profile/${authId}`);
       }, 2000);
@@ -89,16 +89,48 @@ export default function ChangePassword() {
     }
   };
 
+  // Skeleton UI component
+  const SkeletonLoader = () => (
+    <div className="w-full max-w-md p-6 rounded-lg mt-8 animate-pulse">
+      <div className="h-8 bg-[#2A2A2A] rounded w-3/4 mx-auto mb-6"></div>
+      <div className="space-y-4">
+        <div className="relative">
+          <div className="h-10 bg-[#2A2A2A] rounded w-full"></div>
+        </div>
+        <div className="h-4 bg-[#2A2A2A] rounded w-2/3"></div>
+        <div className="relative">
+          <div className="h-10 bg-[#2A2A2A] rounded w-full"></div>
+        </div>
+        <div className="relative">
+          <div className="h-10 bg-[#2A2A2A] rounded w-full"></div>
+        </div>
+        <div className="h-10 bg-orange-500/20 rounded w-full"></div>
+        <div className="h-4 bg-[#2A2A2A] rounded w-1/3 mx-auto"></div>
+        <div className="h-4 bg-[#2A2A2A] rounded w-1/3 mx-auto"></div>
+      </div>
+    </div>
+  );
+
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-[55vh] flex p-4 justify-center items-center">
+        <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
+          <div className="h-6 bg-[#2A2A2A] rounded w-32 animate-pulse"></div>
+        </div>
+        <SkeletonLoader />
+      </div>
+    );
+  }
+
   return (
     <motion.div
-  
       className="min-h-[55vh] flex p-4 justify-center items-center"
     >
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
         <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
       </div>
 
-      <div className="w-full max-w-md p-6 rounded-lg  mt-8">
+      <div className="w-full max-w-md p-6 rounded-lg mt-8">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Change Password</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
         {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
@@ -160,7 +192,7 @@ export default function ChangePassword() {
           </div>
           <motion.button
             type="submit"
-            disabled={ isLoading}
+            disabled={isLoading}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center disabled:opacity-50"

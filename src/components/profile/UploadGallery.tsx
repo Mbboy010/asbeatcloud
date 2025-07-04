@@ -50,15 +50,15 @@ export default function UploadGallery() {
   // Redirect to homepage if not authenticated
   useEffect(() => {
     
-    setTimeout(() => {
-      setCu(true)
-    }, 4000);
-    
-    if(cu){
-      if (userId != cuid) {
-      router.push('/');
-    }
-    }
+    const checkAuth = async () => {
+      try {
+        await account.get(); // Verify sessio
+      } catch (err) {
+        router.push('/');
+      }
+    };
+
+    checkAuth();
     
   },[cu,userId,router]);
 

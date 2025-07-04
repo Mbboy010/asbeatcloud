@@ -33,8 +33,8 @@ export default function ForgotPassword() {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState<'submit' | 'verify' | 'reset' | 'resend' | 'login' | 'profile' |null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<'submit' | 'verify' | 'reset' | 'resend' | 'login' | 'profile' | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // Set to true initially
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [resendDisabled, setResendDisabled] = useState(false);
@@ -58,6 +58,11 @@ export default function ForgotPassword() {
         }
       }
     }
+    // Simulate initial loading delay (e.g., 1 second) to mimic data fetching
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   // Save step and email to localStorage when they change
@@ -78,19 +83,19 @@ export default function ForgotPassword() {
         if (response.documents.length > 0) {
           const document = response.documents[0];
           setAuthId(document.$id);
-          setNewPassword(document.password)
+          setNewPassword(document.password || '');
         } else {
-          
+          setError('No account found with this email');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch user data');
       }
     };
 
-    
+    if (email && step === 1) {
       fetchDb();
-    
-  }, [email, step]);
+    }
+  }, [email, step, DATABASE_ID, COLLECTION_ID]);
 
   // Check for existing reset code and timer on step 2
   useEffect(() => {
@@ -129,7 +134,9 @@ export default function ForgotPassword() {
         } else if (storedResetTargetTime && Number(storedResetTargetTime) === targetTime) {
           targetTime = Number(storedResetTargetTime);
         } else {
-          localStorage.setItem('resetTargetTime', targetTime.toString());
+ческую
+
+System: localStorage.setItem('resetTargetTime', targetTime.toString());
         }
 
         const diffSeconds = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
@@ -263,7 +270,6 @@ export default function ForgotPassword() {
     setSuccessMessage('');
 
     try {
-      // Use Appwrite's createRecovery to initiate password recovery
       await account.createRecovery(
         email,
         `${window.location.origin}/reset-password?userId=${authId}&secret=[SECRET]`
@@ -327,15 +333,39 @@ export default function ForgotPassword() {
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const SkeletonLoader = () => (
-    <div className="w-full max-w-md p-6 rounded-lg bg-gray-800 mt-8">
+  // Enhanced Skeleton Loader Component
+  const SkeletonLoader = ({ step }: { step: number }) => (
+    <div className="w-full max-w-md p-6 rounded-lg mt-8 ">
       <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
       <div className="space-y-4">
-        <div className="relative">
-          <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
-        </div>
-        <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
-        <div className="h-4 bg-gray-700 rounded w-2/3 mx-auto animate-pulse"></div>
+        {step === 1 && (
+          <>
+            <div className="h-4 bg-gray-700 rounded w-5/6 mx-auto animate-pulse"></div>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 bg-gray-700 rounded-full animate-pulse"></div>
+              <div className="h-10 bg-gray-700 rounded w-full pl-10 animate-pulse"></div>
+            </div>
+            <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+          </>
+        )}
+        {step === 2 && (
+          <>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 bg-gray-700 rounded-full animate-pulse"></div>
+              <div className="h-10 bg-gray-700 rounded w-full pl-10 animate-pulse"></div>
+            </div>
+            <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+            <div className="h-4 bg-gray-700 rounded w-2/3 mx-auto animate-pulse"></div>
+            <div className="h-4 bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
+          </>
+        )}
+        {step === 3 && (
+          <>
+            <div className="h-4 bg-gray-700 rounded w-3/4 mx-auto animate-pulse"></div>
+            <div className="h-10 bg-gray-700 rounded w-full animate-pulse"></div>
+            <div className="h-4 bg-gray-700 rounded w-1/3 mx-auto animate-pulse"></div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -347,10 +377,10 @@ export default function ForgotPassword() {
       transition={{ duration: 0.5, ease: 'easeInOut' }}
       className="min-h-[55vh] flex p-4 justify-center items-center"
     >
-      {isInitialLoading && step === 2 ? (
-        <SkeletonLoader />
+      {isInitialLoading ? (
+        <SkeletonLoader step={step} />
       ) : (
-        <div className="w-full max-w-md p-6 rounded-lg mt-8">
+        <div className="w-full max-w-md p-6 rounded-lg bg-[#2A2A2A] shadow-lg mt-8">
           <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">
             {step === 1 && 'Forgot Password'}
             {step === 2 && 'Verify Reset Code'}
@@ -360,6 +390,9 @@ export default function ForgotPassword() {
           {successMessage && <p className="text-green-500 text-sm mb-4 text-center">{successMessage}</p>}
           {step === 1 && (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <p className="text-gray-400 text-sm mb-2 text-center">
+                To reset your password enter your email for confirmation and we will send a reset code to your email
+              </p>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
@@ -400,7 +433,7 @@ export default function ForgotPassword() {
                 type="submit"
                 disabled={isLoading !== null}
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale:0.95 }}
                 className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
               >
                 {isLoading === 'verify' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify Code'}
@@ -423,65 +456,59 @@ export default function ForgotPassword() {
             </form>
           )}
           {step === 3 && (
-            <div  className="">
+            <div className="space-y-4">
               <div className="relative mb-3">
-               {
-              newPassword == "" || newPassword == null ?
-            <p className="font-mono text-gray-300">password not available! may you are using google auth</p> :
-               <p className="font-mono text-gray-300">this is your password:<span className="text-green-500">{newPassword}</span></p>
-               }
-              </div>
-              
-            {
-              gId ? (
-                     <motion.button
-                
-                disabled={isLoading !== null}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() =>{
-                  router.push(`/profile/${gId}`);
-                  setIsLoading("profile")
-                }}
-                className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
-              >
-                {isLoading === 'profile' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Go to profile'}
-              </motion.button>
+                {newPassword == '' || newPassword == null ? (
+                  <p className="font-mono text-[0.8rem] text-gray-300">
+                    Password not available! You may be using Google Auth.
+                  </p>
                 ) : (
-                  
+                  <p className="font-mono text-[0.8rem] text-gray-300">
+                    This is your password: <span className="text-green-500">{newPassword}</span>
+                  </p>
+                )}
+              </div>
+              {gId ? (
                 <motion.button
-                type="submit"
-                disabled={isLoading !== null}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() =>{
-                  router.push(`/login`);
-                  setIsLoading("login")
-                }}
-                className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
-              >
-                {isLoading === 'login' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Go to login'}
-              </motion.button>
-                  )
-                
-            }
-              
-            </div>   
+                  disabled={isLoading !== null}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    router.push(`/profile/${gId}`);
+                    setIsLoading('profile');
+                  }}
+                  className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
+                >
+                  {isLoading === 'profile' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Go to Profile'}
+                </motion.button>
+              ) : (
+                <motion.button
+                  disabled={isLoading !== null}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    router.push(`/login`);
+                    setIsLoading('login');
+                  }}
+                  className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
+                >
+                  {isLoading === 'login' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Go to Login'}
+                </motion.button>
+              )}
+              <p className="text-center text-gray-400 mt-4 text-sm">
+                <button
+                  onClick={() => setStep((prev) => prev - 1)}
+                  disabled={isLoading !== null}
+                  className="text-orange-500 hover:underline"
+                >
+                  Back
+                </button>
+              </p>
+            </div>
           )}
-          {step > 1 && step == 3 && (
-            <p className="text-center text-gray-400 mt-4 text-sm">
-              <button
-                onClick={() => setStep((prev) => prev - 1)}
-                disabled={isLoading !== null}
-                className="text-orange-500 hover:underline"
-              >
-                Back
-              </button>
-            </p>
-          )}
-
         </div>
       )}
     </motion.div>
   );
 }
+
