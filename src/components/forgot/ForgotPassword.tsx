@@ -134,9 +134,7 @@ export default function ForgotPassword() {
         } else if (storedResetTargetTime && Number(storedResetTargetTime) === targetTime) {
           targetTime = Number(storedResetTargetTime);
         } else {
-ческую
-
-System: localStorage.setItem('resetTargetTime', targetTime.toString());
+          localStorage.setItem('resetTargetTime', targetTime.toString());
         }
 
         const diffSeconds = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
