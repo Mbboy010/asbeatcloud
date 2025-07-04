@@ -1,12 +1,12 @@
 // utils/sendMessage.ts
-export const sendMessage = async (data: {
+export const resetMessage = async (data: {
   to: string;
   subject: string;
   name: string;
   verificationCode: string;
 }) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_MAILER_API_URL}/verification`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_MAILER_API_URL}/resetPassword`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -93,9 +93,9 @@ export default function Verification() {
 
           await sendMessage({
             to: response.email,
-            subject: 'Your verification code is',
-            text1: `${response.firstName} ${response.lastName}`,
-            text2: `${codeG}`,
+            subject: `Your verification code is ${codeG}`,
+            name: `${response.firstName} ${response.lastName}`,
+            verificationCode: `${codeG}`,
           });
 
           setTimeLeft(5 * 60);
@@ -195,12 +195,12 @@ export default function Verification() {
         COLLECTION_ID,
         authId!
       );
-
+      
       await sendMessage({
         to: response.email,
-        subject: 'Your verification code is',
-        text1: `${response.firstName} ${response.lastName}`,
-        text2: `${codeG}`,
+        subject: `Your verification code is ${codeG}`,
+        name: `${response.firstName} ${response.lastName}`,
+        verificationCode: `${codeG}`,
       });
 
       setSuccess('Verification code resent successfully!');

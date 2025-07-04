@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { databases, account } from '../../lib/appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
-import { sendMessage } from '@/utils/sendMessage';
+import { sendMessage } from '@/utils/resetMessage';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import { Query } from 'appwrite';
@@ -124,9 +124,9 @@ export default function ForgotPassword() {
 
           await sendMessage({
             to: response.email,
-            subject: 'Your password reset code',
-            text1: `${response.firstName || ''} ${response.lastName || ''}`,
-            text2: `${codeG}`,
+            subject:  `Your password reset code ${codeG}`,
+            name: `${response.firstName || ''} ${response.lastName || ''}`,
+            verificationCode: `${codeG}`,
           });
 
           setSuccessMessage('Reset code sent successfully!');
@@ -209,9 +209,9 @@ export default function ForgotPassword() {
 
       await sendMessage({
         to: user.email,
-        subject: 'Your password reset code',
-        text1: `${user.firstName || ''} ${user.lastName || ''}`,
-        text2: `${codeG}`,
+        subject:  `Your password reset code ${codeG}`,
+        name: `${user.firstName || ''} ${user.lastName || ''}`,
+        verificationCode: `${codeG}`,
       });
 
       setAuthId(userId);
@@ -306,9 +306,9 @@ export default function ForgotPassword() {
       const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
       await sendMessage({
         to: response.email,
-        subject: 'Your password reset code',
-        text1: `${response.firstName || ''} ${response.lastName || ''}`,
-        text2: `${codeG}`,
+        subject:  `Your password reset code ${codeG}`,
+        name: `${response.firstName || ''} ${response.lastName || ''}`,
+        verificationCode: `${codeG}`,
       });
 
       setSuccessMessage('Reset code resent successfully!');
