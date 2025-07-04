@@ -425,7 +425,11 @@ export default function ForgotPassword() {
           {step === 3 && (
             <div  className="">
               <div className="relative mb-3">
-                <p className="font-mono text-gray-300">this is your password:<span className="text-green-500">{newPassword}</span></p>
+               {
+              newPassword == "" || newPassword == null ?
+            <p className="font-mono text-gray-300">password not available! may you are using google auth</p> :
+               <p className="font-mono text-gray-300">this is your password:<span className="text-green-500">{newPassword}</span></p>
+               }
               </div>
               
             {

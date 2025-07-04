@@ -1,81 +1,107 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Lock, Loader2, Eye, EyeOff } from 'lucide-react'; // Added Eye and EyeOff for toggle
+import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { account, databases, ID } from '../../lib/appwrite';
+import { useAppSelector } from '@/store/hooks';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState<'change' | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [userEmail, setUserEmail] = useState(''); // Simulate authenticated user email
 
-  // Load from localStorage on mount
+  const authId = useAppSelector((state) => state.authId.value) as string | undefined;
+  const router = useRouter();
+
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
+  const COLLECTION_ID = process.env.NEXT_PUBLIC_USERS_COLLECTION_ID || '6849aa4f000c032527a9';
+
+  // Password validation regex: at least 8 characters, one letter, one number
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+
   useEffect(() => {
-    const savedEmail = localStorage.getItem('changePasswordEmail') || 'user@example.com'; // Default or from auth
-    setUserEmail(savedEmail);
-  }, []);
-  
-  useEffect(() =>{
-    
-  },[])
+    if(isLoading){
+      if (!authId) {
+      router.push('/login');
+    }
+    }
+  }, [authId, router,isLoading]);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading('change');
+    setIsLoading(true);
     setError('');
+    setSuccess('');
 
-    if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters.');
-      setIsLoading(null);
+    // Validate password requirements
+    if (!passwordRegex.test(newPassword)) {
+      setError('Password must be at least 8 characters long and contain both letters and numbers');
+      setIsLoading(false);
       return;
     }
+
     if (newPassword !== confirmPassword) {
-      setError('New password and confirmation do not match.');
-      setIsLoading(null);
+      setError('New password and confirmation do not match');
+      setIsLoading(false);
       return;
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-      if (currentPassword === 'oldpassword123') { // Mock current password check
-        console.log('Password changed successfully for email:', userEmail);
-        localStorage.removeItem('changePasswordEmail'); // Clear localStorage
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        alert('Password changed successfully!');
-      } else {
-        throw new Error('Current password is incorrect.');
+      // Update password in Appwrite auth
+      await account.updatePassword(newPassword, currentPassword);
+
+      // Update password in database (assuming you store a hashed version)
+      if (authId && DATABASE_ID && COLLECTION_ID) {
+        await databases.updateDocument(
+          DATABASE_ID,
+          COLLECTION_ID,
+          authId,
+          {
+            // Note: Storing passwords in database is not recommended unless absolutely necessary
+            // and should be properly hashed. This is just an example.
+            password:newPassword,
+          }
+        );
       }
+
+      setSuccess('Password changed successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      // Redirect to profile after 2 seconds
+      setTimeout(() => {
+        router.push(`/profile/${authId}`);
+      }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to change password.');
+      setError(err instanceof Error ? err.message : 'Failed to change password');
     } finally {
-      setIsLoading(null);
+      setIsLoading(false);
     }
   };
 
   return (
     <motion.div
-      initial={{ x: '100vw', opacity: 0 }} // Start from the right
-      animate={{ x: 0, opacity: 1 }} // Slide to center with fade-in
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="min-h-[70vh] flex p-4 justify-center items-center"
+  
+      className="min-h-[55vh] flex p-4 justify-center items-center"
     >
-      {/* Simulated Navigation (placeholder, adjust as needed) */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
         <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
       </div>
 
-      <div className="w-full max-w-md p-6 rounded-lg bg-gray-800 mt-20">
+      <div className="w-full max-w-md p-6 rounded-lg  mt-8">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Change Password</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        {success && <p className="text-green-500 text-sm mb-4 text-center">{success}</p>}
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -95,6 +121,7 @@ export default function ChangePassword() {
               {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
+          <p className="text-[0.8rem] font-mono text-gray-300">password shall be 8+ chars, letters & numbers</p>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -133,22 +160,22 @@ export default function ChangePassword() {
           </div>
           <motion.button
             type="submit"
-            disabled={isLoading !== null}
+            disabled={ isLoading}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center"
+            className="w-full py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition duration-200 flex items-center justify-center disabled:opacity-50"
           >
-            {isLoading === 'change' ? <Loader2 className="animate-spin h-5 w-5" /> : 'Change Password'}
+            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Change Password'}
           </motion.button>
         </form>
         <p className="text-center text-gray-400 mt-4 text-sm">
-          <Link href="/profile" className="text-orange-500 hover:underline">
-            Back to Profile
+          <Link href={`/forgot-password`} className="text-orange-500 hover:underline">
+            Forgot password
           </Link>
         </p>
-        <p className="text-center text-gray-400 mt-2 text-sm">
-          <Link href="/logout" className="text-orange-500 hover:underline">
-            Logout
+        <p className="text-center text-gray-400 mt-4 text-sm">
+          <Link href={`/profile/${authId}`} className="text-orange-500 hover:underline">
+            Back to Profile
           </Link>
         </p>
       </div>
