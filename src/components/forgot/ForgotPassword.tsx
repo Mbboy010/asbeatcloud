@@ -85,7 +85,7 @@ export default function ForgotPassword() {
           setAuthId(document.$id);
           setNewPassword(document.password || '');
         } else {
-          setError('No account found with this email');
+          
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch user data');
@@ -378,7 +378,7 @@ export default function ForgotPassword() {
       {isInitialLoading ? (
         <SkeletonLoader step={step} />
       ) : (
-        <div className="w-full max-w-md p-6 rounded-lg bg-[#2A2A2A] shadow-lg mt-8">
+        <div className="w-full max-w-md p-6 rounded-lg  mt-8">
           <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">
             {step === 1 && 'Forgot Password'}
             {step === 2 && 'Verify Reset Code'}

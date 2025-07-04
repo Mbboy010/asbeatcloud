@@ -3,7 +3,7 @@
 import SkeletonUploadGallery from './SkeletonUploadGallery';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { databases, storage } from '../../lib/appwrite';
+import { databases, storage,account } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { ID } from 'appwrite';
 import { motion, AnimatePresence } from 'framer-motion';
