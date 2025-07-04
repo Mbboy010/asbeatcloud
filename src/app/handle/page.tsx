@@ -8,7 +8,12 @@ export default function ContactForm() {
   const handleSend = async () => {
     setLoading(true);
     try {
-      
+      const res = await sendMessage({
+        to: 'mbboy010@gmail.com',
+        subject: 'you verification code is',
+        name: 'Musa hakilu',
+        verificationCode: '123456',
+      });
 
       console.log('Message sent:', res);
     } catch (err) {
