@@ -7,11 +7,11 @@ import { motion } from 'framer-motion';
 import { databases, account } from '../../lib/appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
-import { sendMessage } from '@/utils/resetMessage';
+import { resetMessage } from '@/utils/resetMessage';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import { Query } from 'appwrite';
-
+ 
 interface UserDocument {
   email?: string;
   firstName?: string;
@@ -122,7 +122,7 @@ export default function ForgotPassword() {
             resetTargetTime: targetTime,
           });
 
-          await sendMessage({
+          await resetMessage({
             to: response.email,
             subject:  `Your password reset code ${codeG}`,
             name: `${response.firstName || ''} ${response.lastName || ''}`,
@@ -207,7 +207,7 @@ export default function ForgotPassword() {
         resetTargetTime,
       });
 
-      await sendMessage({
+      await resetMessage({
         to: user.email,
         subject:  `Your password reset code ${codeG}`,
         name: `${user.firstName || ''} ${user.lastName || ''}`,
@@ -304,7 +304,7 @@ export default function ForgotPassword() {
       });
 
       const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, authId);
-      await sendMessage({
+      await resetMessage({
         to: response.email,
         subject:  `Your password reset code ${codeG}`,
         name: `${response.firstName || ''} ${response.lastName || ''}`,
