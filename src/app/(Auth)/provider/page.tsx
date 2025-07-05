@@ -7,6 +7,8 @@ import { ID } from 'appwrite';
 import { useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
+import { welcomeBack } from '@/utils/welcomeBack';
+import { wellcomeMassage } from '@/utils/wellcomeMassage';
 
 export default function ProviderPage() {
   const router = useRouter();
@@ -69,22 +71,49 @@ export default function ProviderPage() {
         const user = await account.get();
         dispatch(setAuthId(user.$id));
         dispatch(setIsAuth(true));
+        console.log(`User authenticated with ID: ${user.$id}`);
 
+        // Check if the user already exists in the database
+        let existingUser;
+        try {
+          existingUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, user.$id);
+          console.log(`Existing user found: ${user.$id}`);
+
+          // Send welcome back email for existing user
+          await welcomeBack({
+            to: existingUser.email,
+            username: `${existingUser.firstName} ${existingUser.lastName}`,
+            profileUrl: `${window.location.origin}/profile/${user.$id}`,
+          });
+          console.log(`Welcome back email sent to: ${existingUser.email}`);
+
+          window.location.href = `${window.location.origin}/profile/${user.$id}`;
+          return;
+        } catch (err) {
+          console.log(`No existing user found for ID: ${user.$id}. Creating new user profile.`);
+        }
+
+        // New user: Proceed with profile creation
         const nameParts = user.name ? user.name.split(' ') : ['', ''];
         const firstName = nameParts[0] || 'User';
         const lastName = nameParts.slice(1).join(' ') || '';
         const email = user.email || '';
 
+        console.log(`Generating profile image for new user: ${firstName} ${lastName}`);
         const profileBlob = await generateImage(768, 768, `${firstName} ${lastName}`, 110);
         const profileFile = new File([profileBlob], `${user.$id}-profile.jpg`, { type: 'image/jpeg' });
         const profileResponse = await storage.createFile(BUCKET_ID, ID.unique(), profileFile);
         const profileImageUrl = storage.getFileView(BUCKET_ID, profileResponse.$id).toString();
+        console.log(`Profile image uploaded: ${profileImageUrl}`);
 
+        console.log(`Generating header image for new user: ${firstName} ${lastName}`);
         const headerBlob = await generateImage(1000, 500, `${firstName} ${lastName}`, 80);
         const headerFile = new File([headerBlob], `${user.$id}-header.jpg`, { type: 'image/jpeg' });
         const headerResponse = await storage.createFile(BUCKET_ID, ID.unique(), headerFile);
         const headerImageUrl = storage.getFileView(BUCKET_ID, headerResponse.$id).toString();
+        console.log(`Header image uploaded: ${headerImageUrl}`);
 
+        console.log(`Creating user document for ID: ${user.$id}`);
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, user.$id, {
           firstName,
           lastName,
@@ -95,6 +124,15 @@ export default function ProviderPage() {
           verified: true,
           createdAt: new Date().toISOString(),
         });
+        console.log(`User document created successfully for ID: ${user.$id}`);
+
+        // Send welcome email for new user
+        await wellcomeMassage({
+          to: email,
+          username: `${firstName} ${lastName}`,
+          profileUrl: `${window.location.origin}/profile/${user.$id}`,
+        });
+        console.log(`Welcome email sent to: ${email}`);
 
         window.location.href = `${window.location.origin}/profile/${user.$id}`;
       } catch (err) {
@@ -108,7 +146,7 @@ export default function ProviderPage() {
 
   return (
     <div className="flex z-50 justify-center items-center min-h-screen w-screen">
-     <p className="text-white">please wait...</p>
+      <p className="text-white">please wait...</p>
     </div>
-    )
+  );
 }

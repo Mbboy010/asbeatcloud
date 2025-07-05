@@ -13,7 +13,7 @@ import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import type { OAuthProvider } from 'appwrite';
 import { welcomeBack } from '@/utils/welcomeBack';
-
+import { wellcomeMassage } from '@/utils/wellcomeMassage';
 
 export default function Login() {
   const [email, setEmail] = useState('');
