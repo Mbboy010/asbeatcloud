@@ -7,7 +7,7 @@ import { Lock, Mail, Loader2 } from 'lucide-react';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { account } from '@/lib/appwrite';
+import { account , databases} from '@/lib/appwrite';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
