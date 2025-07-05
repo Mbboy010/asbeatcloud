@@ -55,8 +55,12 @@ export default function Login() {
       const user = await account.get();
     await  dispatch(setAuthId(user.$id));
     await  dispatch(setIsAuth(true));
-    await  router.push(`profile/${user.$id}`)
     
+    const response = await databases.getDocument(
+          DATABASE_ID,
+          COLLECTION_ID,
+          user.$id
+        );
     
     await welcomeBack({
         to: email,
@@ -64,6 +68,7 @@ export default function Login() {
         profileUrl: `${window.location.origin}/profile/${user.$id}`,
       });
     
+    await  router.push(`profile/${user.$id}`)
     await  clearInterval(progressInterval);
     await  setProgress(100);
       // Optional redirect:

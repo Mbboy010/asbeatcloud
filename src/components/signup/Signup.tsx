@@ -403,8 +403,8 @@ export default function Signup() {
         //send-email 
         
         await wellcomeMassage({
-        to: email,
-        username: `${response.firstName} ${response.lastName}`,
+        to: formData.email,
+        username: `${formData.firstName} ${formData.lastName}`,
         profileUrl: `${window.location.origin}/profile/${user.$id}`,
       });
         
