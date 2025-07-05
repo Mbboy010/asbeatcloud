@@ -12,6 +12,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import { useRouter, useParams } from 'next/navigation';
+import { wellcomeMassage } from '@/utils/wellcomeMassage';
 
 export default function Signup() {
   const [step, setStep] = useState(1);
@@ -398,6 +399,16 @@ export default function Signup() {
         .catch((error) => {
           console.error('Error fetching user:', error);
         });
+        
+        //send-email 
+        
+        await wellcomeMassage({
+        to: email,
+        username: `${response.firstName} ${response.lastName}`,
+        profileUrl: `${window.location.origin}/profile/${user.$id}`,
+      });
+        
+        
       router.push(`/verification`);
     } catch (err: any) {
       setError(err.message || 'Something went wrong during signup.');

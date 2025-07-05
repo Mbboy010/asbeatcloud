@@ -12,6 +12,8 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setAuthId } from '@/store/slices/authId';
 import { setIsAuth } from '@/store/slices/isAuth';
 import type { OAuthProvider } from 'appwrite';
+import { welcomeBack } from '@/utils/welcomeBack';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -54,6 +56,14 @@ export default function Login() {
     await  dispatch(setAuthId(user.$id));
     await  dispatch(setIsAuth(true));
     await  router.push(`profile/${user.$id}`)
+    
+    
+    await welcomeBack({
+        to: email,
+        username: `${response.firstName} ${response.lastName}`,
+        profileUrl: `${window.location.origin}/profile/${user.$id}`,
+      });
+    
     await  clearInterval(progressInterval);
     await  setProgress(100);
       // Optional redirect:
