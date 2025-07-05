@@ -23,6 +23,10 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [progress, setProgress] = useState(0);
 
+ const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE || '';
+  const COLLECTION_ID = process.env.NEXT_PUBLIC_USERS_COLLECTION_ID || '6849aa4f000c032527a9';
+
+
   const dispatch = useAppDispatch();
   
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
