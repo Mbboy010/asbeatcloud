@@ -87,7 +87,7 @@ export default function ChangePassword() {
         );
     
     await passwordChanged({
-        to: email,
+        to: response.email,
         username: `${response.firstName} ${response.lastName}`,
         profileUrl: `${window.location.origin}/profile/${authId}`,
       });
