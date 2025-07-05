@@ -405,7 +405,7 @@ export default function Signup() {
         await wellcomeMassage({
         to: formData.email,
         username: `${formData.firstName} ${formData.lastName}`,
-        profileUrl: `${window.location.origin}/profile/${user.$id}`,
+        profileUrl: `${window.location.origin}/profile/${formData.username}`,
       });
         
         
