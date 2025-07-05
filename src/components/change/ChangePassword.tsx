@@ -7,6 +7,7 @@ import { account, databases, ID } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { passwordChanged } from '@/utils/passwordChanged';
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -78,6 +79,18 @@ export default function ChangePassword() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      
+      const response = await databases.getDocument(
+          DATABASE_ID,
+          COLLECTION_ID,
+          authId
+        );
+    
+    await passwordChanged({
+        to: email,
+        username: `${response.firstName} ${response.lastName}`,
+        profileUrl: `${window.location.origin}/profile/${authId}`,
+      });
 
       setTimeout(() => {
         router.push(`/profile/${authId}`);

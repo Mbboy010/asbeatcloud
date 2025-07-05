@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
+import { reportSubmitted } from '@/utils/reportSubmitted';
 
 // Define interfaces for type safety
 interface SocialLink {
@@ -278,13 +279,30 @@ const UserProfile = () => {
 
       const sanitizedReason = reportReason.trim().slice(0, 1000);
 
-      await databases.createDocument(DATABASE_ID, REPORTS_COLLECTION_ID, 'unique()', {
-        profileId: userData.$id,
-        senderId: authId,
-        profileEmail: userData.email || 'unknown',
-        senderEmail: currentUser.email || 'unknown',
-        reason: sanitizedReason,
-        time: new Date().toISOString(),
+      
+
+        // Create the document
+        const response = await databases.createDocument(
+          DATABASE_ID,
+          REPORTS_COLLECTION_ID,
+          ID.unique(),
+          {
+            profileId: userData.$id,
+            senderId: authId,
+            profileEmail: userData.email || 'unknown',
+            senderEmail: currentUser.email || 'unknown',
+            reason: sanitizedReason,
+            time: new Date().toISOString(),
+          }
+        );
+
+
+      
+      await reportSubmitted({
+        to: currentUser.email ,
+        reportedEntity: `${userData.firstName} ${userData.lastName}`;
+        supportUrl: "string.com";
+        reportId: response.$id;
       });
 
       setShowReportModal(false);
