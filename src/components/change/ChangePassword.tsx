@@ -83,7 +83,7 @@ export default function ChangePassword() {
       const response = await databases.getDocument(
           DATABASE_ID,
           COLLECTION_ID,
-          !authId
+          authId!
         );
     
     await passwordChanged({
