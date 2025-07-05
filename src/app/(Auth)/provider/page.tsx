@@ -77,8 +77,7 @@ export default function ProviderPage() {
         let existingUser;
         try {
           existingUser = await databases.getDocument(DATABASE_ID, COLLECTION_ID, user.$id);
-          console.log(`Existing user found: ${user.$id}`);
-
+          
           // Send welcome back email for existing user
           await welcomeBack({
             to: existingUser.email,

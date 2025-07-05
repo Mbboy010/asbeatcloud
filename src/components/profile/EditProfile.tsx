@@ -337,7 +337,9 @@ const EditProfile = () => {
       });
       dispatch(setNav(profile.profileImageUrl));
       await account.updateName(profile.firstName + " " + profile.lastName);
-      router.push(`/profile/${userid}`);
+      
+      window.location.href = `${window.location.origin}/profile/${userid}`;
+      
     } catch (err) {
       console.error("Failed to update profile:", err);
       setError("Error updating profile data");
