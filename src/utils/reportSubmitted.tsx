@@ -6,7 +6,7 @@ export const reportSubmitted = async (data: {
   reportId: string;
 }) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_MAILER_API_URL}/welcome-back`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_MAILER_API_URL}/submit-report`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

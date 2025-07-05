@@ -300,9 +300,9 @@ const UserProfile = () => {
       
       await reportSubmitted({
         to: currentUser.email ,
-        reportedEntity: `${userData.firstName} ${userData.lastName}`;
-        supportUrl: "string.com";
-        reportId: response.$id;
+        reportedEntity: `${userData.firstName} ${userData.lastName}`, 
+        supportUrl: "string.com",
+        reportId: response.$id,
       });
 
       setShowReportModal(false);
