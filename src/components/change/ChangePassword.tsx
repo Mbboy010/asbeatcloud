@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { account, databases, ID } from '../../lib/appwrite';
+import { account, databases } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';

@@ -11,6 +11,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { databases } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { reportSubmitted } from '@/utils/reportSubmitted';
+import { ID } from 'appwrite';
+
 
 // Define interfaces for type safety
 interface SocialLink {
