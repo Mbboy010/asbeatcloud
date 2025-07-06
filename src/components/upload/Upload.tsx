@@ -65,8 +65,9 @@ export default function Uploaded() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [isAudioLoading, setIsAudioLoading] = useState(false); // New state for audio loading
-  const [isImageLoading, setIsImageLoading] = useState(false); // New state for image loading
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<string | null>(null); // Added state
   const [error, setError] = useState('');
   const [userEmail, setUserEmail] = useState('');
   // Audio player states
@@ -358,7 +359,7 @@ export default function Uploaded() {
 
   return (
     <motion.div
-      className="flex justify-center items-center "
+      className="flex justify-center items-center"
     >
       <div className="w-full p-6 max-w-md">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
@@ -434,7 +435,7 @@ export default function Uploaded() {
                 {isImageLoading ? (
                   <Loader2 className="animate-spin h-12 w-12 text-orange-500" />
                 ) : !imagePreviewUrl ? (
-                  <Plus className="text-gray-400 h-12 w-12 hover:text-orange-500 stall duration-200" />
+                  <Plus className="text-gray-400 h-12 w-12 hover:text-orange-500 transition-all duration-200" />
                 ) : (
                   <motion.img
                     key="preview"
@@ -539,8 +540,7 @@ export default function Uploaded() {
               </div>
               <div className="flex justify-center mt-4">
                 <motion.button
-                  type="button" // Prevent form submission
-                    
+                  type="button"
                   onClick={togglePlay}
                   className="bg-white text-gray-900 rounded-full p-3 hover:scale-105 transition"
                   whileHover={{ scale: 1.05 }}

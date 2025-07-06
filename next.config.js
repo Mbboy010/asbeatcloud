@@ -1,6 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+/** @type {import('next').NextConfig} */
 var nextConfig = {
-/* config options here */
+    reactStrictMode: true,
+    // Add other valid options here as needed
 };
-exports.default = nextConfig;
+module.exports = nextConfig;
