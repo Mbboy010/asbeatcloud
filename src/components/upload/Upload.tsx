@@ -11,13 +11,19 @@ interface UploadProgress {
   remainingTime: number;
 }
 
-// Modal Component for Success Message
-const SuccessModal = ({
+// Modal Component for Confirmation and Success
+const CustomModal = ({
   isOpen,
-  onClose,
+  onConfirm,
+  onCancel,
+  message,
+  type = 'confirm',
 }: {
   isOpen: boolean;
-  onClose: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  message: string;
+  type?: 'confirm' | 'success';
 }) => {
   return (
     <AnimatePresence>
@@ -37,20 +43,45 @@ const SuccessModal = ({
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
             <div className="flex items-center mb-4">
-              <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
-              <h3 className="text-xl font-bold text-gray-200">Upload Successful!</h3>
+              {type === 'success' ? (
+                <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
+              ) : (
+                <AlertCircle className="h-8 w-8 text-orange-500 mr-2" />
+              )}
+              <h3 className="text-xl font-bold text-gray-200">
+                {type === 'success' ? 'Upload Successful!' : 'Confirm Upload'}
+              </h3>
             </div>
-            <p className="text-gray-300 mb-6">
-              Your beat has been uploaded successfully. Check your profile to manage it or share it with others!
-            </p>
-            <motion.button
-              onClick={onClose}
-              className="w-full py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Got It
-            </motion.button>
+            <p className="text-gray-300 mb-6">{message}</p>
+            {type === 'confirm' ? (
+              <div className="flex justify-between gap-4">
+                <motion.button
+                  onClick={onCancel}
+                  className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  onClick={onConfirm}
+                  className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  OK
+                </motion.button>
+              </div>
+            ) : (
+              <motion.button
+                onClick={onCancel}
+                className="w-full py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Got It
+              </motion.button>
+            )}
           </motion.div>
         </motion.div>
       )}
@@ -67,29 +98,24 @@ export default function Uploaded() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState<string | null>(null); // Added state
+  const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  // Audio player states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'confirm' | 'success'>('confirm');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  // Upload progress state
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ percentage: 0, remainingTime: 0 });
-  // Success state to show next steps and modal
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  // Upload cancellation state
   const uploadControllerRef = useRef<AbortController | null>(null);
 
-  // Retrieve email from localStorage
   useEffect(() => {
     const savedEmail = localStorage.getItem('uploadEmail') || 'user@example.com';
     setUserEmail(savedEmail);
   }, []);
 
-  // Audio player event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -161,12 +187,10 @@ export default function Uploaded() {
           return;
         }
 
-        // Check if image is 1:1 ratio
         const isOneToOne = img.width === img.height;
         canvas.width = img.width;
         canvas.height = img.height;
 
-        // Only crop if not 1:1
         if (!isOneToOne) {
           const size = Math.min(img.width, img.height);
           canvas.width = size;
@@ -188,10 +212,9 @@ export default function Uploaded() {
 
         let quality = 0.9;
         let blob: Blob | null = null;
-        const targetSize = 95 * 1024; // Target 95KB
+        const targetSize = 95 * 1024;
         const originalSize = file.size;
 
-        // Only compress if file size > 95KB
         if (originalSize <= targetSize) {
           resolve(file);
           return;
@@ -232,13 +255,14 @@ export default function Uploaded() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Step 1: Confirm upload
-    const confirmUpload = window.confirm('Are you ready to upload your beat? Ensure all details are correct.');
-    if (!confirmUpload) {
-      setError('Upload cancelled by user.');
-      return;
-    }
+
+    // Show confirmation modal
+    setModalType('confirm');
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmUpload = async () => {
+    setIsModalOpen(false);
 
     // Step 2: Check file size and internet connection
     if (!audioFile) {
@@ -271,7 +295,6 @@ export default function Uploaded() {
       uploadControllerRef.current = new AbortController();
       const signal = uploadControllerRef.current.signal;
 
-      // Simulate upload progress based on file size
       let progress = 0;
       const uploadInterval = setInterval(() => {
         if (signal.aborted) {
@@ -286,7 +309,6 @@ export default function Uploaded() {
         }
       }, fileSizeMB * 200);
 
-      // Simulate API call
       await new Promise((resolve, reject) => {
         setTimeout(() => {
           if (signal.aborted) {
@@ -311,6 +333,7 @@ export default function Uploaded() {
       setCurrentTime(0);
       setDuration(0);
       setUploadSuccess(true);
+      setModalType('success');
       setIsModalOpen(true);
     } catch (err: any) {
       if (err.message === 'Upload cancelled') {
@@ -323,6 +346,11 @@ export default function Uploaded() {
       setIsLoading(null);
       uploadControllerRef.current = null;
     }
+  };
+
+  const handleCancelConfirm = () => {
+    setIsModalOpen(false);
+    setError('Upload cancelled by user.');
   };
 
   const togglePlay = (e: React.MouseEvent) => {
@@ -351,21 +379,19 @@ export default function Uploaded() {
     }
   };
 
-  // Close modal and reset success state
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setUploadSuccess(false);
+    if (modalType === 'success') {
+      setUploadSuccess(false);
+    }
   };
 
   return (
-    <motion.div
-      className="flex justify-center items-center"
-    >
+    <motion.div className="flex justify-center items-center">
       <div className="w-full p-6 max-w-md">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        
-        {/* Pre-Upload Steps */}
+
         {!isLoading && !uploadSuccess && (
           <motion.div
             className="w-full bg-gray-800 rounded-lg p-4 mb-6"
@@ -382,11 +408,8 @@ export default function Uploaded() {
         )}
 
         <form onSubmit={handleUpload} className="space-y-6">
-          {/* Title Input */}
           <div>
-            <label className="text-gray-300 text-sm mb-2 block">
-              Beat Title - Enter a unique name for your beat
-            </label>
+            <label className="text-gray-300 text-sm mb-2 block">Beat Title - Enter a unique name for your beat</label>
             <div className="relative">
               <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
@@ -400,11 +423,8 @@ export default function Uploaded() {
             </div>
           </div>
 
-          {/* Description Input */}
           <div>
-            <label className="text-gray-300 text-sm mb-2 block">
-              Description - Add details about your beat (optional)
-            </label>
+            <label className="text-gray-300 text-sm mb-2 block">Description - Add details about your beat (optional)</label>
             <div className="relative">
               <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <textarea
@@ -416,11 +436,8 @@ export default function Uploaded() {
             </div>
           </div>
 
-          {/* Image Upload Section */}
           <div>
-            <label className="text-gray-300 text-sm mb-2 block">
-              Cover Image - Upload an image to represent your beat (optional)
-            </label>
+            <label className="text-gray-300 text-sm mb-2 block">Cover Image - Upload an image to represent your beat (optional)</label>
             <motion.div
               className="relative mx-auto flex justify-center items-center"
               initial={{ scale: 0.9 }}
@@ -459,11 +476,8 @@ export default function Uploaded() {
             </motion.div>
           </div>
 
-          {/* Audio Upload Section */}
           <div>
-            <label className="text-gray-300 text-sm mb-2 block">
-              Audio File - Upload your beat in MP3 or WAV format
-            </label>
+            <label className="text-gray-300 text-sm mb-2 block">Audio File - Upload your beat in MP3 or WAV format</label>
             <motion.div className="relative">
               <label
                 htmlFor="audio-upload"
@@ -487,7 +501,6 @@ export default function Uploaded() {
             </motion.div>
           </div>
 
-          {/* Custom Audio Player */}
           {previewUrl && (
             <motion.div
               className="w-full bg-gray-900 rounded-xl shadow-lg p-6 text-white"
@@ -552,7 +565,6 @@ export default function Uploaded() {
             </motion.div>
           )}
 
-          {/* Upload Progress Indicator */}
           {isLoading === 'upload' && (
             <motion.div
               className="w-full bg-gray-800 rounded-lg p-4 mt-4"
@@ -571,9 +583,7 @@ export default function Uploaded() {
                   <X className="h-5 w-5" />
                 </motion.button>
               </div>
-              <p className="text-red-500 text-sm mb-2">
-                Do not close this page until upload is finished.
-              </p>
+              <p className="text-red-500 text-sm mb-2">Do not close this page until upload is finished.</p>
               <div className="w-full bg-gray-600 rounded-full h-2.5">
                 <motion.div
                   className="bg-gradient-to-r from-orange-500 to-yellow-500 h-2.5 rounded-full"
@@ -589,7 +599,6 @@ export default function Uploaded() {
             </motion.div>
           )}
 
-          {/* Next Steps After Successful Upload */}
           {uploadSuccess && (
             <motion.div
               className="w-full bg-gray-800 rounded-lg p-4 mt-4"
@@ -607,8 +616,13 @@ export default function Uploaded() {
             </motion.div>
           )}
 
-          {/* Success Modal */}
-          <SuccessModal isOpen={isModalOpen} onClose={handleCloseModal} />
+          <CustomModal
+            isOpen={isModalOpen}
+            onConfirm={handleConfirmUpload}
+            onCancel={handleCancelConfirm}
+            message="Are you ready to upload your beat? Ensure all details are correct."
+            type={modalType}
+          />
 
           <motion.button
             type="submit"
