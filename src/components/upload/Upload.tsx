@@ -65,7 +65,8 @@ export default function Uploaded() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<'upload' | 'image' | null>(null);
+  const [isAudioLoading, setIsAudioLoading] = useState(false); // New state for audio loading
+  const [isImageLoading, setIsImageLoading] = useState(false); // New state for image loading
   const [error, setError] = useState('');
   const [userEmail, setUserEmail] = useState('');
   // Audio player states
@@ -77,7 +78,7 @@ export default function Uploaded() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ percentage: 0, remainingTime: 0 });
   // Success state to show next steps and modal
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // Upload cancellation state
   const uploadControllerRef = useRef<AbortController | null>(null);
 
@@ -106,19 +107,22 @@ export default function Uploaded() {
     };
   }, [previewUrl, imagePreviewUrl]);
 
-  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && (selectedFile.type === 'audio/mpeg' || selectedFile.type === 'audio/wav')) {
+      setIsAudioLoading(true);
       setAudioFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setError('');
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
+      setIsAudioLoading(false);
     } else {
       setAudioFile(null);
       setPreviewUrl(null);
       setError('Please upload a valid MP3 or WAV file.');
+      setIsAudioLoading(false);
     }
   };
 
@@ -126,7 +130,7 @@ export default function Uploaded() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && selectedFile.type.startsWith('image/')) {
       try {
-        setIsLoading('image');
+        setIsImageLoading(true);
         const processedImage = await processImage(selectedFile);
         setImageFile(processedImage);
         setImagePreviewUrl(URL.createObjectURL(processedImage));
@@ -134,12 +138,13 @@ export default function Uploaded() {
       } catch (err) {
         setError('Failed to process image.');
       } finally {
-        setIsLoading(null);
+        setIsImageLoading(false);
       }
     } else {
       setImageFile(null);
       setImagePreviewUrl(null);
       setError('Please upload a valid image file.');
+      setIsImageLoading(false);
     }
   };
 
@@ -155,25 +160,41 @@ export default function Uploaded() {
           return;
         }
 
-        const size = Math.min(img.width, img.height);
-        canvas.width = size;
-        canvas.height = size;
+        // Check if image is 1:1 ratio
+        const isOneToOne = img.width === img.height;
+        canvas.width = img.width;
+        canvas.height = img.height;
 
-        ctx.drawImage(
-          img,
-          (img.width - size) / 2,
-          (img.height - size) / 2,
-          size,
-          size,
-          0,
-          0,
-          size,
-          size
-        );
+        // Only crop if not 1:1
+        if (!isOneToOne) {
+          const size = Math.min(img.width, img.height);
+          canvas.width = size;
+          canvas.height = size;
+          ctx.drawImage(
+            img,
+            (img.width - size) / 2,
+            (img.height - size) / 2,
+            size,
+            size,
+            0,
+            0,
+            size,
+            size
+          );
+        } else {
+          ctx.drawImage(img, 0, 0);
+        }
 
         let quality = 0.9;
         let blob: Blob | null = null;
-        const targetSize = 50 * 1024;
+        const targetSize = 95 * 1024; // Target 95KB
+        const originalSize = file.size;
+
+        // Only compress if file size > 95KB
+        if (originalSize <= targetSize) {
+          resolve(file);
+          return;
+        }
 
         const tryConvert = () => {
           canvas.toBlob(
@@ -236,7 +257,7 @@ export default function Uploaded() {
     setIsLoading('upload');
     setError('');
     setUploadSuccess(false);
-    setUploadProgress({ percentage: 0, remainingTime: Math.round(fileSizeMB * 2) }); // Estimate: 2s per MB
+    setUploadProgress({ percentage: 0, remainingTime: Math.round(fileSizeMB * 2) });
 
     try {
       const formData = new FormData();
@@ -262,7 +283,7 @@ export default function Uploaded() {
         if (progress >= 100) {
           clearInterval(uploadInterval);
         }
-      }, fileSizeMB * 200); // Adjust interval based on file size (200ms per MB)
+      }, fileSizeMB * 200);
 
       // Simulate API call
       await new Promise((resolve, reject) => {
@@ -272,7 +293,7 @@ export default function Uploaded() {
           } else {
             resolve(true);
           }
-        }, fileSizeMB * 2000); // Simulate 2s per MB
+        }, fileSizeMB * 2000);
       });
       clearInterval(uploadInterval);
       setUploadProgress({ percentage: 100, remainingTime: 0 });
@@ -289,7 +310,7 @@ export default function Uploaded() {
       setCurrentTime(0);
       setDuration(0);
       setUploadSuccess(true);
-      setIsModalOpen(true); // Show modal instead of alert
+      setIsModalOpen(true);
     } catch (err: any) {
       if (err.message === 'Upload cancelled') {
         setError('Upload cancelled.');
@@ -303,7 +324,8 @@ export default function Uploaded() {
     }
   };
 
-  const togglePlay = () => {
+  const togglePlay = (e: React.MouseEvent) => {
+    e.preventDefault();
     const audio = audioRef.current;
     if (!audio) return;
     if (isPlaying) {
@@ -409,23 +431,22 @@ export default function Uploaded() {
                 className="w-full h-60 bg-[#2A2A2A] rounded-lg flex items-center justify-center cursor-pointer border-2 border-dashed border-gray-500 hover:border-orange-500 transition-all duration-300"
                 aria-label="Upload cover image"
               >
-                {!imagePreviewUrl && (
-                  <Plus className="text-gray-400 h-12 w-12 hover:text-orange-500 transition-colors duration-200" />
+                {isImageLoading ? (
+                  <Loader2 className="animate-spin h-12 w-12 text-orange-500" />
+                ) : !imagePreviewUrl ? (
+                  <Plus className="text-gray-400 h-12 w-12 hover:text-orange-500 stall duration-200" />
+                ) : (
+                  <motion.img
+                    key="preview"
+                    src={imagePreviewUrl}
+                    alt="Cover preview"
+                    className="w-full h-full object-cover rounded-lg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
                 )}
-                <AnimatePresence>
-                  {imagePreviewUrl && (
-                    <motion.img
-                      key="preview"
-                      src={imagePreviewUrl}
-                      alt="Cover preview"
-                      className="w-full h-full object-cover rounded-lg"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  )}
-                </AnimatePresence>
               </label>
               <input
                 id="image-upload"
@@ -448,7 +469,11 @@ export default function Uploaded() {
                 className="w-full h-16 bg-[#2A2A2A] cursor-pointer border-2 border-dashed border-gray-500 rounded-lg flex items-center justify-center text-gray-200 font-semibold hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
                 aria-label="Upload audio file"
               >
-                <Upload className="mr-2 h-6 w-6" />
+                {isAudioLoading ? (
+                  <Loader2 className="animate-spin h-6 w-6 mr-2 text-orange-500" />
+                ) : (
+                  <Upload className="mr-2 h-6 w-6" />
+                )}
                 {audioFile ? audioFile.name : 'Upload Audio'}
               </label>
               <input
@@ -514,6 +539,8 @@ export default function Uploaded() {
               </div>
               <div className="flex justify-center mt-4">
                 <motion.button
+                  type="button" // Prevent form submission
+                    
                   onClick={togglePlay}
                   className="bg-white text-gray-900 rounded-full p-3 hover:scale-105 transition"
                   whileHover={{ scale: 1.05 }}
