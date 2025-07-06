@@ -223,7 +223,7 @@ export default function Uploaded() {
   const handleCancelUpload = () => {
     if (uploadControllerRef.current) {
       uploadControllerRef.current.abort();
-      setIsPlaying(null);
+      setIsPlaying(false);
       setUploadProgress({ percentage: 0, remainingTime: 0 });
       setError('Upload cancelled.');
     }
