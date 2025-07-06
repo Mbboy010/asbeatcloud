@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Music, Loader2, Plus, Upload, Play, Pause, X, CheckCircle } from 'lucide-react';
+import { Music, Loader2, Plus, Upload, Play, Pause, X, CheckCircle, AlertCircle} from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
