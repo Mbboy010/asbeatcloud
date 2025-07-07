@@ -281,13 +281,28 @@ export default function Uploaded() {
       setError('Please select an audio file to upload.');
       return;
     }
+    if (!description.trim()) {
+      setError('Please enter a description for your beat.');
+      return;
+    }
+    if (!imageFile) {
+      setError('Please select a cover image for your beat.');
+      return;
+    }
     setModalType('confirm');
     setIsModalOpen(true);
   };
 
   const handleConfirmUpload = async () => {
     setIsModalOpen(false);
-    const fileSizeMB = audioFile!.size / (1024 * 1024);
+
+    // Ensure audioFile is not null
+    if (!audioFile) {
+      setError('No audio file selected. Please select an audio file.');
+      return;
+    }
+
+    const fileSizeMB = audioFile.size / (1024 * 1024);
     if (fileSizeMB > 50) {
       setError('Audio file size exceeds 50MB limit.');
       return;
@@ -332,7 +347,7 @@ export default function Uploaded() {
       const audioUpload = await storage.createFile(
         STORAGE_BUCKET_ID!,
         ID.unique(),
-        audioFile,
+        audioFile, // audioFile is now guaranteed to be a File due to the check above
         [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))],
         (progress) => {
           if (signal.aborted) return;
@@ -366,7 +381,7 @@ export default function Uploaded() {
 
       cleanup();
 
-      const currentDate = new Date().toISOString(); // Add timestamp
+      const currentDate = new Date().toISOString();
       await databases.createDocument(
         DATABASE_ID!,
         COLLECTION_ID!,
@@ -378,7 +393,7 @@ export default function Uploaded() {
           audioFileId,
           imageFileId: imageFileId || null,
           userId,
-          uploadDate: currentDate, // Store upload timestamp
+          uploadDate: currentDate,
         },
         [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))]
       );
@@ -467,6 +482,7 @@ export default function Uploaded() {
             <ol className="list-decimal list-inside text-gray-300 space-y-2">
               <li>Ensure your beat title and description are accurate and engaging.</li>
               <li>Verify that your audio file is in MP3 or WAV format and under 50MB.</li>
+              <li>Provide a cover image to represent your beat.</li>
             </ol>
           </motion.div>
         )}
@@ -481,7 +497,7 @@ export default function Uploaded() {
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
-                  if (isModalOpen) setIsModalOpen(false); // Close modal on title change
+                  if (isModalOpen) setIsModalOpen(false);
                 }}
                 placeholder="Beat title"
                 className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
@@ -492,24 +508,25 @@ export default function Uploaded() {
           </div>
 
           <div>
-            <label className="text-gray-300 text-sm mb-2 block">Description - Add details about your beat (optional)</label>
+            <label className="text-gray-300 text-sm mb-2 block">Description - Add details about your beat</label>
             <div className="relative">
               <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <textarea
                 value={description}
                 onChange={(e) => {
                   setDescription(e.target.value);
-                  if (isModalOpen) setIsModalOpen(false); // Close modal on description change
+                  if (isModalOpen) setIsModalOpen(false);
                 }}
-                placeholder="Description (optional)"
+                placeholder="Enter a description"
                 className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none transition-all duration-200"
+                required
                 aria-label="Beat description input"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-gray-300 text-sm mb-2 block">Cover Image - Upload an image to represent your beat (optional)</label>
+            <label className="text-gray-300 text-sm mb-2 block">Cover Image - Upload an image to represent your beat</label>
             <motion.div
               className="relative mx-auto flex justify-center items-center"
               initial={{ scale: 0.9 }}
@@ -543,6 +560,7 @@ export default function Uploaded() {
                 accept="image/*"
                 onChange={handleImageFileChange}
                 className="hidden"
+                required
               />
             </motion.div>
           </div>
@@ -568,6 +586,7 @@ export default function Uploaded() {
                 accept="audio/mpeg, audio/wav"
                 onChange={handleAudioFileChange}
                 className="hidden"
+                required
               />
             </motion.div>
           </div>
@@ -677,8 +696,6 @@ export default function Uploaded() {
             </motion.div>
           )}
 
-
-
           <motion.button
             type="submit"
             disabled={isLoading !== null}
@@ -690,21 +707,18 @@ export default function Uploaded() {
             {isLoading ? <Loader2 className="animate-spin h-6 w-6" /> : 'Upload Beat'}
           </motion.button>
         </form>
-        
-        
-          <CustomModal
-            isOpen={isModalOpen}
-            onConfirm={handleConfirmUpload}
-            onCancel={handleCloseModal}
-            message={
-              modalType === 'success'
-                ? 'Your beat has been successfully uploaded!'
-                : 'Are you ready to upload your beat? Ensure all details are correct.'
-            }
-            type={modalType}
-          />
-        
-        
+
+        <CustomModal
+          isOpen={isModalOpen}
+          onConfirm={handleConfirmUpload}
+          onCancel={handleCloseModal}
+          message={
+            modalType === 'success'
+              ? 'Your beat has been successfully uploaded!'
+              : 'Are you ready to upload your beat? Ensure all details are correct.'
+          }
+          type={modalType}
+        />
       </div>
     </motion.div>
   );
