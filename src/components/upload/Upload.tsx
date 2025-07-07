@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Music, Loader2, Plus, Upload, Play, Pause, X, CheckCircle, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { databases, account, storage } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
@@ -44,6 +43,9 @@ const CustomModal = ({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.8, y: 50 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
+          role="dialog"
+          aria-labelledby="modal-title"
+          aria-describedby="modal-description"
         >
           <div className="flex items-center mb-4">
             {type === 'success' ? (
@@ -51,11 +53,11 @@ const CustomModal = ({
             ) : (
               <AlertCircle className="h-8 w-8 text-orange-500 mr-2" />
             )}
-            <h3 className="text-xl font-bold text-gray-200">
+            <h3 id="modal-title" className="text-xl font-bold text-gray-200">
               {type === 'success' ? 'Upload Successful!' : 'Confirm Upload'}
             </h3>
           </div>
-          <p className="text-gray-300 mb-6">{message}</p>
+          <p id="modal-description" className="text-gray-300 mb-6">{message}</p>
           {type === 'confirm' ? (
             <div className="flex justify-between gap-4">
               <motion.button
@@ -63,6 +65,7 @@ const CustomModal = ({
                 className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Cancel upload confirmation"
               >
                 Cancel
               </motion.button>
@@ -71,6 +74,7 @@ const CustomModal = ({
                 className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                aria-label="Confirm upload"
               >
                 OK
               </motion.button>
@@ -81,6 +85,7 @@ const CustomModal = ({
               className="w-full py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              aria-label="Acknowledge success"
             >
               Got It
             </motion.button>
@@ -171,11 +176,13 @@ export default function Uploaded() {
       setCurrentTime(0);
       setDuration(0);
       setIsAudioLoading(false);
+      if (isModalOpen) setIsModalOpen(false); // Close modal on file change
     } else {
       setAudioFile(null);
       setPreviewUrl(null);
       setError('Please upload a valid MP3 or WAV file.');
       setIsAudioLoading(false);
+      if (isModalOpen) setIsModalOpen(false); // Close modal on invalid file
     }
   };
 
@@ -188,8 +195,10 @@ export default function Uploaded() {
         setImageFile(processedImage);
         setImagePreviewUrl(URL.createObjectURL(processedImage));
         setError('');
+        if (isModalOpen) setIsModalOpen(false); // Close modal on image change
       } catch {
         setError('Failed to process image.');
+        if (isModalOpen) setIsModalOpen(false); // Close modal on error
       } finally {
         setIsImageLoading(false);
       }
@@ -198,6 +207,7 @@ export default function Uploaded() {
       setImagePreviewUrl(null);
       setError('Please upload a valid image file.');
       setIsImageLoading(false);
+      if (isModalOpen) setIsModalOpen(false); // Close modal on invalid image
     }
   };
 
@@ -263,17 +273,21 @@ export default function Uploaded() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) {
+      setError('Please enter a beat title.');
+      return;
+    }
+    if (!audioFile) {
+      setError('Please select an audio file to upload.');
+      return;
+    }
     setModalType('confirm');
     setIsModalOpen(true);
   };
 
   const handleConfirmUpload = async () => {
     setIsModalOpen(false);
-    if (!audioFile) {
-      setError('Please select an audio file to upload.');
-      return;
-    }
-    const fileSizeMB = audioFile.size / (1024 * 1024);
+    const fileSizeMB = audioFile!.size / (1024 * 1024);
     if (fileSizeMB > 50) {
       setError('Audio file size exceeds 50MB limit.');
       return;
@@ -352,6 +366,7 @@ export default function Uploaded() {
 
       cleanup();
 
+      const currentDate = new Date().toISOString(); // Add timestamp
       await databases.createDocument(
         DATABASE_ID!,
         COLLECTION_ID!,
@@ -363,6 +378,7 @@ export default function Uploaded() {
           audioFileId,
           imageFileId: imageFileId || null,
           userId,
+          uploadDate: currentDate, // Store upload timestamp
         },
         [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))]
       );
@@ -382,14 +398,16 @@ export default function Uploaded() {
       setIsModalOpen(true);
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        setError('Upload cancelled.');
+        setError('Upload cancelled by user.');
       } else if (err.code === 401) {
         setError('Unauthorized. Please log in again.');
         router.push('/login');
       } else if (err.code === 413) {
-        setError('File size too large.');
+        setError('File size exceeds the 50MB limit.');
+      } else if (err.code === 429) {
+        setError('Too many requests. Please try again later.');
       } else {
-        setError(`Failed to upload: ${err.message || 'Unknown error'}`);
+        setError(`Upload failed: ${err.message || 'An unexpected error occurred'}`);
       }
       setUploadProgress({ percentage: 0, remainingTime: 0 });
     } finally {
@@ -436,7 +454,7 @@ export default function Uploaded() {
     <motion.div className="flex justify-center items-center">
       <div className="w-full p-6 max-w-md">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-4 text-center" role="alert">{error}</p>}
 
         {!isLoading && (
           <motion.div
@@ -461,10 +479,14 @@ export default function Uploaded() {
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (isModalOpen) setIsModalOpen(false); // Close modal on title change
+                }}
                 placeholder="Beat title"
                 className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
                 required
+                aria-label="Beat title input"
               />
             </div>
           </div>
@@ -475,9 +497,13 @@ export default function Uploaded() {
               <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (isModalOpen) setIsModalOpen(false); // Close modal on description change
+                }}
                 placeholder="Description (optional)"
                 className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none transition-all duration-200"
+                aria-label="Beat description input"
               />
             </div>
           </div>
@@ -566,6 +592,7 @@ export default function Uploaded() {
                     setCurrentTime(0);
                     setDuration(0);
                   }}
+                  aria-label="Remove audio preview"
                 >
                   <X className="h-6 w-6" />
                 </motion.button>
@@ -580,6 +607,7 @@ export default function Uploaded() {
                   value={currentTime}
                   onChange={handleSliderChange}
                   className="flex-1 appearance-none h-2 rounded-full bg-white outline-none accent-pink-500"
+                  aria-label="Audio progress slider"
                 />
                 <span className="text-sm w-12 text-right">{formatTime(duration)}</span>
               </div>
@@ -590,6 +618,7 @@ export default function Uploaded() {
                   className="bg-white text-gray-900 rounded-full p-3 hover:scale-105 transition"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
                 >
                   {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
                 </motion.button>
@@ -611,6 +640,7 @@ export default function Uploaded() {
                   className="text-red-500 hover:text-red-600 transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
+                  aria-label="Cancel upload"
                 >
                   <X className="h-5 w-5" />
                 </motion.button>
@@ -647,6 +677,21 @@ export default function Uploaded() {
             </motion.div>
           )}
 
+
+
+          <motion.button
+            type="submit"
+            disabled={isLoading !== null}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300 flex items-center justify-center"
+            aria-label="Submit beat upload"
+          >
+            {isLoading ? <Loader2 className="animate-spin h-6 w-6" /> : 'Upload Beat'}
+          </motion.button>
+        </form>
+        
+        
           <CustomModal
             isOpen={isModalOpen}
             onConfirm={handleConfirmUpload}
@@ -658,17 +703,8 @@ export default function Uploaded() {
             }
             type={modalType}
           />
-
-          <motion.button
-            type="submit"
-            disabled={isLoading !== null}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300 flex items-center justify-center"
-          >
-            {isLoading ? <Loader2 className="animate-spin h-6 w-6" /> : 'Upload Beat'}
-          </motion.button>
-        </form>
+        
+        
       </div>
     </motion.div>
   );
