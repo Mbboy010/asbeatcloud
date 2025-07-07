@@ -62,7 +62,7 @@ const EditProfile = () => {
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = "6849aa4f000c032527a9";
-  const BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
+  const _ID = process.env.NEXT_PUBLIC_STORAGE_;
 
   // Cleanup object URLs on component unmount
   useEffect(() => {
@@ -355,8 +355,8 @@ const EditProfile = () => {
       setError("Please select a valid image file");
       return;
     }
-    if (!BUCKET_ID) {
-      setError("Storage bucket ID is not configured");
+    if (!_ID) {
+      setError("Storage  ID is not configured");
       return;
     }
     if (!canvasRef.current) {
@@ -418,9 +418,11 @@ const EditProfile = () => {
 
               try {
                 const uploadFile = new File([blob], "profile.jpg", { type: "image/jpeg" });
-                const response = await storage.createFile(BUCKET_ID, ID.unique(), uploadFile);
                 
-                const newProfileImageUrl = storage.getFileView(BUCKET_ID, response.$id).toString();
+                const response = await storage.createFile(_ID, ID.unique(), uploadFile);
+                
+                const newProfileImageUrl = storage.getFileView(_ID, response.$id).toString();
+                
                 console.log("Appwrite profile URL:", newProfileImageUrl);
                 setProfile((prev) => ({
                   ...prev,
@@ -466,8 +468,8 @@ const EditProfile = () => {
       setError("Please select a valid image file");
       return;
     }
-    if (!BUCKET_ID) {
-      setError("Storage bucket ID is not configured");
+    if (!_ID) {
+      setError("Storage  ID is not configured");
       return;
     }
     if (!canvasRef.current) {
@@ -528,8 +530,8 @@ const EditProfile = () => {
 
           try {
             const uploadFile = new File([compressedBlob], "banner.jpg", { type: "image/jpeg" });
-            const response = await storage.createFile(BUCKET_ID, ID.unique(), uploadFile);
-            const newBannerUrl = storage.getFileView(BUCKET_ID, response.$id).toString();
+            const response = await storage.createFile(_ID, ID.unique(), uploadFile);
+            const newBannerUrl = storage.getFileView(_ID, response.$id).toString();
             console.log("Appwrite banner URL:", newBannerUrl);
             setProfile((prev) => ({
               ...prev,

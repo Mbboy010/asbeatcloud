@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Music, Loader2, Plus, Upload, Play, Pause, X, CheckCircle, AlertCircle} from 'lucide-react';
+import { Music, Loader2, Plus, Upload, Play, Pause, X, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { databases, account, storage } from '../../lib/appwrite';
+import { useAppSelector } from '@/store/hooks';
+import { ID, Permission, Role } from 'appwrite';
+import { useRouter } from 'next/navigation';
 
 // Interface for upload progress state
 interface UploadProgress {
@@ -24,70 +28,68 @@ const CustomModal = ({
   onCancel: () => void;
   message: string;
   type?: 'confirm' | 'success';
-}) => {
-  return (
-    <AnimatePresence>
-      {isOpen && (
+}) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4"
+          initial={{ scale: 0.8, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.8, y: 50 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
         >
-          <motion.div
-            className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4"
-            initial={{ scale: 0.8, y: 50 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.8, y: 50 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-          >
-            <div className="flex items-center mb-4">
-              {type === 'success' ? (
-                <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
-              ) : (
-                <AlertCircle className="h-8 w-8 text-orange-500 mr-2" />
-              )}
-              <h3 className="text-xl font-bold text-gray-200">
-                {type === 'success' ? 'Upload Successful!' : 'Confirm Upload'}
-              </h3>
-            </div>
-            <p className="text-gray-300 mb-6">{message}</p>
-            {type === 'confirm' ? (
-              <div className="flex justify-between gap-4">
-                <motion.button
-                  onClick={onCancel}
-                  className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  onClick={onConfirm}
-                  className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  OK
-                </motion.button>
-              </div>
+          <div className="flex items-center mb-4">
+            {type === 'success' ? (
+              <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
             ) : (
+              <AlertCircle className="h-8 w-8 text-orange-500 mr-2" />
+            )}
+            <h3 className="text-xl font-bold text-gray-200">
+              {type === 'success' ? 'Upload Successful!' : 'Confirm Upload'}
+            </h3>
+          </div>
+          <p className="text-gray-300 mb-6">{message}</p>
+          {type === 'confirm' ? (
+            <div className="flex justify-between gap-4">
               <motion.button
                 onClick={onCancel}
-                className="w-full py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
+                className="w-full py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Got It
+                Cancel
               </motion.button>
-            )}
-          </motion.div>
+              <motion.button
+                onClick={onConfirm}
+                className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                OK
+              </motion.button>
+            </div>
+          ) : (
+            <motion.button
+              onClick={onCancel}
+              className="w-full py-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-lg hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Got It
+            </motion.button>
+          )}
         </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
 
 export default function Uploaded() {
   const [title, setTitle] = useState('');
@@ -103,19 +105,43 @@ export default function Uploaded() {
   const [userEmail, setUserEmail] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'confirm' | 'success'>('confirm');
-  const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ percentage: 0, remainingTime: 0 });
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const uploadControllerRef = useRef<AbortController | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const COLLECTION_ID = '686a7cd100087c08444a';
+  const STORAGE_BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
+
+  const authId = useAppSelector((state) => state.authId.value) as string | undefined;
+  const isAuth = useAppSelector((state) => state.isAuth.value);
+  const router = useRouter();
+
+  // Initialize session and email
   useEffect(() => {
-    const savedEmail = localStorage.getItem('uploadEmail') || 'user@example.com';
-    setUserEmail(savedEmail);
-  }, []);
+    const initializeSession = async () => {
+      try {
+        const user = await account.get();
+        if (!user || !user.$id) {
+          setError('Session expired. Please log in again.');
+          router.push('/login');
+        }
+      } catch {
+        setError('Authentication failed. Please log in again.');
+        router.push('/login');
+      }
+    };
+    if (isAuth && authId) {
+      initializeSession();
+    }
+    setUserEmail(localStorage.getItem('uploadEmail') || 'user@example.com');
+  }, [authId, isAuth, router]);
 
+  // Audio player cleanup and event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -162,7 +188,7 @@ export default function Uploaded() {
         setImageFile(processedImage);
         setImagePreviewUrl(URL.createObjectURL(processedImage));
         setError('');
-      } catch (err) {
+      } catch {
         setError('Failed to process image.');
       } finally {
         setIsImageLoading(false);
@@ -182,49 +208,31 @@ export default function Uploaded() {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Canvas context not supported'));
-          return;
-        }
+        if (!ctx) return reject(new Error('Canvas context not supported'));
 
-        const isOneToOne = img.width === img.height;
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        if (!isOneToOne) {
-          const size = Math.min(img.width, img.height);
-          canvas.width = size;
-          canvas.height = size;
-          ctx.drawImage(
-            img,
-            (img.width - size) / 2,
-            (img.height - size) / 2,
-            size,
-            size,
-            0,
-            0,
-            size,
-            size
-          );
-        } else {
-          ctx.drawImage(img, 0, 0);
-        }
+        const size = Math.min(img.width, img.height);
+        canvas.width = size;
+        canvas.height = size;
+        ctx.drawImage(
+          img,
+          (img.width - size) / 2,
+          (img.height - size) / 2,
+          size,
+          size,
+          0,
+          0,
+          size,
+          size
+        );
 
         let quality = 0.9;
-        let blob: Blob | null = null;
         const targetSize = 95 * 1024;
-        const originalSize = file.size;
-
-        if (originalSize <= targetSize) {
-          resolve(file);
-          return;
-        }
+        if (file.size <= targetSize) return resolve(file);
 
         const tryConvert = () => {
           canvas.toBlob(
-            (result) => {
-              if (result && result.size <= targetSize) {
-                blob = result;
+            (blob) => {
+              if (blob && blob.size <= targetSize) {
                 resolve(new File([blob], file.name, { type: 'image/jpeg' }));
               } else if (quality > 0.1) {
                 quality -= 0.1;
@@ -237,7 +245,6 @@ export default function Uploaded() {
             quality
           );
         };
-
         tryConvert();
       };
       img.onerror = () => reject(new Error('Failed to load image'));
@@ -247,24 +254,21 @@ export default function Uploaded() {
   const handleCancelUpload = () => {
     if (uploadControllerRef.current) {
       uploadControllerRef.current.abort();
-      setIsPlaying(false);
       setUploadProgress({ percentage: 0, remainingTime: 0 });
+      setIsLoading(null);
       setError('Upload cancelled.');
+      startTimeRef.current = null;
     }
   };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Show confirmation modal
     setModalType('confirm');
     setIsModalOpen(true);
   };
 
   const handleConfirmUpload = async () => {
     setIsModalOpen(false);
-
-    // Step 2: Check file size and internet connection
     if (!audioFile) {
       setError('Please select an audio file to upload.');
       return;
@@ -281,47 +285,88 @@ export default function Uploaded() {
 
     setIsLoading('upload');
     setError('');
-    setUploadSuccess(false);
-    setUploadProgress({ percentage: 0, remainingTime: Math.round(fileSizeMB * 2) });
+    setUploadProgress({ percentage: 0, remainingTime: Math.round(fileSizeMB * 10) });
+    startTimeRef.current = performance.now();
 
     try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('audio', audioFile);
-      if (imageFile) formData.append('cover', imageFile);
-      formData.append('email', userEmail);
+      const user = await account.get();
+      const userId = user.$id;
+      if (!userId) throw new Error('No authenticated user found.');
 
       uploadControllerRef.current = new AbortController();
       const signal = uploadControllerRef.current.signal;
 
-      let progress = 0;
-      const uploadInterval = setInterval(() => {
-        if (signal.aborted) {
-          clearInterval(uploadInterval);
-          return;
-        }
-        progress += 10;
-        const remainingTime = Math.round(fileSizeMB * 2 * (1 - progress / 100));
-        setUploadProgress({ percentage: progress, remainingTime });
-        if (progress >= 100) {
-          clearInterval(uploadInterval);
-        }
-      }, fileSizeMB * 200);
+      const simulateProgress = () => {
+        const interval = setInterval(() => {
+          setUploadProgress((prev) => {
+            if (prev.percentage >= 100 || !isLoading) {
+              clearInterval(interval);
+              return prev;
+            }
+            const elapsedTime = (performance.now() - (startTimeRef.current || 0)) / 1000;
+            const newPercentage = Math.min(prev.percentage + 1, 99);
+            const estimatedTotalTime = fileSizeMB * 10;
+            const remainingTime = Math.max(0, estimatedTotalTime - elapsedTime);
+            return { percentage: newPercentage, remainingTime };
+          });
+        }, 200);
+        return () => clearInterval(interval);
+      };
 
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (signal.aborted) {
-            reject(new Error('Upload cancelled'));
-          } else {
-            resolve(true);
+      const cleanup = imageFile ? simulateProgress() : () => {};
+
+      const audioUpload = await storage.createFile(
+        STORAGE_BUCKET_ID!,
+        ID.unique(),
+        audioFile,
+        [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))],
+        (progress) => {
+          if (signal.aborted) return;
+          const percentage = Math.round((progress.chunksUploaded / progress.chunksTotal) * 100);
+          const elapsedTime = (performance.now() - (startTimeRef.current || 0)) / 1000;
+          const estimatedTotalTime = elapsedTime / (percentage / 100) || fileSizeMB * 10;
+          const remainingTime = Math.max(0, estimatedTotalTime * (1 - percentage / 100));
+          setUploadProgress({ percentage, remainingTime });
+        }
+      );
+      const audioFileId = storage.getFileView(STORAGE_BUCKET_ID!, audioUpload.$id).toString();
+
+      let imageFileId: string | null = null;
+      if (imageFile) {
+        const imageUpload = await storage.createFile(
+          STORAGE_BUCKET_ID!,
+          ID.unique(),
+          imageFile,
+          [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))],
+          (progress) => {
+            if (signal.aborted) return;
+            const percentage = Math.round((progress.chunksUploaded / progress.chunksTotal) * 100);
+            setUploadProgress((prev) => ({
+              percentage: Math.min((prev.percentage + percentage) / 2, 100),
+              remainingTime: prev.remainingTime,
+            }));
           }
-        }, fileSizeMB * 2000);
-      });
-      clearInterval(uploadInterval);
-      setUploadProgress({ percentage: 100, remainingTime: 0 });
+        );
+        imageFileId = storage.getFileView(STORAGE_BUCKET_ID!, imageUpload.$id).toString();
+      }
 
-      console.log('Upload successful for email:', userEmail, 'Title:', title);
+      cleanup();
+
+      await databases.createDocument(
+        DATABASE_ID!,
+        COLLECTION_ID!,
+        ID.unique(),
+        {
+          title,
+          description,
+          email: userEmail,
+          audioFileId,
+          imageFileId: imageFileId || null,
+          userId,
+        },
+        [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))]
+      );
+
       localStorage.removeItem('uploadEmail');
       setTitle('');
       setDescription('');
@@ -332,25 +377,26 @@ export default function Uploaded() {
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
-      setUploadSuccess(true);
+      setUploadProgress({ percentage: 100, remainingTime: 0 });
       setModalType('success');
       setIsModalOpen(true);
     } catch (err: any) {
-      if (err.message === 'Upload cancelled') {
+      if (err.name === 'AbortError') {
         setError('Upload cancelled.');
+      } else if (err.code === 401) {
+        setError('Unauthorized. Please log in again.');
+        router.push('/login');
+      } else if (err.code === 413) {
+        setError('File size too large.');
       } else {
-        setError('Failed to upload file. Please try again.');
+        setError(`Failed to upload: ${err.message || 'Unknown error'}`);
       }
       setUploadProgress({ percentage: 0, remainingTime: 0 });
     } finally {
       setIsLoading(null);
       uploadControllerRef.current = null;
+      startTimeRef.current = null;
     }
-  };
-
-  const handleCancelConfirm = () => {
-    setIsModalOpen(false);
-    setError('Upload cancelled by user.');
   };
 
   const togglePlay = (e: React.MouseEvent) => {
@@ -382,7 +428,7 @@ export default function Uploaded() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     if (modalType === 'success') {
-      setUploadSuccess(false);
+      setModalType('confirm');
     }
   };
 
@@ -392,7 +438,7 @@ export default function Uploaded() {
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
-        {!isLoading && !uploadSuccess && (
+        {!isLoading && (
           <motion.div
             className="w-full bg-gray-800 rounded-lg p-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
@@ -455,7 +501,6 @@ export default function Uploaded() {
                   <Plus className="text-gray-400 h-12 w-12 hover:text-orange-500 transition-all duration-200" />
                 ) : (
                   <motion.img
-                    key="preview"
                     src={imagePreviewUrl}
                     alt="Cover preview"
                     className="w-full h-full object-cover rounded-lg"
@@ -481,7 +526,7 @@ export default function Uploaded() {
             <motion.div className="relative">
               <label
                 htmlFor="audio-upload"
-                className="w-full h-16 bg-[#2A2A2A] cursor-pointer border-2 border-dashed border-gray-500 rounded-lg flex items-center justify-center text-gray-200 font-semibold hover:from-orange-600 hover:to-yellow-600 transition-all duration-300"
+                className="w-full h-16 bg-[#2A2A2A] cursor-pointer border-2 border-dashed border-gray-500 rounded-lg flex items-center justify-center text-gray-200 font-semibold hover:border-orange-500 transition-all duration-300"
                 aria-label="Upload audio file"
               >
                 {isAudioLoading ? (
@@ -522,20 +567,7 @@ export default function Uploaded() {
                     setDuration(0);
                   }}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <X className="h-6 w-6" />
                 </motion.button>
               </div>
               <audio ref={audioRef} src={previewUrl} preload="metadata" />
@@ -587,19 +619,18 @@ export default function Uploaded() {
               <div className="w-full bg-gray-600 rounded-full h-2.5">
                 <motion.div
                   className="bg-gradient-to-r from-orange-500 to-yellow-500 h-2.5 rounded-full"
-                  initial={{ width: '0%' }}
                   animate={{ width: `${uploadProgress.percentage}%` }}
-                  transition={{ duration: 1 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
                 />
               </div>
               <div className="flex justify-between text-sm text-gray-300 mt-2">
-                <span>{uploadProgress.percentage}%</span>
-                <span>Time remaining: {uploadProgress.remainingTime.toFixed(1)}s</span>
+                <span>{Math.round(uploadProgress.percentage)}%</span>
+                <span>Time remaining: {Math.round(uploadProgress.remainingTime)}s</span>
               </div>
             </motion.div>
           )}
 
-          {uploadSuccess && (
+          {modalType === 'success' && (
             <motion.div
               className="w-full bg-gray-800 rounded-lg p-4 mt-4"
               initial={{ opacity: 0, y: 20 }}
@@ -619,8 +650,12 @@ export default function Uploaded() {
           <CustomModal
             isOpen={isModalOpen}
             onConfirm={handleConfirmUpload}
-            onCancel={handleCancelConfirm}
-            message="Are you ready to upload your beat? Ensure all details are correct."
+            onCancel={handleCloseModal}
+            message={
+              modalType === 'success'
+                ? 'Your beat has been successfully uploaded!'
+                : 'Are you ready to upload your beat? Ensure all details are correct.'
+            }
             type={modalType}
           />
 
