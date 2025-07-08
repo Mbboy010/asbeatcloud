@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Plus, Minus } from 'lucide-react';
 
@@ -29,8 +29,8 @@ interface MusicAttributesProps {
   setTempo: (tempo: number) => void;
   scale: string;
   setScale: (scale: string) => void;
-  musicKey: string; // Renamed from 'key' to 'musicKey'
-  setMusicKey: (key: string) => void; // Renamed from 'setKey' to 'setMusicKey'
+  musicKey: string;
+  setMusicKey: (key: string) => void;
   errors: { [key: string]: string };
 }
 
@@ -41,27 +41,59 @@ export default function MusicAttributes({
   setTempo,
   scale,
   setScale,
-  musicKey, // Renamed from 'key'
-  setMusicKey, // Renamed from 'setKey'
+  musicKey,
+  setMusicKey,
   errors,
 }: MusicAttributesProps) {
   const [isGenreOpen, setIsGenreOpen] = useState(false);
   const [isScaleOpen, setIsScaleOpen] = useState(false);
   const [isKeyOpen, setIsKeyOpen] = useState(false);
 
+  // Create refs for each dropdown
+  const genreRef = useRef<HTMLDivElement>(null);
+  const scaleRef = useRef<HTMLDivElement>(null);
+  const keyRef = useRef<HTMLDivElement>(null);
+
   const handleTempoChange = (increment: boolean) => {
     setTempo(increment ? Math.min(tempo + 1, 200) : Math.max(tempo - 1, 40));
   };
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        genreRef.current &&
+        !genreRef.current.contains(event.target as Node) &&
+        scaleRef.current &&
+        !scaleRef.current.contains(event.target as Node) &&
+        keyRef.current &&
+        !keyRef.current.contains(event.target as Node)
+      ) {
+        setIsGenreOpen(false);
+        setIsScaleOpen(false);
+        setIsKeyOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Genre Selection */}
-      <div>
+      <div ref={genreRef}>
         <label className="text-gray-300 text-sm mb-2 block">Music Genre</label>
         <div className="relative">
           <motion.button
             type="button"
-            onClick={() => setIsGenreOpen(!isGenreOpen)}
+            onClick={() => {
+              setIsGenreOpen(!isGenreOpen)
+              setIsScaleOpen(false)
+              setIsKeyOpen(false)
+            }}
             className="w-full bg-[#2A2A2A] text-gray-200 rounded-lg py-2 px-3 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-orange-500"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -80,7 +112,7 @@ export default function MusicAttributes({
                 {musicGenres.map((g) => (
                   <motion.div
                     key={g}
-                    className="px-3 py-2 hover:bg-orange-500 hover:text-white cursor-pointer"
+                    className="px-3 text-gray-200 py-2 hover:bg-orange-500 hover:text-white cursor-pointer"
                     onClick={() => {
                       setGenre(g);
                       setIsGenreOpen(false);
@@ -120,7 +152,10 @@ export default function MusicAttributes({
           />
           <motion.button
             type="button"
-            onClick={() => handleTempoChange(true)}
+            onClick={() => 
+            handleTempoChange(true)
+            
+            }
             className="bg-gray-600 p-2 rounded-r-lg hover:bg-gray-700"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -137,10 +172,14 @@ export default function MusicAttributes({
         <label className="text-gray-300 text-sm mb-2 block">Scale & Key</label>
         <div className="flex space-x-4">
           {/* Scale Dropdown */}
-          <div className="relative flex-1">
+          <div className="relative flex-1" ref={scaleRef}>
             <motion.button
               type="button"
-              onClick={() => setIsScaleOpen(!isScaleOpen)}
+              onClick={() => {
+                setIsScaleOpen(!isScaleOpen)
+                setIsGenreOpen(false)
+                setIsKeyOpen(false)
+              }}
               className="w-full bg-[#2A2A2A] text-gray-200 rounded-lg py-2 px-3 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-orange-500"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -159,7 +198,7 @@ export default function MusicAttributes({
                   {scales.map((s) => (
                     <motion.div
                       key={s}
-                      className="px-3 py-2 hover:bg-orange-500 hover:text-white cursor-pointer"
+                      className="px-3 text-gray-200 py-2 hover:bg-orange-500 hover:text-white cursor-pointer"
                       onClick={() => {
                         setScale(s);
                         setIsScaleOpen(false);
@@ -175,10 +214,15 @@ export default function MusicAttributes({
           </div>
 
           {/* Key Dropdown */}
-          <div className="relative flex-1">
+          <div className="relative flex-1" ref={keyRef}>
             <motion.button
               type="button"
-              onClick={() => setIsKeyOpen(!isKeyOpen)}
+              onClick={() => {
+                setIsKeyOpen(!isKeyOpen)
+                setIsGenreOpen(false)
+                  setIsScaleOpen(false)
+            
+              }}
               className="w-full bg-[#2A2A2A] text-gray-200 rounded-lg py-2 px-3 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-orange-500"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -197,7 +241,7 @@ export default function MusicAttributes({
                   {keys.map((k) => (
                     <motion.div
                       key={k}
-                      className="px-3 py-2 hover:bg-orange-500 hover:text-white cursor-pointer"
+                      className="px-3 py-2 text-gray-200 hover:bg-orange-500 hover:text-white cursor-pointer"
                       onClick={() => {
                         setMusicKey(k);
                         setIsKeyOpen(false);
