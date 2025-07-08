@@ -62,7 +62,7 @@ const EditProfile = () => {
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = "6849aa4f000c032527a9";
-  const _ID = process.env.NEXT_PUBLIC_STORAGE_;
+  const _ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
 
   // Cleanup object URLs on component unmount
   useEffect(() => {
