@@ -5,7 +5,7 @@ import { User } from '../../app/profile/[userid]/page'; // Import the User inter
 import { useState, useEffect } from 'react';
 import ArtistProfile from '../../components/profile/ArtistProfile';
 import TopArtists from '@/components/home/TopArtists';
-import BeatItem from '@/components/profile/BeatItem';
+import UserBeat from '@/components/profile/beat/UserBeat';
 import UserProfile from '@/components/profile/UserProfile';
 import VerificationIcon from '../icons/VerificationIcon';
 import SkeletonUserProfile from './SkeletonUserProfile';
@@ -93,7 +93,7 @@ const COLLECTION_ID = '6849aa4f000c032527a9';
     <div className="container mx-auto mt-16 min-h-screen bg-[#121212] text-gray-200">
       <UserProfile />
       <div className="mt-8">
-        <BeatItem />
+        <UserBeat />
       </div>
       <div className="mt-8">
         <TopArtists />
