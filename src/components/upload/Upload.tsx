@@ -7,6 +7,7 @@ import { databases, account, storage } from '../../lib/appwrite';
 import { useAppSelector } from '@/store/hooks';
 import { ID, Permission, Role } from 'appwrite';
 import { useRouter } from 'next/navigation';
+import MusicAttributes from './MusicAttributes';
 
 // Interface for upload progress state
 interface UploadProgress {
@@ -106,7 +107,7 @@ export default function Uploaded() {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isLoading, setIsLoading] = useState<string | null>(null);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [userEmail, setUserEmail] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'confirm' | 'success'>('confirm');
@@ -114,6 +115,11 @@ export default function Uploaded() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ percentage: 0, remainingTime: 0 });
+  const [genre, setGenre] = useState('');
+  const [tempo, setTempo] = useState(120);
+  const [scale, setScale] = useState('');
+  const [musicKey, setMusicKey] = useState(''); // Renamed from 'key' to 'musicKey'
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const uploadControllerRef = useRef<AbortController | null>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -132,11 +138,11 @@ export default function Uploaded() {
       try {
         const user = await account.get();
         if (!user || !user.$id) {
-          setError('Session expired. Please log in again.');
+          setErrors((prev) => ({ ...prev, general: 'Session expired. Please log in again.' }));
           router.push('/login');
         }
       } catch {
-        setError('Authentication failed. Please log in again.');
+        setErrors((prev) => ({ ...prev, general: 'Authentication failed. Please log in again.' }));
         router.push('/login');
       }
     };
@@ -171,18 +177,18 @@ export default function Uploaded() {
       setIsAudioLoading(true);
       setAudioFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
-      setError('');
+      setErrors((prev) => ({ ...prev, audioFile: '' }));
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
       setIsAudioLoading(false);
-      if (isModalOpen) setIsModalOpen(false); // Close modal on file change
+      if (isModalOpen) setIsModalOpen(false);
     } else {
       setAudioFile(null);
       setPreviewUrl(null);
-      setError('Please upload a valid MP3 or WAV file.');
+      setErrors((prev) => ({ ...prev, audioFile: 'Please upload a valid MP3 or WAV file.' }));
       setIsAudioLoading(false);
-      if (isModalOpen) setIsModalOpen(false); // Close modal on invalid file
+      if (isModalOpen) setIsModalOpen(false);
     }
   };
 
@@ -194,20 +200,20 @@ export default function Uploaded() {
         const processedImage = await processImage(selectedFile);
         setImageFile(processedImage);
         setImagePreviewUrl(URL.createObjectURL(processedImage));
-        setError('');
-        if (isModalOpen) setIsModalOpen(false); // Close modal on image change
+        setErrors((prev) => ({ ...prev, imageFile: '' }));
+        if (isModalOpen) setIsModalOpen(false);
       } catch {
-        setError('Failed to process image.');
-        if (isModalOpen) setIsModalOpen(false); // Close modal on error
+        setErrors((prev) => ({ ...prev, imageFile: 'Failed to process image.' }));
+        if (isModalOpen) setIsModalOpen(false);
       } finally {
         setIsImageLoading(false);
       }
     } else {
       setImageFile(null);
       setImagePreviewUrl(null);
-      setError('Please upload a valid image file.');
+      setErrors((prev) => ({ ...prev, imageFile: 'Please upload a valid image file.' }));
       setIsImageLoading(false);
-      if (isModalOpen) setIsModalOpen(false); // Close modal on invalid image
+      if (isModalOpen) setIsModalOpen(false);
     }
   };
 
@@ -236,7 +242,7 @@ export default function Uploaded() {
         );
 
         let quality = 0.9;
-        const targetSize = 95 * 1024;
+        const targetSize = 95 * 1024; // 95KB
         if (file.size <= targetSize) return resolve(file);
 
         const tryConvert = () => {
@@ -266,29 +272,30 @@ export default function Uploaded() {
       uploadControllerRef.current.abort();
       setUploadProgress({ percentage: 0, remainingTime: 0 });
       setIsLoading(null);
-      setError('Upload cancelled.');
+      setErrors((prev) => ({ ...prev, general: 'Upload cancelled.' }));
       startTimeRef.current = null;
     }
   };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError('Please enter a beat title.');
+    const newErrors: { [key: string]: string } = {};
+
+    if (!title.trim()) newErrors.title = 'Please enter a beat title.';
+    if (!description.trim()) newErrors.description = 'Please enter a description for your beat.';
+    if (!audioFile) newErrors.audioFile = 'Please select an audio file to upload.';
+    if (!imageFile) newErrors.imageFile = 'Please select a cover image for your beat.';
+    if (!genre) newErrors.genre = 'Please select a music genre.';
+    if (tempo < 40 || tempo > 200) newErrors.tempo = 'Tempo must be between 40 and 200 BPM.';
+    if (!scale) newErrors.scale = 'Please select a scale.';
+    if (!musicKey) newErrors.musicKey = 'Please select a key.'; // Renamed from 'key' to 'musicKey'
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
-    if (!audioFile) {
-      setError('Please select an audio file to upload.');
-      return;
-    }
-    if (!description.trim()) {
-      setError('Please enter a description for your beat.');
-      return;
-    }
-    if (!imageFile) {
-      setError('Please select a cover image for your beat.');
-      return;
-    }
+
     setModalType('confirm');
     setIsModalOpen(true);
   };
@@ -296,24 +303,23 @@ export default function Uploaded() {
   const handleConfirmUpload = async () => {
     setIsModalOpen(false);
 
-    // Ensure audioFile is not null
     if (!audioFile) {
-      setError('No audio file selected. Please select an audio file.');
+      setErrors((prev) => ({ ...prev, audioFile: 'No audio file selected. Please select an audio file.' }));
       return;
     }
 
     const fileSizeMB = audioFile.size / (1024 * 1024);
     if (fileSizeMB > 50) {
-      setError('Audio file size exceeds 50MB limit.');
+      setErrors((prev) => ({ ...prev, audioFile: 'Audio file size exceeds 50MB limit.' }));
       return;
     }
     if (!navigator.onLine) {
-      setError('No internet connection. Please try again later.');
+      setErrors((prev) => ({ ...prev, general: 'No internet connection. Please try again later.' }));
       return;
     }
 
     setIsLoading('upload');
-    setError('');
+    setErrors({});
     setUploadProgress({ percentage: 0, remainingTime: Math.round(fileSizeMB * 10) });
     startTimeRef.current = performance.now();
 
@@ -347,7 +353,7 @@ export default function Uploaded() {
       const audioUpload = await storage.createFile(
         STORAGE_BUCKET_ID!,
         ID.unique(),
-        audioFile, // audioFile is now guaranteed to be a File due to the check above
+        audioFile,
         [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))],
         (progress) => {
           if (signal.aborted) return;
@@ -359,8 +365,11 @@ export default function Uploaded() {
         }
       );
       const audioFileId = storage.getFileView(STORAGE_BUCKET_ID!, audioUpload.$id).toString();
+      let musicId =  audioUpload.$id;
 
       let imageFileId: string | null = null;
+      let imageId: string | null = null;
+      
       if (imageFile) {
         const imageUpload = await storage.createFile(
           STORAGE_BUCKET_ID!,
@@ -377,6 +386,8 @@ export default function Uploaded() {
           }
         );
         imageFileId = storage.getFileView(STORAGE_BUCKET_ID!, imageUpload.$id).toString();
+        
+        imageId = imageUpload.$id
       }
 
       cleanup();
@@ -391,9 +402,17 @@ export default function Uploaded() {
           description,
           email: userEmail,
           audioFileId,
+          musicId,
           imageFileId: imageFileId || null,
+          imageId,
           userId,
           uploadDate: currentDate,
+          genre,
+          tempo,
+          duration: formatTime(duration),
+          scale,
+          docId: ID.unique(),
+          key: musicKey, // Renamed to 'key' for database to maintain consistency
         },
         [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))]
       );
@@ -409,20 +428,24 @@ export default function Uploaded() {
       setCurrentTime(0);
       setDuration(0);
       setUploadProgress({ percentage: 100, remainingTime: 0 });
+      setGenre('');
+      setTempo(120);
+      setScale('');
+      setMusicKey('');
       setModalType('success');
       setIsModalOpen(true);
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        setError('Upload cancelled by user.');
+        setErrors((prev) => ({ ...prev, general: 'Upload cancelled by user.' }));
       } else if (err.code === 401) {
-        setError('Unauthorized. Please log in again.');
+        setErrors((prev) => ({ ...prev, general: 'Unauthorized. Please log in again.' }));
         router.push('/login');
       } else if (err.code === 413) {
-        setError('File size exceeds the 50MB limit.');
+        setErrors((prev) => ({ ...prev, audioFile: 'File size exceeds the 50MB limit.' }));
       } else if (err.code === 429) {
-        setError('Too many requests. Please try again later.');
+        setErrors((prev) => ({ ...prev, general: 'Too many requests. Please try again later.' }));
       } else {
-        setError(`Upload failed: ${err.message || 'An unexpected error occurred'}`);
+        setErrors((prev) => ({ ...prev, general: `Upload failed: ${err.message || 'An unexpected error occurred'}` }));
       }
       setUploadProgress({ percentage: 0, remainingTime: 0 });
     } finally {
@@ -469,7 +492,16 @@ export default function Uploaded() {
     <motion.div className="flex justify-center items-center">
       <div className="w-full p-6 max-w-md">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
-        {error && <p className="text-red-500 text-sm mb-4 text-center" role="alert">{error}</p>}
+        {Object.keys(errors).length > 0 && (
+          <motion.div
+            className="bg-red-900 bg-opacity-50 rounded-lg p-4 mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+
+          </motion.div>
+        )}
 
         {!isLoading && (
           <motion.div
@@ -483,6 +515,7 @@ export default function Uploaded() {
               <li>Ensure your beat title and description are accurate and engaging.</li>
               <li>Verify that your audio file is in MP3 or WAV format and under 50MB.</li>
               <li>Provide a cover image to represent your beat.</li>
+              <li>Select appropriate genre, tempo, scale, and key for your beat.</li>
             </ol>
           </motion.div>
         )}
@@ -497,6 +530,7 @@ export default function Uploaded() {
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
+                  setErrors((prev) => ({ ...prev, title: '' }));
                   if (isModalOpen) setIsModalOpen(false);
                 }}
                 placeholder="Beat title"
@@ -505,6 +539,7 @@ export default function Uploaded() {
                 aria-label="Beat title input"
               />
             </div>
+            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
           </div>
 
           <div>
@@ -515,6 +550,7 @@ export default function Uploaded() {
                 value={description}
                 onChange={(e) => {
                   setDescription(e.target.value);
+                  setErrors((prev) => ({ ...prev, description: '' }));
                   if (isModalOpen) setIsModalOpen(false);
                 }}
                 placeholder="Enter a description"
@@ -523,7 +559,32 @@ export default function Uploaded() {
                 aria-label="Beat description input"
               />
             </div>
+            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
           </div>
+
+          <MusicAttributes
+            genre={genre}
+            setGenre={(value) => {
+              setGenre(value);
+              setErrors((prev) => ({ ...prev, genre: '' }));
+            }}
+            tempo={tempo}
+            setTempo={(value) => {
+              setTempo(value);
+              setErrors((prev) => ({ ...prev, tempo: '' }));
+            }}
+            scale={scale}
+            setScale={(value) => {
+              setScale(value);
+              setErrors((prev) => ({ ...prev, scale: '' }));
+            }}
+            musicKey={musicKey}
+            setMusicKey={(value) => {
+              setMusicKey(value);
+              setErrors((prev) => ({ ...prev, musicKey: '' }));
+            }}
+            errors={errors}
+          />
 
           <div>
             <label className="text-gray-300 text-sm mb-2 block">Cover Image - Upload an image to represent your beat</label>
@@ -563,6 +624,7 @@ export default function Uploaded() {
                 required
               />
             </motion.div>
+            {errors.imageFile && <p className="text-red-500 text-sm mt-1">{errors.imageFile}</p>}
           </div>
 
           <div>
@@ -589,6 +651,7 @@ export default function Uploaded() {
                 required
               />
             </motion.div>
+            {errors.audioFile && <p className="text-red-500 text-sm mt-1">{errors.audioFile}</p>}
           </div>
 
           {previewUrl && (
@@ -610,6 +673,7 @@ export default function Uploaded() {
                     setIsPlaying(false);
                     setCurrentTime(0);
                     setDuration(0);
+                    setErrors((prev) => ({ ...prev, audioFile: 'Please select an audio file to upload.' }));
                   }}
                   aria-label="Remove audio preview"
                 >
@@ -639,7 +703,7 @@ export default function Uploaded() {
                   whileTap={{ scale: 0.95 }}
                   aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
                 >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                  {isPlaying ? <Pause className="w-6 w-6" /> : <Play className="w-6 w-6" />}
                 </motion.button>
               </div>
             </motion.div>
@@ -723,3 +787,4 @@ export default function Uploaded() {
     </motion.div>
   );
 }
+
