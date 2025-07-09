@@ -407,8 +407,8 @@ useEffect(() =>{
       cleanup();
       
       const resp = await databases.getDocument(
-          DATABASE_ID,
-          COLLECTION_I,
+          DATABASE_ID!,
+          COLLECTION_I!,
           authId!
         );
 
