@@ -58,13 +58,7 @@ export default function MusicAttributes({
     setTempo(increment ? Math.min(tempo + 1, 200) : Math.max(tempo - 1, 40));
   };
 
-        const checkAuth = async () => {
-              try {
-                await account.get(); // Verify sessio
-              } catch (err) {
-                router.push('/login');
-              }
-            };
+        
 
   // Close dropdowns when clicking outside
   useEffect(() => {
