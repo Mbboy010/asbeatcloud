@@ -1,4 +1,5 @@
 'use client';
+import UserBeatUi from './UserBeatUi';
 import SkeletonArtistProfile from './SkeletonArtistProfile';
 import UserNotAvailable from './UserNotAvailable';
 import { User } from '../../app/profile/[userid]/page'; // Import the User interface
@@ -80,7 +81,7 @@ const COLLECTION_ID = '6849aa4f000c032527a9';
   if (loading) return <div className="container mx-auto mt-16 min-h-screen bg-[#121212] text-gray-200">
     <SkeletonUserProfile />
     <SkeletonArtistProfile />
-
+    <UserBeatUi />
     </div>
    
    

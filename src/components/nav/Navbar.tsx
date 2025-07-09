@@ -80,7 +80,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-[#121212] shadow-md">
+      <nav className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between backdrop-blur-md shadow-md">
         {/* User Profile */}
         <Link
           href={isAuth ? `/profile/${authId}` : '/login'}

@@ -54,7 +54,7 @@ export default function UploadGallery() {
       try {
         await account.get(); // Verify sessio
       } catch (err) {
-        router.push('/');
+        router.push('/login');
       }
     };
 

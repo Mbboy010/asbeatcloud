@@ -132,6 +132,15 @@ export default function Uploaded() {
   const isAuth = useAppSelector((state) => state.isAuth.value);
   const router = useRouter();
 
+
+const checkAuth = async () => {
+              try {
+                await account.get(); // Verify sessio
+              } catch (err) {
+                router.push('/login');
+              }
+            };
+
   // Initialize session and email
   useEffect(() => {
     const initializeSession = async () => {

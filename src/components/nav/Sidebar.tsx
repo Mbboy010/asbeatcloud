@@ -100,7 +100,7 @@ export default function Sidebar() {
             <Music className="h-5 w-5" />
             <span>My Tracks</span>
           </Link>
-          <Link href="/instrumentals" className={`flex items-center space-x-2 p-2 rounded`}>
+          <Link href="/instrumental" className={`flex items-center space-x-2 p-2 rounded`}>
             <Mic className="h-5 w-5" />
             <span>Instrumentals</span>
           </Link>
