@@ -11,7 +11,7 @@ interface Artist {
   $id: string; // Appwrite uses $id for document ID
   name: string;
   imageUrl: string;
-  followers: string;
+  followers: number;
   href: string; // Link to artist page
 }
 
