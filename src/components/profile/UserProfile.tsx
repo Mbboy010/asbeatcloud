@@ -195,6 +195,16 @@ const UserProfile = () => {
         console.error('Failed to fetch user data:', err);
       } finally {
         setLoading(false);
+        // 1. Get the current document first
+        const doc = await databases.getDocument(DATABASE_ID, COLLECTION_ID, userid);
+        
+        // 2. Get the current views value
+        const currentViews = doc.views || 0;
+        
+        // 3. Increment the value
+        await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userid, {
+          views: currentViews + 1,
+        });
       }
     };
 

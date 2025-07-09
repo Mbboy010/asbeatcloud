@@ -16,6 +16,9 @@ const musicGenres = [
   'Reggae',
   'Country',
   'Blues',
+  'Hausa',
+  'Afro',
+  'Amapiano'
 ];
 
 // Musical scales and keys
