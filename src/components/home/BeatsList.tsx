@@ -1,181 +1,159 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { Query } from 'appwrite';
+import { useParams } from 'next/navigation';
+import { databases } from '@/lib/appwrite';
 
 interface Beat {
-  id: number;
+  id: string;
   title: string;
-  artist: string;
   imageUrl: string;
-  dateTime: string; // ISO string for date and time
-  duration: string; // Duration in "MM:SS" format
-  musicType: string; // Music type (e.g., "Hausa", "Afrobeat")
+  dateTime: string;
+  duration: string;
+  musicType: string;
+  name: string;
 }
 
 const BeatsList = () => {
-  // Define 10 beats with duration and music type
-  const allBeats: Beat[] = [
-    { 
-      id: 1, 
-      title: 'Hausa Groove kidan mai dadi yake.mp3 hhh', 
-      artist: 'Ali Jita', 
-      imageUrl: 'https://images.unsplash.com/photo-1688143030645-a84f15553f9f?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      dateTime: '2025-06-06T13:00:00+01:00', // June 6, 2025, 1:00 PM WAT
-      duration: '4:30',
-      musicType: 'Hausa'
-    },
-    { 
-      id: 2, 
-      title: 'Afro Rhythm', 
-      artist: 'Davido', 
-      imageUrl: 'https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      dateTime: '2025-06-06T12:30:00+01:00', // June 6, 2025, 12:30 PM WAT
-      duration: '3:45',
-      musicType: 'Afrobeat'
-    },
-    { 
-      id: 3, 
-      title: 'Rap Flow', 
-      artist: 'Olamide', 
-      imageUrl: 'https://images.unsplash.com/photo-1511376777868-611b54f68947?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-06-05T18:45:00+01:00', // June 5, 2025, 6:45 PM WAT
-      duration: '4:15',
-      musicType: 'Rap'
-    },
-    { 
-      id: 4, 
-      title: 'Hype Beat', 
-      artist: 'Skrillex', 
-      imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-06-05T14:20:00+01:00', // June 5, 2025, 2:20 PM WAT
-      duration: '3:20',
-      musicType: 'EDM'
-    },
-    { 
-      id: 5, 
-      title: 'Chill Vibes', 
-      artist: 'HUGEL', 
-      imageUrl: 'https://images.unsplash.com/photo-1709870845122-bb30d361f5de?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      dateTime: '2025-06-04T09:15:00+01:00', // June 4, 2025, 9:15 AM WAT
-      duration: '5:00',
-      musicType: 'Chill'
-    },
-    { 
-      id: 6, 
-      title: 'Melodic Drop', 
-      artist: 'ILLENIUM', 
-      imageUrl: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-06-03T20:00:00+01:00', // June 3, 2025, 8:00 PM WAT
-      duration: '4:10',
-      musicType: 'Melodic Dubstep'
-    },
-    { 
-      id: 7, 
-      title: 'Bassline', 
-      artist: 'Chase & Status', 
-      imageUrl: 'https://images.unsplash.com/photo-1485278537138-4e8911a13c02?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      dateTime: '2025-06-03T11:30:00+01:00', // June 3, 2025, 11:30 AM WAT
-      duration: '3:50',
-      musicType: 'Drum and Bass'
-    },
-    { 
-      id: 8, 
-      title: 'Soulful Tune', 
-      artist: 'Arijit Singh', 
-      imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-06-02T15:00:00+01:00', // June 2, 2025, 3:00 PM WAT
-      duration: '4:40',
-      musicType: 'Indian Pop'
-    },
-    { 
-      id: 9, 
-      title: 'Radio Mix', 
-      artist: 'Griffin', 
-      imageUrl: 'https://images.unsplash.com/photo-1521335629791-0f737347b5c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-06-01T08:00:00+01:00', // June 1, 2025, 8:00 AM WAT
-      duration: '3:30',
-      musicType: 'House'
-    },
-    { 
-      id: 10, 
-      title: 'Hip Hop Jam', 
-      artist: 'Kendrick Lamar', 
-      imageUrl: 'https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=128&q=80',
-      dateTime: '2025-05-31T22:00:00+01:00', // May 31, 2025, 10:00 PM WAT
-      duration: '4:00',
-      musicType: 'Hip Hop'
-    },
-  ];
+  const [beats, setBeats] = useState<Beat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const COLLECTION_ID = '686a7cd100087c08444a';
+  const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
 
-  const [displayedBeats, setDisplayedBeats] = useState<Beat[]>([]);
+  const params = useParams();
+  const useridparams = typeof params.userid === 'string' ? params.userid : null;
 
-  useEffect(() => {
-    // Sort beats by dateTime (newest first) and take the top 7
-    const sortedBeats = [...allBeats]
-      .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime())
-      .slice(0, 7);
-    setDisplayedBeats(sortedBeats);
-  }, []);
-
-  // Format date and time for display
-  const formatDateTime = (dateTime: string) => {
+  // Function to format dateTime as month + relative time (e.g., "Jul, 1m ago")
+  const formatRelativeTime = (dateTime: string) => {
     const date = new Date(dateTime);
-    return date.toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true,
-      timeZone: 'Africa/Lagos', // WAT timezone
-    });
+    const now = new Date('2025-07-08T13:16:00+01:00'); // Current time: 01:16 PM WAT, July 08, 2025
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    // Get month in Africa/Lagos time zone
+    const month = date.toLocaleString('en-NG', { month: 'short', timeZone: 'Africa/Lagos' });
+
+    let relativeTime;
+    if (diffInSeconds < 60) {
+      relativeTime = `${diffInSeconds}s ago`;
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      relativeTime = `${minutes}m ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      relativeTime = `${hours}h ago`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      relativeTime = `${days}d ago`;
+    } else if (diffInSeconds < 2592000) { // Approx. 30 days for a month
+      const months = Math.floor(diffInSeconds / 2592000);
+      relativeTime = `${months}mo ago`;
+    } else {
+      const years = Math.floor(diffInSeconds / 31536000);
+      relativeTime = `${years}y ago`;
+    }
+
+    return `${month}, ${relativeTime}`;
   };
 
+  // Function to truncate title
+  const truncateTitle = (title: string, maxLength: number = 20) => {
+    if (title.length > maxLength) {
+      return `${title.slice(0, maxLength)}...`;
+    }
+    return title;
+  };
+
+  useEffect(() => {
+    const fetchBeats = async () => {
+
+
+      try {
+        setLoading(true);
+        // Query documents by userId, sorted by uploadDate descending, limit to 5
+        const response = await databases.listDocuments(
+          DATABASE_ID!,
+          COLLECTION_ID!,
+          [
+          Query.orderDesc('$createdAt'), // newest at the top 
+          Query.limit(5)]
+        );
+
+        // Map Appwrite documents to Beat interface
+        const fetchedBeats: Beat[] = response.documents.map((doc) => ({
+          id: doc.$id,
+          title: doc.title,
+          imageUrl: doc.imageFileId || null,
+          dateTime: doc.uploadDate,
+          duration: doc.duration,
+          musicType: doc.genre,
+          name: doc.name,
+        }));
+
+        setBeats(fetchedBeats);
+      } catch (err) {
+        console.error('Error fetching beats:', err);
+        setError('Failed to load beats. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBeats();
+  }, [useridparams]);
+
+  
+
+  if (error) {
+    return <div className="text-red-500 p-6">{error}</div>;
+  }
+
   return (
-    <div className="text-gray-200 py-3 px-6 rounded-lg">
-      <h2 className="text-[1.3rem] font-bold mb-3 text-left">
-        Latest Beats
-      </h2>
-      <div className="flex flex-col space-y-4">
-        {displayedBeats.map((beat) => (
-          <Link key={beat.id} href={`/beats/${beat.id}`} passHref>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="w-full rounded-lg p-4 shadow-md cursor-pointer hover:bg-gray-700 transition duration-200 flex items-center space-x-4"
-            >
-              <div className="flex-shrink-0">
+    <div className="text-gray-200 p-6 rounded-lg">
+      <h2 className="text-[1.3rem] font-bold mb-3 text-left">Last Updated</h2>
+      <div className="flex flex-col space-y-3">
+        {beats.length === 0 ? (
+          <p className="text-gray-400">No beats found for this user.</p>
+        ) : (
+          beats.slice(0, 5).map((beat) => (
+            <Link key={beat.id} href={`/profile/${useridparams}/${beat.id}`}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="w-full rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition duration-200 flex items-center space-x-3"
+              >
                 <img
                   src={beat.imageUrl}
-                  alt={`${beat.title} cover`}
-                  className="w-24 h-24 object-cover rounded-md"
+                  alt={beat.title}
+                  className="w-20 h-20 object-cover rounded-md"
                 />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center mb-2">
-                  <span className="font-medium">{beat.title}</span>
+                <div className="flex-1">
+                  <h3 className="font-medium text-lg max-w-[200px] truncate">{truncateTitle(beat.title)}
+                  </h3>
+                  <p className="text-sm text-gray-300">Artist: {beat.name}</p>
+                  <p className="text-sm text-gray-300">Duration: {beat.duration}</p>
+                  <p className="text-sm text-gray-400">Added: {formatRelativeTime(beat.dateTime)}</p>
                 </div>
-                <p className="text-sm text-gray-400">Artist: {beat.artist}</p>
-                <p className="text-sm text-gray-500">Type: {beat.musicType}</p>
-                <p className="text-sm text-gray-500">Duration: {beat.duration}</p>
-              </div>
-            </motion.div>
+              </motion.div>
+            </Link>
+          ))
+        )}
+      </div>
+      {beats.length >= 5 && (
+        <div className="mt-4 ml-[0.7rem] text-left">
+          <Link href="/beats">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-200"
+            >
+              See More
+            </motion.button>
           </Link>
-        ))}
-      </div>
-      <div className="mt-3 ml-4 text-left">
-        <Link href="/beats" passHref>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-6 py-2 bg-orange-500 text-white rounded-lg shadow-md  transition duration-200"
-          >
-            See More
-          </motion.button>
-        </Link>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

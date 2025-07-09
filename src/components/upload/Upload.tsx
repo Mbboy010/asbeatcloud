@@ -126,6 +126,8 @@ export default function Uploaded() {
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '686a7cd100087c08444a';
+  
+  const COLLECTION_I = "6849aa4f000c032527a9";
   const STORAGE_BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
 
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
@@ -403,6 +405,12 @@ useEffect(() =>{
       }
 
       cleanup();
+      
+      const resp = await databases.getDocument(
+          DATABASE_ID,
+          COLLECTION_I,
+          authId!
+        );
 
       const currentDate = new Date().toISOString();
       await databases.createDocument(
@@ -412,7 +420,8 @@ useEffect(() =>{
         {
           title,
           description,
-          email: userEmail,
+          name: `${resp.firstName} ${resp.lastName}`,
+          email: resp.email,
           audioFileId,
           musicId,
           imageFileId: imageFileId || null,

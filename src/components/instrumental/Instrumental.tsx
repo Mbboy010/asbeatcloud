@@ -1,5 +1,7 @@
 'use client';
 
+import CTempo from './CTempo';
+import MusicPlayer from './MusicPlayer';
 import TopArtists from '../home/TopArtists';
 import BeatsList from '../home/BeatsList';
 import InstrumentalCategories from '../home/InstrumentalCategories';
@@ -16,7 +18,9 @@ export default function Instrumental() {
 
       className="min-h-[100vh]  bg-[#121212] text-gray-200"
     >
+
    <InstrumentalCategories />
+    <CTempo />
    <BeatsList />
    <GlobalTop />
    <TopArtists />
