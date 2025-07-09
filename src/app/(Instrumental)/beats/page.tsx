@@ -8,9 +8,8 @@ export default function page() {
 const REPORTS_COLLECTION_ID = 'REPORTS_COLLECTION_ID'; // Replace with actual collection ID
 const COLLECTION_ID = '6849aa4f000c032527a9';
   const handle = async () =>{
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, "Asstudio", {
-            followers: 1430,
-            lastName: ""
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, "686ed0e3e7960d129b10", {
+            followers: 2430,
           });
   }
   
