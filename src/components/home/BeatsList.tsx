@@ -15,6 +15,7 @@ interface Beat {
   duration: string;
   musicType: string;
   name: string;
+  userId: string;
 }
 
 const BeatsList = () => {
@@ -91,6 +92,7 @@ const BeatsList = () => {
           dateTime: doc.uploadDate,
           duration: doc.duration,
           musicType: doc.genre,
+          userId: doc.userId,
           name: doc.name,
         }));
 
@@ -106,7 +108,10 @@ const BeatsList = () => {
     fetchBeats();
   }, [useridparams]);
 
-  
+  const bb = (e: string) =>{
+    const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, e);
+    return `${response.firstName} ${response.lastName}`
+  }
 
   if (error) {
     return <div className="text-red-500 p-6">{error}</div>;
@@ -133,7 +138,7 @@ const BeatsList = () => {
                 <div className="flex-1">
                   <h3 className="font-medium text-lg max-w-[200px] truncate">{truncateTitle(beat.title)}
                   </h3>
-                  <p className="text-sm text-gray-300">Artist: {beat.name}</p>
+                  <p className="text-sm text-gray-300">Artist: {bb(beat.userId)}</p>
                   <p className="text-sm text-gray-300">Duration: {beat.duration}</p>
                   <p className="text-sm text-gray-400">Added: {formatRelativeTime(beat.dateTime)}</p>
                 </div>
