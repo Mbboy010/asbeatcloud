@@ -109,7 +109,7 @@ const BeatsList = () => {
   }, [useridparams]);
 
   const bb = async (e: string) =>{
-    const response = await databases.getDocument(DATABASE_ID, COLLECTION_ID, e);
+    const response = await databases.getDocument(DATABASE_ID!, COLLECTION_ID!, e!);
     return `${response.firstName} ${response.lastName}`
   }
 

@@ -18,7 +18,8 @@ const musicGenres = [
   'Blues',
   'Hausa',
   'Afro',
-  'Amapiano'
+  'Amapiano',
+  'Drill'
 ];
 
 // Musical scales and keys
