@@ -20,71 +20,60 @@ interface Beat {
 
 const BeatsList = () => {
   const [beats, setBeats] = useState<Beat[]>([]);
+  const [artistNames, setArtistNames] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '686a7cd100087c08444a';
   const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
-
+   const COLLECTION_I = '6849aa4f000c032527a9'; // Replace with your Collection ID for artists
   const params = useParams();
   const useridparams = typeof params.userid === 'string' ? params.userid : null;
 
-  // Function to format dateTime as month + relative time (e.g., "Jul, 1m ago")
   const formatRelativeTime = (dateTime: string) => {
     const date = new Date(dateTime);
-    const now = new Date('2025-07-08T13:16:00+01:00'); // Current time: 01:16 PM WAT, July 08, 2025
+    const now = new Date('2025-07-08T13:16:00+01:00'); // Fixed reference time
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    // Get month in Africa/Lagos time zone
     const month = date.toLocaleString('en-NG', { month: 'short', timeZone: 'Africa/Lagos' });
 
     let relativeTime;
-    if (diffInSeconds < 60) {
-      relativeTime = `${diffInSeconds}s ago`;
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      relativeTime = `${minutes}m ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      relativeTime = `${hours}h ago`;
-    } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      relativeTime = `${days}d ago`;
-    } else if (diffInSeconds < 2592000) { // Approx. 30 days for a month
-      const months = Math.floor(diffInSeconds / 2592000);
-      relativeTime = `${months}mo ago`;
-    } else {
-      const years = Math.floor(diffInSeconds / 31536000);
-      relativeTime = `${years}y ago`;
-    }
+    if (diffInSeconds < 60) relativeTime = `${diffInSeconds}s ago`;
+    else if (diffInSeconds < 3600) relativeTime = `${Math.floor(diffInSeconds / 60)}m ago`;
+    else if (diffInSeconds < 86400) relativeTime = `${Math.floor(diffInSeconds / 3600)}h ago`;
+    else if (diffInSeconds < 604800) relativeTime = `${Math.floor(diffInSeconds / 86400)}d ago`;
+    else if (diffInSeconds < 2592000) relativeTime = `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+    else relativeTime = `${Math.floor(diffInSeconds / 31536000)}y ago`;
 
     return `${month}, ${relativeTime}`;
   };
 
-  // Function to truncate title
   const truncateTitle = (title: string, maxLength: number = 20) => {
-    if (title.length > maxLength) {
-      return `${title.slice(0, maxLength)}...`;
+    return title.length > maxLength ? `${title.slice(0, maxLength)}...` : title;
+  };
+
+  const fetchArtistName = async (userId: string) => {
+    try {
+      if (!artistNames[userId]) {
+        const response = await databases.getDocument(DATABASE_ID!, COLLECTION_I!, userId);
+        const fullName = `${response.firstName} ${response.lastName}`;
+        setArtistNames((prev) => ({ ...prev, [userId]: fullName }));
+      }
+    } catch (error) {
+      console.error(`Failed to fetch artist name for userId ${userId}`, error);
     }
-    return title;
   };
 
   useEffect(() => {
     const fetchBeats = async () => {
-
-
       try {
         setLoading(true);
-        // Query documents by userId, sorted by uploadDate descending, limit to 5
         const response = await databases.listDocuments(
           DATABASE_ID!,
           COLLECTION_ID!,
-          [
-          Query.orderDesc('$createdAt'), // newest at the top 
-          Query.limit(5)]
+          [Query.orderDesc('$createdAt'), Query.limit(5)]
         );
 
-        // Map Appwrite documents to Beat interface
         const fetchedBeats: Beat[] = response.documents.map((doc) => ({
           id: doc.$id,
           title: doc.title,
@@ -97,6 +86,10 @@ const BeatsList = () => {
         }));
 
         setBeats(fetchedBeats);
+
+        for (const beat of fetchedBeats) {
+          fetchArtistName(beat.userId);
+        }
       } catch (err) {
         console.error('Error fetching beats:', err);
         setError('Failed to load beats. Please try again.');
@@ -107,11 +100,6 @@ const BeatsList = () => {
 
     fetchBeats();
   }, [useridparams]);
-
-  const bb = async (e: string) =>{
-    const response = await databases.getDocument(DATABASE_ID!, COLLECTION_ID!, e!);
-    return `${response.firstName} ${response.lastName}`
-  }
 
   if (error) {
     return <div className="text-red-500 p-6">{error}</div>;
@@ -124,7 +112,7 @@ const BeatsList = () => {
         {beats.length === 0 ? (
           <p className="text-gray-400">No beats found for this user.</p>
         ) : (
-          beats.slice(0, 5).map((beat) => (
+          beats.map((beat) => (
             <Link key={beat.id} href={`/profile/${useridparams}/${beat.id}`}>
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -136,9 +124,12 @@ const BeatsList = () => {
                   className="w-20 h-20 object-cover rounded-md"
                 />
                 <div className="flex-1">
-                  <h3 className="font-medium text-lg max-w-[200px] truncate">{truncateTitle(beat.title)}
+                  <h3 className="font-medium text-lg max-w-[200px] truncate">
+                    {truncateTitle(beat.title)}
                   </h3>
-                  <p className="text-sm text-gray-300">Artist: {bb(beat.userId)}</p>
+                  <p className="text-sm text-gray-300">
+                    Artist: {artistNames[beat.userId] || 'Loading...'}
+                  </p>
                   <p className="text-sm text-gray-300">Duration: {beat.duration}</p>
                   <p className="text-sm text-gray-400">Added: {formatRelativeTime(beat.dateTime)}</p>
                 </div>
@@ -147,6 +138,7 @@ const BeatsList = () => {
           ))
         )}
       </div>
+
       {beats.length >= 5 && (
         <div className="mt-4 ml-[0.7rem] text-left">
           <Link href="/beats">
