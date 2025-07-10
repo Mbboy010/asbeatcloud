@@ -1,141 +1,117 @@
-'use client';
+ 'use client';
 
+import VerificationIcon from '../icons/VerificationIcon';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { databases } from '../../lib/appwrite';
+import { useState, useEffect } from 'react';
+import { Query } from 'appwrite';
 
-interface Song {
-  id: number;
-  title: string;
-  artists: string[];
-  href: string;
+interface Artist {
+  $id: string;
+  name: string;
   imageUrl: string;
+  duration: string;
+  scale: string;
+  key: string;
+  tempo: number;
+  href: string;
 }
 
 const SongCarousel = () => {
-  const allSongs: Song[] = [
-    {
-      id: 1,
-      title: 'Hausa Groove',
-      artists: ['Ali Jita', 'Sani Danja'],
-      href: '/songs/hausa-groove',
-      imageUrl:
-        'https://images.unsplash.com/photo-1709870845122-bb30d361f5de?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    },
-    {
-      id: 2,
-      title: 'Afro Rhythm',
-      artists: ['Davido', 'Wizkid'],
-      href: '/songs/afro-rhythm',
-      imageUrl:
-        'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bXVzaWN8ZW58MHx8MHx8fDA%3D',
-    },
-    {
-      id: 3,
-      title: 'Rap Flow',
-      artists: ['Olamide', 'Phyno'],
-      href: '/songs/rap-flow',
-      imageUrl:
-        'https://images.unsplash.com/photo-1632765866070-3fadf25d3d5b?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    },
-    {
-      id: 4,
-      title: 'Hype Beat',
-      artists: ['Skrillex', 'NOTION'],
-      href: '/songs/hype-beat',
-      imageUrl:
-        'https://images.unsplash.com/photo-1688143030645-a84f15553f9f?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    },
-    {
-      id: 5,
-      title: 'Chill Vibes',
-      artists: ['HUGEL', 'WiZThe'],
-      href: '/songs/chill-vibes',
-      imageUrl:
-        'https://plus.unsplash.com/premium_photo-1677545820818-f1639f3e5b65?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fG11c2ljfGVufDB8fDB8fHww',
-    },
-    {
-      id: 6,
-      title: 'Melodic Drop',
-      artists: ['ILLENIUM', 'Taylor Swift'],
-      href: '/songs/melodic-drop',
-      imageUrl:
-        'https://images.unsplash.com/photo-1507838153414-b4b713384a76?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.0.3',
-    },
-    {
-      id: 7,
-      title: 'Bassline',
-      artists: ['Chase & Status', 'Summit'],
-      href: '/songs/bassline',
-      imageUrl:
-        'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.0.3',
-    },
-    {
-      id: 8,
-      title: 'Soulful Tune',
-      artists: ['Arijit Singh', 'Atif Aslam'],
-      href: '/songs/soulful-tune',
-      imageUrl:
-        'https://images.unsplash.com/photo-1619983081563-430f63602796?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8bXVzaWN8ZW58MHx8MHx8fDA%3D',
-    },
-    {
-      id: 9,
-      title: 'Radio Mix',
-      artists: ['Griffin', 'Kaskade'],
-      href: '/songs/radio-mix',
-      imageUrl:
-        'https://images.unsplash.com/photo-1453738773917-9c3eff1db985?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fG11c2ljfGVufDB8fDB8fHww',
-    },
-    {
-      id: 10,
-      title: 'Hip Hop Jam',
-      artists: ['Kendrick Lamar', 'Drake'],
-      href: '/songs/hip-hop-jam',
-      imageUrl:
-        'https://plus.unsplash.com/premium_photo-1682125768864-c80b650614f3?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fG11c2ljfGVufDB8fDB8fHww',
-    },
-  ];
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [displayedSongs, setDisplayedSongs] = useState<Song[]>([]);
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
+  const COLLECTION_ID = '686a7cd100087c08444a';
 
   useEffect(() => {
-    const shuffleArray = (array: Song[]) => {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const fetchArtists = async () => {
+      try {
+        setLoading(true);
+        const response = await databases.listDocuments(
+          DATABASE_ID!,
+          COLLECTION_ID,
+          [
+            Query.greaterThanEqual("tempo", 5),
+            Query.orderDesc("tempo"),
+            Query.limit(10),
+          ]
+        );
+
+        const fetchedArtists: Artist[] = response.documents.map((doc) => ({
+          $id: doc.$id,
+          name: `${doc.title}`,
+          imageUrl: doc.imageFileId,
+          scale: doc.scale,
+          tempo: doc.tempo,
+          key: doc.key,
+          href: `/instrumental/${doc.$id}`,
+          duration: doc.duration,
+        }));
+
+        setArtists(fetchedArtists);
+      } catch (err) {
+        console.error('Error fetching artists:', err);
+        setError('Failed to load artists');
+      } finally {
+        setLoading(false);
       }
-      return shuffled.slice(0, 5);
     };
-    setDisplayedSongs(shuffleArray(allSongs));
+
+    fetchArtists();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="p-6 rounded-lg">
+        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Top International</h2>
+        <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
+          {[...Array(5)].map((_, index) => (
+            <div
+              key={index}
+              className="flex-shrink-0 mb-1 w-48 rounded-lg overflow-hidden"
+            >
+              <div className="w-full h-48 bg-gray-700 animate-pulse rounded-md"></div>
+              <div className="flex flex-col mt-3 space-y-2">
+                <div className="h-5 bg-gray-700 animate-pulse rounded w-3/4"></div>
+                <div className="h-4 bg-gray-700 animate-pulse rounded w-1/2"></div>
+                <div className="h-4 bg-gray-700 animate-pulse rounded w-2/3"></div>
+                <div className="h-4  bg-gray-700 animate-pulse rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
-    <div className="text-gray-200 py-3 px-6 rounded-lg overflow-hidden">
-      <h2 className="text-[1.3rem] font-bold mb-3 text-left">
-        Featured Playlists
-      </h2>
-      <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-        {displayedSongs.map((song) => (
-          <Link key={song.id} href={song.href} passHref>
+    <div className="p-6 rounded-lg">
+      <h2 className="text-[1.3rem] font-bold mb-3 text-left">Top International</h2>
+      <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
+        {artists.map((artist) => (
+          <Link key={artist.$id} href={artist.href} passHref>
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="flex-shrink-0 w-52 rounded-lg py-4 px-1 shadow-md cursor-pointer transition duration-200"
+              className="flex-shrink-0 mb-1 w-48 rounded-lg overflow-hidden cursor-pointer transition duration-200"
             >
-              <div className="mb-2 relative">
-                <img
-                  src={song.imageUrl}
-                  alt={`${song.title} cover`}
-                  width={256}
-                  height={128}
-                  className="w-full h-44 object-cover rounded-md"
-                />
+              <img
+                src={artist.imageUrl}
+                alt={`${artist.name} cover`}
+                className="w-full h-48 rounded-md object-cover"
+              />
+              <div className="flex flex-col mt-3">
+                <p className="font-semibold text-gray-200 max-w-[8.5rem] md:w-auto overflow-hidden text-ellipsis whitespace-nowrap">{artist.name}</p>
+                <p className="text-sm text-gray-300">tempo: {artist.tempo}BPM</p>
+                <p className="text-sm text-gray-300">scale: {artist.key} {artist.scale}</p>
+                <p className="text-sm text-gray-300">duration: {artist.duration}</p>
               </div>
-              <div className="flex items-center mb-2">
-                <span className="font-medium hover:bg-gray-700">{song.title}</span>
-              </div>
-              <p className="text-sm text-gray-400">{song.artists.join(', ')}</p>
             </motion.div>
           </Link>
         ))}

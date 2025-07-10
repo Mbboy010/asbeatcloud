@@ -358,7 +358,7 @@ useEffect(() =>{
             const remainingTime = Math.max(0, estimatedTotalTime - elapsedTime);
             return { percentage: newPercentage, remainingTime };
           });
-        }, 200);
+        },10);
         return () => clearInterval(interval);
       };
 

@@ -1,11 +1,15 @@
+
 'use client';
+
+import TopArUi from './TopArUi';
+import TopAr from './TopAr';
 import UserBeatUi from './UserBeatUi';
 import SkeletonArtistProfile from './SkeletonArtistProfile';
 import UserNotAvailable from './UserNotAvailable';
 import { User } from '../../app/profile/[userid]/page'; // Import the User interface
 import { useState, useEffect } from 'react';
 import ArtistProfile from '../../components/profile/ArtistProfile';
-import TopArtists from '@/components/home/TopArtists';
+
 import UserBeat from '@/components/profile/beat/UserBeat';
 import UserProfile from '@/components/profile/UserProfile';
 import VerificationIcon from '../icons/VerificationIcon';
@@ -80,8 +84,10 @@ const COLLECTION_ID = '6849aa4f000c032527a9';
 
   if (loading) return <div className="container mx-auto mt-16 min-h-screen bg-[#121212] text-gray-200">
     <SkeletonUserProfile />
-    <SkeletonArtistProfile />
     <UserBeatUi />
+    <TopArUi />
+    <SkeletonArtistProfile />
+    
     </div>
    
    
@@ -97,7 +103,7 @@ const COLLECTION_ID = '6849aa4f000c032527a9';
         <UserBeat />
       </div>
       <div className="mt-8">
-        <TopArtists />
+        <TopAr />
       </div>
       <div className="mt-8">
         <ArtistProfile />

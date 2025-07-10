@@ -27,13 +27,13 @@ const BeatsList = () => {
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '686a7cd100087c08444a';
   const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
-   const COLLECTION_I = '6849aa4f000c032527a9'; // Replace with your Collection ID for artists
+  const COLLECTION_I = '6849aa4f000c032527a9';
   const params = useParams();
   const useridparams = typeof params.userid === 'string' ? params.userid : null;
 
   const formatRelativeTime = (dateTime: string) => {
     const date = new Date(dateTime);
-    const now = new Date('2025-07-08T13:16:00+01:00'); // Fixed reference time
+    const now = new Date('2025-07-08T13:16:00+01:00');
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     const month = date.toLocaleString('en-NG', { month: 'short', timeZone: 'Africa/Lagos' });
 
@@ -100,6 +100,30 @@ const BeatsList = () => {
 
     fetchBeats();
   }, [useridparams]);
+
+  if (loading) {
+    return (
+      <div className="text-gray-200 p-6 rounded-lg">
+        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Last Updated</h2>
+        <div className="flex flex-col space-y-3">
+          {[...Array(5)].map((_, index) => (
+            <div
+              key={index}
+              className="w-full rounded-lg p-3 flex items-center space-x-3"
+            >
+              <div className="w-20 h-20 bg-gray-700 animate-pulse rounded-md"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-5 bg-gray-700 animate-pulse rounded w-3/4"></div>
+                <div className="h-4 bg-gray-700 animate-pulse rounded w-1/2"></div>
+                <div className="h-4 bg-gray-700 animate-pulse rounded w-2/3"></div>
+                <div className="h-4 bg-gray-700 animate-pulse rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return <div className="text-red-500 p-6">{error}</div>;

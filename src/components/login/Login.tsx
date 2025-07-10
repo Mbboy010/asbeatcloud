@@ -118,9 +118,6 @@ export default function Login() {
       className="flex p-4 min-h-[75vh] justify-center items-center"
     >
       {/* Appbar */}
-      <div className="fixed top-0 left-0 w-full bg-[#121212] p-4 z-10">
-        <h1 className="text-xl font-bold text-gray-200">AsbeatCloud</h1>
-      </div>
 
       {/* Progress Bar */}
       {isLoading && (
