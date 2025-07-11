@@ -66,7 +66,7 @@ const SongCarousel = () => {
   if (loading) {
     return (
       <div className="p-6 rounded-lg">
-        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Top International</h2>
+        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Top instrumental</h2>
         <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
           {[...Array(5)].map((_, index) => (
             <div
@@ -99,12 +99,12 @@ const SongCarousel = () => {
           <Link key={artist.$id} href={artist.href} passHref>
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="flex-shrink-0 mb-1 w-48 rounded-lg overflow-hidden cursor-pointer transition duration-200"
+              className="flex-shrink-0 mb-1 w-36 rounded-lg overflow-hidden cursor-pointer transition duration-200"
             >
               <img
                 src={artist.imageUrl}
                 alt={`${artist.name} cover`}
-                className="w-full h-48 rounded-md object-cover"
+                className="w-full w-36 rounded-md object-cover"
               />
               <div className="flex flex-col mt-3">
                 <p className="font-semibold text-gray-200 max-w-[8.5rem] md:w-auto overflow-hidden text-ellipsis whitespace-nowrap">{artist.name}</p>

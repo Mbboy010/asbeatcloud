@@ -11,7 +11,7 @@ interface Artist {
   $id: string;
   name: string;
   imageUrl: string;
-  tempo: number;
+  genre: string;
   href: string;
   userId: string;
 }
@@ -24,7 +24,7 @@ function shuffleArray<T>(array: T[]): T[] {
     .map(({ item }) => item);
 }
 
-const CTempo = () => {
+const Tygenre = () => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +43,8 @@ const CTempo = () => {
           DATABASE_ID!,
           COLLECTION_ID,
           [
-            Query.greaterThanEqual("tempo", 5),
-            Query.orderDesc("tempo"),
+           
+            Query.orderDesc("genre"),
             Query.limit(50),
           ]
         );
@@ -53,7 +53,7 @@ const CTempo = () => {
           $id: doc.$id,
           name: `${doc.title}`,
           imageUrl: doc.imageFileId,
-          tempo: doc.tempo,
+          genre: doc.genre,
           userId: doc.userId,
           href: `/instrumental/${doc.$id}`,
         }));
@@ -92,7 +92,7 @@ const CTempo = () => {
     return (
 
       <div className="p-6 rounded-lg ">
-        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Best BPM list</h2>
+        <h2 className="text-[1.3rem] font-bold mb-3 text-left">genres for you</h2>
         <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
           {[...Array(5)].map((_, index) => ( // Display 5 skeleton items
             <div
@@ -118,7 +118,7 @@ const CTempo = () => {
   return (
  
     <div className="p-6 rounded-lg ">
-      <h2 className="text-[1.3rem] font-bold mb-3 text-left">Best BPM list</h2>
+      <h2 className="text-[1.3rem] font-bold mb-3 text-left">genres for you</h2>
       <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
         {artists.map((artist) => (
           <Link key={artist.$id} href={artist.href} passHref>
@@ -136,7 +136,7 @@ const CTempo = () => {
                   {artist.name}
                 </p>
                 <p className="text-sm text-gray-400">{artistNames[artist.userId]}</p>
-                <p className="text-sm text-gray-400">{artist.tempo} BPM</p>
+                <p className="text-sm text-gray-400">{artist.genre}</p>
               </div>
             </motion.div>
           </Link>
@@ -147,4 +147,4 @@ const CTempo = () => {
   );
 };
 
-export default CTempo;
+export default Tygenre;

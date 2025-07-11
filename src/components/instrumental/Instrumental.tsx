@@ -1,5 +1,8 @@
 'use client';
 
+import BKey from './BKey';
+import TyGenre from './TyGenre';
+import SongCarousel from '../home/SongCarousel';
 import CTempo from './CTempo';
 import MusicPlayer from './MusicPlayer';
 import TopArtists from '../home/TopArtists';
@@ -22,10 +25,11 @@ export default function Instrumental() {
    <InstrumentalCategories />
     <CTempo />
    <BeatsList />
+   <SongCarousel />
    <GlobalTop />
    <TopArtists />
-
-
+   <TyGenre />
+   <BKey />
     </motion.div>
   );
 }
