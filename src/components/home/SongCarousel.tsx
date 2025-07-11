@@ -71,9 +71,9 @@ const SongCarousel = () => {
           {[...Array(5)].map((_, index) => (
             <div
               key={index}
-              className="flex-shrink-0 mb-1 w-48 rounded-lg overflow-hidden"
+              className="flex-shrink-0 mb-1 w-36 rounded-lg overflow-hidden"
             >
-              <div className="w-full h-48 bg-gray-700 animate-pulse rounded-md"></div>
+              <div className="w-full h-36 bg-gray-700 animate-pulse rounded-md"></div>
               <div className="flex flex-col mt-3 space-y-2">
                 <div className="h-5 bg-gray-700 animate-pulse rounded w-3/4"></div>
                 <div className="h-4 bg-gray-700 animate-pulse rounded w-1/2"></div>
@@ -99,7 +99,7 @@ const SongCarousel = () => {
           <Link key={artist.$id} href={artist.href} passHref>
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="flex-shrink-0 mb-1 w-36 rounded-lg overflow-hidden cursor-pointer transition duration-200"
+              className="flex-shrink-0 w-36 rounded-lg overflow-hidden cursor-pointer transition duration-200"
             >
               <img
                 src={artist.imageUrl}
