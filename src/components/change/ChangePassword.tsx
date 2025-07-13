@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../loading/Loading';
 import { useState, useEffect } from 'react';
 import { Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
@@ -103,10 +104,20 @@ export default function ChangePassword() {
       setIsLoading(false);
     }
   };
+  
+  const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
 
   // Skeleton UI component
   const SkeletonLoader = () => (
     <div className="w-full max-w-md p-6 rounded-lg mt-8 animate-pulse">
+      {
+        loadi ? <> 
       <div className="h-8 bg-[#2A2A2A] rounded w-3/4 mx-auto mb-6"></div>
       <div className="space-y-4">
         <div className="relative">
@@ -123,6 +134,10 @@ export default function ChangePassword() {
         <div className="h-4 bg-[#2A2A2A] rounded w-1/3 mx-auto"></div>
         <div className="h-4 bg-[#2A2A2A] rounded w-1/3 mx-auto"></div>
       </div>
+        </> :
+        <Loading />
+        
+      }
     </div>
   );
 

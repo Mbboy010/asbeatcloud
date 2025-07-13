@@ -1,5 +1,6 @@
 "use client";
 
+import Loading from '../loading/Loading';
 import { useState, useEffect } from 'react';
 import { Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -218,10 +219,21 @@ export default function Verification() {
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
+  
+  const [loadi,setLoadi] = useState<boolean>(false)
+  
+    useEffect(() => {
+      setTimeout(() =>{
+        setLoadi(true)
+      },2000)
+    },[])
 
   // Skeleton UI component
   const SkeletonLoader = () => (
     <div className="w-full max-w-md p-6 mt-20">
+      {
+        loadi ?
+        <>
       <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
       <div className="space-y-4">
         <div className="relative">
@@ -231,6 +243,10 @@ export default function Verification() {
         <div className="h-4 bg-gray-700 rounded w-2/3 mx-auto animate-pulse"></div>
         <div className="h-4 bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
       </div>
+        </>:
+        <Loading />
+
+      }
     </div>
   );
 

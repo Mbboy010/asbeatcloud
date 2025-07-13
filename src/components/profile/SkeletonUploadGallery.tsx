@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const SkeletonUploadGallery = () => {
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 ">
+    <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ const SkeletonUploadGallery = () => {
         {/* Skeleton for Back Button */}
         <div className="mt-4 w-full h-6 bg-gray-700 rounded animate-pulse"></div>
       </motion.div>
-    </div>
+    </>
   );
 };
 

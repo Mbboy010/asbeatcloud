@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../loading/Loading';
 import LoginAuth from '../authsign/LoginAuth';
 import { useState, useEffect, useRef } from 'react';
 import { Mail, User2, User, UserCheck, Calendar, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
@@ -487,7 +488,19 @@ export default function Signup() {
     }),
   };
 
+   const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
+
   return (
+    <div>
+    {
+      loadi ?
+      
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -783,6 +796,12 @@ export default function Signup() {
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </motion.div> :
+    <div className=" p-4">
+      <Loading />
+    </div>
+    }
+   </div>
+
   );
 }

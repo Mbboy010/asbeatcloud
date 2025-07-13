@@ -1,5 +1,7 @@
+
 "use client";
 
+import Loading from '../loading/Loading';
 import SkeletonEditProfile from "./SkeletonEditProfile";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -639,8 +641,24 @@ const EditProfile = () => {
   const handleGoHome = () => {
     router.push("/");
   };
+  
+  const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
 
-  if (loading) return <SkeletonEditProfile />;
+  if (loading) return (
+        <div className="min-h-screen p-6">
+           {
+             
+           loadi ?  <SkeletonEditProfile /> : <Loading />
+           }
+        </div>
+    )
+  ;
   if (error) {
     return (
       <div className="text-red-500 w-screen justify-center items-center flex flex-col py-10">

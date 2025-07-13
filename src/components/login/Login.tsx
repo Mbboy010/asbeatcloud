@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../loading/Loading';
 import LoginAuth from '../authsign/LoginAuth';
 import { useRouter, useParams } from 'next/navigation';
 import React, { useState,useEffect } from 'react';
@@ -111,8 +112,20 @@ export default function Login() {
       setProgress(0);
     }
   };
+  
+  const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
 
   return (
+    <div>
+    {
+      loadi ?
+      
     <motion.div
       
       className="flex p-4 min-h-[75vh] justify-center items-center"
@@ -198,6 +211,11 @@ export default function Login() {
           </Link>
         </p>
       </div>
-    </motion.div>
+    </motion.div> :
+        <div className=" p-4">
+      <Loading />
+    </div>
+    }
+   </div>
   );
 }

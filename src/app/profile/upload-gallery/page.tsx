@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function GalleryPage() {
   return (
-    <div>
+    <div className="container mx-auto mt-16 p-4">
       <UploadGallery />
 
     </div>

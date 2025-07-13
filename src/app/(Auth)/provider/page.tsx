@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../../components/loading/Loading';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { account, databases, storage } from '@/lib/appwrite';
@@ -144,8 +145,8 @@ export default function ProviderPage() {
   }, [dispatch, router]);
 
   return (
-    <div className="flex z-50 justify-center items-center min-h-screen w-screen">
-      <p className="text-white">please wait...</p>
+    <div className="flex z-50 container mx-auto mt-16 p-4">
+       <Loading />
     </div>
   );
 }

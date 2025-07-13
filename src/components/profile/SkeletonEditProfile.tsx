@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const SkeletonEditProfile = () => {
   return (
-    <div className="min-h-screen p-6">
+    <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -103,7 +103,7 @@ const SkeletonEditProfile = () => {
           </div>
         </div>
       </motion.div>
-    </div>
+    </>
   );
 };
 

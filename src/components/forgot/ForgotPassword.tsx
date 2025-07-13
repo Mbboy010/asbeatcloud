@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../loading/Loading';
 import { useState, useEffect } from 'react';
 import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
@@ -330,11 +331,21 @@ export default function ForgotPassword() {
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
-
+  const [loadi,setLoadi] = useState<boolean>(false)
+  
+    useEffect(() => {
+      setTimeout(() =>{
+        setLoadi(true)
+      },2000)
+    },[])
   // Enhanced Skeleton Loader Component
   const SkeletonLoader = ({ step }: { step: number }) => (
-    <div className="w-full max-w-md p-6 rounded-lg mt-8 ">
-      <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
+    <div className="w-full max-w-md p-6 rounded-lg ">
+    {
+      
+    loadi ?
+    <>
+      <div className="h-8 bg-gray-700 mt-8  rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
       <div className="space-y-4">
         {step === 1 && (
           <>
@@ -365,6 +376,10 @@ export default function ForgotPassword() {
           </>
         )}
       </div>
+      </>
+      :
+      <Loading />
+    }
     </div>
   );
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../loading/Loading';
 import SkeletonUploadGallery from './SkeletonUploadGallery';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -283,13 +284,31 @@ export default function UploadGallery() {
     if (input) input.click();
   };
 
+     const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
+
+
   if (loading) {
-    return <SkeletonUploadGallery />;
+    return  (
+      
+      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 ">
+      {
+        
+        loadi ? <SkeletonUploadGallery /> : <Loading /> 
+      }
+      </div>
+      
+      )
 
   }
 
   return (
-    <div className="min-h-screen  py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen   pb-8 px-4 sm:px-6 lg:px-8">
       <motion.div
         
         className="max-w-2xl mt-8 mx-auto  rounded-xl shadow-lg p-6 sm:p-8"

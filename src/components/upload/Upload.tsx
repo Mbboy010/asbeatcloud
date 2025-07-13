@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from '../loading/Loading';
 import { useState, useEffect, useRef } from 'react';
 import { Music, Loader2, Plus, Upload, Play, Pause, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -508,9 +509,19 @@ useEffect(() =>{
       setModalType('confirm');
     }
   };
+  
+  const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
 
   return (
     <motion.div className="flex justify-center items-center">
+    {
+      loadi ?
       <div className="w-full p-6 max-w-md">
         <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
         {Object.keys(errors).length > 0 && (
@@ -805,6 +816,9 @@ useEffect(() =>{
           type={modalType}
         />
       </div>
+      : 
+      <Loading />
+      }
     </motion.div>
   );
 }
