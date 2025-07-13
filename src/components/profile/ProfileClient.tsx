@@ -1,6 +1,7 @@
 
 'use client';
 
+import Loading from '../loading/Loading';
 import TopArUi from './TopArUi';
 import TopAr from './TopAr';
 import UserBeatUi from './UserBeatUi';
@@ -80,14 +81,32 @@ const COLLECTION_ID = '6849aa4f000c032527a9';
     }
     checAu()
   },[userid,authId])
+  
+     
+ const [loadi,setLoadi] = useState<boolean>(false)
+  
+useEffect(() => {
+  setTimeout(() =>{
+    setLoadi(true)
+  },2000)
+},[])
 
 
   if (loading) return <div className="container mx-auto mt-16 min-h-screen bg-[#121212] text-gray-200">
+  
+  {
+    loadi ? <>
+      
     <SkeletonUserProfile />
     <UserBeatUi />
     <TopArUi />
     <SkeletonArtistProfile />
     
+    </> :
+    <Loading />
+  }
+  
+
     </div>
    
    

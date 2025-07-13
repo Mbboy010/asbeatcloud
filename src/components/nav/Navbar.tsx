@@ -80,7 +80,8 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-between backdrop-blur-md shadow-md">
+      <nav className="fixed top-0 left-0 right-0 z-30 p-4 flex items-center justify-center backdrop-blur-md shadow-md">
+      <div className="flex items-center justify-between container">
         {/* User Profile */}
         <Link
           href={isAuth ? `/profile/${authId}` : '/login'}
@@ -146,7 +147,9 @@ export default function Navbar() {
             <Menu className="h-6 w-6 text-gray-200" />
           </button>
         </div>
+       </div>
       </nav>
+
 
       {/* Desktop Search Overlay (optional UI effect) */}
       {isSearchOpenPc && (
