@@ -1,6 +1,6 @@
 'use client';
 
-import Loading from '../../components/loading/Loading';
+import Loading from '@/components/loading/Loading';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { account, databases, storage } from '@/lib/appwrite';
