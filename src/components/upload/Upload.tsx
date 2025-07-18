@@ -379,7 +379,7 @@ export default function Uploaded() {
       const audioFileId = storage.getFileView(STORAGE_BUCKET_ID!, audioUpload.$id).toString();
       let musicId = audioUpload.$id;
 
-      const downloadUrl = storage.getFileDownload(STORAGE_BUCKET_ID, audioUpload.$id);
+      const downloadUrl = storage.getFileDownload(STORAGE_BUCKET_ID!, audioUpload.$id);
 
       let imageFileId: string | null = null;
       let imageId: string | null = null;
