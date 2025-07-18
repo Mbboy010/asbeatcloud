@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause } from "lucide-react";
 
-const formatTime = (time) => {
+const formatTime = (time: number) => {
   if (isNaN(time) || time === 0) return "0:00";
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time % 60)
@@ -31,7 +31,7 @@ const MusicPlayer = ({ instrumental }: Props) => {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch((error) => {
+      audioRef.current.play().catch((error: Error) => {
         console.error("Playback failed:", error);
       });
     }
@@ -49,18 +49,22 @@ const MusicPlayer = ({ instrumental }: Props) => {
     }
   };
 
-  const handleSeekStart = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleSeekStart = (
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+  ) => {
     setIsDragging(true);
     handleSeek(e);
   };
 
-  const handleSeek = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleSeek = (
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+  ) => {
     const audio = audioRef.current;
     const progressBar = progressBarRef.current;
     if (!audio || !progressBar) return;
 
     const clientX =
-      "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+      "touches" in e ? e.touches[0].clientX : e.clientX;
     const rect = progressBar.getBoundingClientRect();
     const clickPosition = clientX - rect.left;
     const progressBarWidth = progressBar.offsetWidth;
@@ -83,7 +87,7 @@ const MusicPlayer = ({ instrumental }: Props) => {
 
   const handleMouseMove = (e: MouseEvent | TouchEvent) => {
     if (isDragging) {
-      handleSeek(e as any); // TypeScript workaround for event compatibility
+      handleSeek(e as React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>);
     }
   };
 
