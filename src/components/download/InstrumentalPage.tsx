@@ -72,7 +72,7 @@ export default function InstrumentalPage() {
 
   const [instrumental, setInstrumental] = useState<Instrumental>(notAvailableInstrumental);
   const [isLiked, setIsLiked] = useState(false);
-  const [isLiking, setIsLiking] = useState(false); // New state to track like action
+  const [isLiking, setIsLiking] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -365,7 +365,7 @@ export default function InstrumentalPage() {
             href={instrumental.userId !== 'not-available' ? `/profile/${instrumental.userId}` : '#'}
             className={`text-gray-300 flex items-center text-lg ${instrumental.userId === 'not-available' ? 'pointer-events-none' : ''}`}
           >
-            <Music className="w-5 h-5 mr-2 text-orange-300" /> By {artistNames[instrumental.userId]}
+            <Music className="w-5 h-5 mr-2 text-orange-300" /> By {artistNames[instrumental.userId] || instrumental.artist}
           </Link>
         </div>
 
@@ -390,7 +390,7 @@ export default function InstrumentalPage() {
         <Bars
           isLiked={isLiked}
           setIsLiked={setIsLiked}
-          isLiking={isLiking} // Pass isLiking to Bars
+          isLiking={isLiking}
           showShareModal={showShareModal}
           setShowShareModal={setShowShareModal}
           showReportModal={showReportModal}
@@ -434,8 +434,17 @@ export default function InstrumentalPage() {
         </div>
 
         {/* Comment Section */}
-        <Comment currentUserId={instrumental.userId} />
+        <Comment
+          currentUserId={instrumental.userId}
+          comments={instrumental.comments}
+          newComment={newComment}
+          setNewComment={setNewComment}
+          handleCommentSubmit={handleCommentSubmit}
+        />
       </div>
     </div>
   );
 }
+
+
+  
