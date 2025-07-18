@@ -55,7 +55,7 @@ const CTempo = () => {
           imageUrl: doc.imageFileId,
           tempo: doc.tempo,
           userId: doc.userId,
-          href: `/instrumental/${doc.$id}`,
+          href: `/instrumental/${doc.postId}`,
         }));
       
         for (const beat of fetchedArtists) {

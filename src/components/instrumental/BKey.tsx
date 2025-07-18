@@ -57,7 +57,7 @@ const BKey = () => {
           key: doc.key,
           scale: doc.scale,
           userId: doc.userId,
-          href: `/instrumental/${doc.$id}`,
+          href: `/instrumental/${doc.postId}`,
         }));
       
         for (const beat of fetchedArtists) {

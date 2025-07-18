@@ -119,7 +119,7 @@ export default function Uploaded() {
   const [genre, setGenre] = useState('');
   const [tempo, setTempo] = useState(120);
   const [scale, setScale] = useState('');
-  const [musicKey, setMusicKey] = useState(''); // Renamed from 'key' to 'musicKey'
+  const [musicKey, setMusicKey] = useState('');
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const uploadControllerRef = useRef<AbortController | null>(null);
@@ -127,25 +127,23 @@ export default function Uploaded() {
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '686a7cd100087c08444a';
-  
-  const COLLECTION_I = "6849aa4f000c032527a9";
+  const COLLECTION_I = '6849aa4f000c032527a9';
   const STORAGE_BUCKET_ID = process.env.NEXT_PUBLIC_STORAGE_BUCKET;
 
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
   const isAuth = useAppSelector((state) => state.isAuth.value);
   const router = useRouter();
 
-useEffect(() =>{
-  const checkAuth = async () => {
-              try {
-                await account.get(); // Verify sessio
-              } catch (err) {
-                router.push('/login');
-              }
-            };
-    checkAuth()
-},[isAuth])
-
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await account.get(); // Verify session
+      } catch (err) {
+        router.push('/login');
+      }
+    };
+    checkAuth();
+  }, [isAuth]);
 
   // Initialize session and email
   useEffect(() => {
@@ -192,7 +190,6 @@ useEffect(() =>{
       setIsAudioLoading(true);
       setAudioFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
-      setErrors((prev) => ({ ...prev, audioFile: '' }));
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
@@ -215,7 +212,6 @@ useEffect(() =>{
         const processedImage = await processImage(selectedFile);
         setImageFile(processedImage);
         setImagePreviewUrl(URL.createObjectURL(processedImage));
-        setErrors((prev) => ({ ...prev, imageFile: '' }));
         if (isModalOpen) setIsModalOpen(false);
       } catch {
         setErrors((prev) => ({ ...prev, imageFile: 'Failed to process image.' }));
@@ -296,6 +292,7 @@ useEffect(() =>{
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
 
+    // Validate all fields only when the upload button is clicked
     if (!title.trim()) newErrors.title = 'Please enter a beat title.';
     if (!description.trim()) newErrors.description = 'Please enter a description for your beat.';
     if (!audioFile) newErrors.audioFile = 'Please select an audio file to upload.';
@@ -303,7 +300,7 @@ useEffect(() =>{
     if (!genre) newErrors.genre = 'Please select a music genre.';
     if (tempo < 40 || tempo > 200) newErrors.tempo = 'Tempo must be between 40 and 200 BPM.';
     if (!scale) newErrors.scale = 'Please select a scale.';
-    if (!musicKey) newErrors.musicKey = 'Please select a key.'; // Renamed from 'key' to 'musicKey'
+    if (!musicKey) newErrors.musicKey = 'Please select a key.';
 
     setErrors(newErrors);
 
@@ -359,7 +356,7 @@ useEffect(() =>{
             const remainingTime = Math.max(0, estimatedTotalTime - elapsedTime);
             return { percentage: newPercentage, remainingTime };
           });
-        },10);
+        }, 10);
         return () => clearInterval(interval);
       };
 
@@ -380,11 +377,13 @@ useEffect(() =>{
         }
       );
       const audioFileId = storage.getFileView(STORAGE_BUCKET_ID!, audioUpload.$id).toString();
-      let musicId =  audioUpload.$id;
+      let musicId = audioUpload.$id;
+
+      const downloadUrl = storage.getFileDownload(STORAGE_BUCKET_ID, audioUpload.$id);
 
       let imageFileId: string | null = null;
       let imageId: string | null = null;
-      
+
       if (imageFile) {
         const imageUpload = await storage.createFile(
           STORAGE_BUCKET_ID!,
@@ -401,17 +400,16 @@ useEffect(() =>{
           }
         );
         imageFileId = storage.getFileView(STORAGE_BUCKET_ID!, imageUpload.$id).toString();
-        
-        imageId = imageUpload.$id
+        imageId = imageUpload.$id;
       }
 
       cleanup();
-      
-      const resp = await databases.getDocument(
-          DATABASE_ID!,
-          COLLECTION_I!,
-          authId!
-        );
+
+      const resp = await databases.getDocument(DATABASE_ID!, COLLECTION_I!, authId!);
+
+      function replaceWhitespaceWithUnderscores(input: string): string {
+  return input.replace(/\s+/g, '_');
+}
 
       const currentDate = new Date().toISOString();
       await databases.createDocument(
@@ -419,7 +417,9 @@ useEffect(() =>{
         COLLECTION_ID!,
         ID.unique(),
         {
+          postId: `${replaceWhitespaceWithUnderscores(title)}_${ID.unique()}`,
           title,
+          description,
           description,
           name: `${resp.firstName} ${resp.lastName}`,
           email: resp.email,
@@ -433,8 +433,9 @@ useEffect(() =>{
           tempo,
           duration: formatTime(duration),
           scale,
+          downloadUrl,
           docId: ID.unique(),
-          key: musicKey, // Renamed to 'key' for database to maintain consistency
+          key: musicKey,
         },
         [Permission.read(Role.user(userId)), Permission.write(Role.user(userId)), Permission.delete(Role.user(userId))]
       );
@@ -509,128 +510,109 @@ useEffect(() =>{
       setModalType('confirm');
     }
   };
-  
-  const [loadi,setLoadi] = useState<boolean>(false)
-  
-useEffect(() => {
-  setTimeout(() =>{
-    setLoadi(true)
-  },2000)
-},[])
+
+  const [loadi, setLoadi] = useState<boolean>(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoadi(true);
+    }, 2000);
+  }, []);
 
   return (
     <motion.div className="flex justify-center items-center">
-    {
-      loadi ?
-      <div className="w-full p-6 max-w-md">
-        <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
-        {Object.keys(errors).length > 0 && (
-          <motion.div
-            className="bg-red-900 bg-opacity-50 rounded-lg p-4 mb-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-
-          </motion.div>
-        )}
-
-        {!isLoading && (
-          <motion.div
-            className="w-full bg-gray-800 rounded-lg p-4 mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-lg font-semibold text-gray-200 mb-2">Before You Upload</h3>
-            <ol className="list-decimal list-inside text-gray-300 space-y-2">
-              <li>Ensure your beat title and description are accurate and engaging.</li>
-              <li>Verify that your audio file is in MP3 or WAV format and under 50MB.</li>
-              <li>Provide a cover image to represent your beat.</li>
-              <li>Select appropriate genre, tempo, scale, and key for your beat.</li>
-            </ol>
-          </motion.div>
-        )}
-
-        <form onSubmit={handleUpload} className="space-y-6">
-          <div>
-            <label className="text-gray-300 text-sm mb-2 block">Beat Title - Enter a unique name for your beat</label>
-            <div className="relative">
-              <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setErrors((prev) => ({ ...prev, title: '' }));
-                  if (isModalOpen) setIsModalOpen(false);
-                }}
-                placeholder="Beat title"
-                className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
-                required
-                aria-label="Beat title input"
-              />
-            </div>
-            {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
-          </div>
-
-          <div>
-            <label className="text-gray-300 text-sm mb-2 block">Description - Add details about your beat</label>
-            <div className="relative">
-              <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <textarea
-                value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                  setErrors((prev) => ({ ...prev, description: '' }));
-                  if (isModalOpen) setIsModalOpen(false);
-                }}
-                placeholder="Enter a description"
-                className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none transition-all duration-200"
-                required
-                aria-label="Beat description input"
-              />
-            </div>
-            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-          </div>
-
-          <MusicAttributes
-            genre={genre}
-            setGenre={(value) => {
-              setGenre(value);
-              setErrors((prev) => ({ ...prev, genre: '' }));
-            }}
-            tempo={tempo}
-            setTempo={(value) => {
-              setTempo(value);
-              setErrors((prev) => ({ ...prev, tempo: '' }));
-            }}
-            scale={scale}
-            setScale={(value) => {
-              setScale(value);
-              setErrors((prev) => ({ ...prev, scale: '' }));
-            }}
-            musicKey={musicKey}
-            setMusicKey={(value) => {
-              setMusicKey(value);
-              setErrors((prev) => ({ ...prev, musicKey: '' }));
-            }}
-            errors={errors}
-          />
-
-          <div>
-            <label className="text-gray-300 text-sm mb-2 block">Cover Image - Upload an image to represent your beat</label>
+      {loadi ? (
+        <div className="w-full p-6 max-w-md">
+          <h2 className="text-2xl font-bold text-gray-200 mb-6 text-center">Upload Your Beat</h2>
+          {Object.keys(errors).length > 0 && (
             <motion.div
-              className="relative mx-auto flex justify-center items-center"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
+              className="bg-red-900 bg-opacity-50 rounded-lg p-4 mb-6"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <label
-                htmlFor="image-upload"
-                className="w-full h-60 bg-[#2A2A2A] rounded-lg flex items-center justify-center cursor-pointer border-2 border-dashed border-gray-500 hover:border-orange-500 transition-all duration-300"
-                aria-label="Upload cover image"
+              {Object.values(errors).map((error, index) => (
+                <p key={index} className="text-red-500 text-sm">{error}</p>
+              ))}
+            </motion.div>
+          )}
+
+          {!isLoading && (
+            <motion.div
+              className="w-full bg-gray-800 rounded-lg p-4 mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="text-lg font-semibold text-gray-200 mb-2">Before You Upload</h3>
+              <ol className="list-decimal list-inside text-gray-300 space-y-2">
+                <li>Ensure your beat title and description are accurate and engaging.</li>
+                <li>Verify that your audio file is in MP3 or WAV format and under 50MB.</li>
+                <li>Provide a cover image to represent your beat.</li>
+                <li>Select appropriate genre, tempo, scale, and key for your beat.</li>
+              </ol>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleUpload} className="space-y-6">
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Beat Title - Enter a unique name for your beat</label>
+              <div className="relative">
+                <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)} // Removed error clearing
+                  placeholder="Beat title"
+                  className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all duration-200"
+                  required
+                  aria-label="Beat title input"
+                />
+              </div>
+              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+            </div>
+
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Description - Add details about your beat</label>
+              <div className="relative">
+                <Music className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)} // Removed error clearing
+                  placeholder="Enter a description"
+                  className="w-full pl-10 pr-3 py-2 bg-[#2A2A2A] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 h-24 resize-none transition-all duration-200"
+                  required
+                  aria-label="Beat description input"
+                />
+              </div>
+              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+            </div>
+
+            <MusicAttributes
+              genre={genre}
+              setGenre={(value) => setGenre(value)} // Removed error clearing
+              tempo={tempo}
+              setTempo={(value) => setTempo(value)} // Removed error clearing
+              scale={scale}
+              setScale={(value) => setScale(value)} // Removed error clearing
+              musicKey={musicKey}
+              setMusicKey={(value) => setMusicKey(value)} // Removed error clearing
+              errors={errors}
+            />
+
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Cover Image - Upload an image to represent your beat</label>
+              <motion.div
+                className="relative mx-auto flex justify-center items-center"
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3 }}
               >
+                <label
+                  htmlFor="image-upload"
+                  className="w-full h-60 bg-[#2A2A2A] rounded-lg flex items-center justify-center cursor-pointer border-2 border-dashed border-gray-500 hover:border-orange-500 transition-all duration-300"
+                  aria-label="Upload cover image"
+                >
                 {isImageLoading ? (
                   <Loader2 className="animate-spin h-12 w-12 text-orange-500" />
                 ) : !imagePreviewUrl ? (
@@ -705,7 +687,6 @@ useEffect(() => {
                     setIsPlaying(false);
                     setCurrentTime(0);
                     setDuration(0);
-                    setErrors((prev) => ({ ...prev, audioFile: 'Please select an audio file to upload.' }));
                   }}
                   aria-label="Remove audio preview"
                 >
@@ -816,10 +797,9 @@ useEffect(() => {
           type={modalType}
         />
       </div>
-      : 
-      <Loading />
-      }
+      ) : (
+        <Loading />
+      )}
     </motion.div>
   );
 }
-

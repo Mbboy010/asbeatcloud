@@ -16,6 +16,7 @@ interface Beat {
   musicType: string;
   name: string;
   userId: string;
+  postId: string;
 }
 
 const BeatsList = () => {
@@ -83,6 +84,7 @@ const BeatsList = () => {
           musicType: doc.genre,
           userId: doc.userId,
           name: doc.name,
+          postId: doc.postId,
         }));
 
         setBeats(fetchedBeats);
@@ -137,7 +139,7 @@ const BeatsList = () => {
           <p className="text-gray-400">No beats found for this user.</p>
         ) : (
           beats.map((beat) => (
-            <Link key={beat.id} href={`/profile/${useridparams}/${beat.id}`}>
+            <Link key={beat.id} href={`/instrumental/${beat.postId}`}>
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="w-full rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition duration-200 flex items-center space-x-3"

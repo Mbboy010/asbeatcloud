@@ -55,7 +55,7 @@ const Tygenre = () => {
           imageUrl: doc.imageFileId,
           genre: doc.genre,
           userId: doc.userId,
-          href: `/instrumental/${doc.$id}`,
+          href: `/instrumental/${doc.postId}`,
         }));
       
         for (const beat of fetchedArtists) {
