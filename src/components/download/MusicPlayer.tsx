@@ -63,8 +63,7 @@ const MusicPlayer = ({ instrumental }: Props) => {
     const progressBar = progressBarRef.current;
     if (!audio || !progressBar) return;
 
-    const clientX =
-      "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const rect = progressBar.getBoundingClientRect();
     const clickPosition = clientX - rect.left;
     const progressBarWidth = progressBar.offsetWidth;
@@ -87,7 +86,7 @@ const MusicPlayer = ({ instrumental }: Props) => {
 
   const handleMouseMove = (e: MouseEvent | TouchEvent) => {
     if (isDragging) {
-      handleSeek(e as React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>);
+      handleSeek(e as unknown as React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>);
     }
   };
 
