@@ -93,7 +93,7 @@ export default function Bars({
         break;
       case 'instagram':
         handleCp();
-        setShowShareModal(false); // Close modal for consistency
+        setShowShareModal(false); // Close modal for consistency test
         return;
       default:
         return;
