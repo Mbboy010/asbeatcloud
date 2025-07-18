@@ -7,7 +7,7 @@ import { databases } from '../../lib/appwrite';
 import { Query } from 'appwrite';
 import { useParams, useRouter } from 'next/navigation';
 
-// Define TypeScript interfaces (unchanged)
+// Define TypeScript interfaces
 interface User {
   $id: string;
   username: string;
@@ -28,7 +28,7 @@ interface Comment {
 }
 
 export default function Comment({ currentUserId }: Props) {
-  // State and hooks (unchanged)
+  // State and hooks
   const [newComment, setNewComment] = useState<string>('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedCommentText, setEditedCommentText] = useState<string>('');
@@ -49,7 +49,7 @@ export default function Comment({ currentUserId }: Props) {
   const COMMENTS_COLLECTION_ID = '686a7cad002cd0b8f879';
   const USERS_COLLECTION_ID = '6849aa4f000c032527a9';
 
-  // useEffect for click outside (unchanged)
+  // useEffect for click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -62,7 +62,7 @@ export default function Comment({ currentUserId }: Props) {
     };
   }, []);
 
-  // useEffect for fetching data (updated)
+  // useEffect for fetching data
   useEffect(() => {
     async function fetchData() {
       if (!DATABASE_ID) {
@@ -101,14 +101,14 @@ export default function Comment({ currentUserId }: Props) {
               $id: comment.$id,
               userId: comment.userId,
               text: comment.text,
-              timestamp: comment.timestamp || comment.$createdAt, // Fallback to $createdAt if timestamp is missing
+              timestamp: comment.timestamp || comment.$createdAt, // Fallback to $createdAt
               instrumentalId: comment.instrumentalId,
               user: {
                 $id: userResponse.$id,
                 username: `${userResponse.firstName} ${userResponse.lastName}`,
                 image: userResponse.profileImageUrl,
               },
-            } as Comment;
+            };
           })
         );
 
@@ -120,7 +120,7 @@ export default function Comment({ currentUserId }: Props) {
     fetchData();
   }, [authId, isAuth, instrumentalId, DATABASE_ID]);
 
-  // Handlers (unchanged)
+  // Handlers
   const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newComment.trim() || !isAuth || !authId || !currentUser || !DATABASE_ID) {
@@ -144,13 +144,17 @@ export default function Comment({ currentUserId }: Props) {
         newCommentData
       );
 
-      setComments((prev) => [
-        ...prev,
-        {
-          ...response,
-          user: currentUser,
-        },
-      ]);
+      // Explicitly construct the Comment object to match the interface
+      const newCommentObj: Comment = {
+        $id: response.$id,
+        userId: authId,
+        text: newComment,
+        timestamp: response.timestamp || response.$createdAt,
+        instrumentalId,
+        user: currentUser,
+      };
+
+      setComments((prev) => [...prev, newCommentObj]);
       setNewComment('');
     } catch (error) {
       console.error('Error submitting comment:', error);
@@ -251,7 +255,6 @@ export default function Comment({ currentUserId }: Props) {
                             timeZone: 'Africa/Lagos',
                           })}
                         </p>
-                        {/* Updated menu toggle button */}
                         {authId && (authId === comment.userId || currentUserId === authId) && (
                           <div className="relative" ref={menuRef}>
                             <button
@@ -262,7 +265,6 @@ export default function Comment({ currentUserId }: Props) {
                             </button>
                             {menuOpen === comment.$id && (
                               <div className="absolute right-0 mt-2 w-32 bg-gray-800 rounded-md shadow-lg z-10">
-                                {/* Edit option only for comment author */}
                                 {authId === comment.userId && (
                                   <button
                                     onClick={() => handleEditComment(comment)}
@@ -271,7 +273,6 @@ export default function Comment({ currentUserId }: Props) {
                                     Edit
                                   </button>
                                 )}
-                                {/* Delete option for comment author or admin */}
                                 {(authId === comment.userId || currentUserId === authId) && (
                                   <button
                                     onClick={() => handleDeleteComment(comment.$id)}
@@ -360,3 +361,4 @@ export default function Comment({ currentUserId }: Props) {
     </div>
   );
 }
+
