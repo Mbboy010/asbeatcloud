@@ -436,10 +436,6 @@ export default function InstrumentalPage() {
         {/* Comment Section */}
         <Comment
           currentUserId={instrumental.userId}
-          comments={instrumental.comments}
-          newComment={newComment}
-          setNewComment={setNewComment}
-          handleCommentSubmit={handleCommentSubmit}
         />
       </div>
     </div>
