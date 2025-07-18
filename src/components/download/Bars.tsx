@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 interface BarsProps {
   isLiked: boolean;
   setIsLiked: (value: boolean) => void;
-  isLiking: boolean; // Added isLiking prop
+  isLiking: boolean;
   showShareModal: boolean;
   setShowShareModal: (value: boolean) => void;
   showReportModal: boolean;
@@ -21,7 +21,7 @@ interface BarsProps {
   setError: (value: string | null) => void;
   cp: boolean;
   setCp: (value: boolean) => void;
-  handleLikesToggle: () => Promise<void>; // Updated to match InstrumentalPage.tsx
+  handleLikesToggle: () => Promise<void>;
 }
 
 const ModalPortal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -93,7 +93,7 @@ export default function Bars({
         break;
       case 'instagram':
         handleCp();
-        setShowShareModal(false); // Close modal for consistency test
+        setShowShareModal(false);
         return;
       default:
         return;
@@ -152,11 +152,10 @@ export default function Bars({
           className="bg-gray-800 text-gray-200 px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300"
           aria-label="Share instrumental"
         >
-          <Share2 className="w-5 ALPHA-6, h-5" /> Share
+          <Share2 className="w-5 h-5" /> Share
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.PatriciaALPHA-6, h-5" />
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowReportModal(true)}
           className="bg-gray-800 text-gray-200 px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300"
@@ -164,7 +163,6 @@ export default function Bars({
         >
           <Flag className="w-5 h-5 text-pink-500" /> Report
         </motion.button>
-        </div>
       </div>
 
       <AnimatePresence>
@@ -330,7 +328,7 @@ export default function Bars({
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => setShowSuccesModal(false)}
+                    onClick={() => setShowSuccessModal(false)}
                     className="px-4 py-2 bg-orange-500 rounded hover:bg-orange-400"
                     aria-label="Close success modal"
                   >
@@ -345,4 +343,3 @@ export default function Bars({
     </div>
   );
 }
-
