@@ -62,7 +62,7 @@ export default function Comment({ currentUserId }: Props) {
     };
   }, []);
 
-  // useEffect for fetching data (unchanged)
+  // useEffect for fetching data (updated)
   useEffect(() => {
     async function fetchData() {
       if (!DATABASE_ID) {
@@ -90,7 +90,7 @@ export default function Comment({ currentUserId }: Props) {
           [Query.equal('instrumentalId', instrumentalId)]
         );
 
-        const commentsWithUserData = await Promise.all(
+        const commentsWithUserData: Comment[] = await Promise.all(
           commentsResponse.documents.map(async (comment) => {
             const userResponse = await databases.getDocument(
               DATABASE_ID,
@@ -98,13 +98,17 @@ export default function Comment({ currentUserId }: Props) {
               comment.userId
             );
             return {
-              ...comment,
+              $id: comment.$id,
+              userId: comment.userId,
+              text: comment.text,
+              timestamp: comment.timestamp || comment.$createdAt, // Fallback to $createdAt if timestamp is missing
+              instrumentalId: comment.instrumentalId,
               user: {
                 $id: userResponse.$id,
                 username: `${userResponse.firstName} ${userResponse.lastName}`,
                 image: userResponse.profileImageUrl,
               },
-            };
+            } as Comment;
           })
         );
 
