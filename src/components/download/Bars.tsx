@@ -3,15 +3,12 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Share2, Flag, MessageCircle, Facebook, Instagram, Link2 } from 'lucide-react';
-import ReactDOM from 'react-dom';
-
-const ModalPortal = ({ children }: { children: React.ReactNode }) => {
-  return ReactDOM.createPortal(children, document.body);
-};
+import { createPortal } from 'react-dom';
 
 interface BarsProps {
   isLiked: boolean;
   setIsLiked: (value: boolean) => void;
+  isLiking: boolean; // Added isLiking prop
   showShareModal: boolean;
   setShowShareModal: (value: boolean) => void;
   showReportModal: boolean;
@@ -20,16 +17,28 @@ interface BarsProps {
   setShowSuccessModal: (value: boolean) => void;
   reportReason: string;
   setReportReason: (value: string) => void;
-  error: string | null; // Updated to allow null
+  error: string | null;
   setError: (value: string | null) => void;
   cp: boolean;
   setCp: (value: boolean) => void;
-  handleLikesToggle: (e: React.MouseEvent) => void; // Updated type
+  handleLikesToggle: () => Promise<void>; // Updated to match InstrumentalPage.tsx
 }
+
+const ModalPortal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [mounted, setMounted] = React.useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  return mounted && typeof document !== 'undefined' ? createPortal(children, document.body) : null;
+};
 
 export default function Bars({
   isLiked,
   setIsLiked,
+  isLiking,
   showShareModal,
   setShowShareModal,
   showReportModal,
@@ -69,7 +78,7 @@ export default function Bars({
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = '';
     };
-  }, [showShareModal, showReportModal, showSuccessModal]);
+  }, [showShareModal, showReportModal, showSuccessModal, setShowShareModal, setShowSuccessModal]);
 
   const shareProfile = (platform: string) => {
     const url = window.location.href;
@@ -84,6 +93,7 @@ export default function Bars({
         break;
       case 'instagram':
         handleCp();
+        setShowShareModal(false); // Close modal for consistency
         return;
       default:
         return;
@@ -100,6 +110,7 @@ export default function Bars({
       setTimeout(() => setCp(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
+      setError('Failed to copy link to clipboard.');
     }
   };
 
@@ -124,33 +135,36 @@ export default function Bars({
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={(e) => {
-            e.preventDefault(); // Ensure no default behavior
-            handleLikesToggle(e); // Pass the event
-          }}
-          className={`${
+          onClick={handleLikesToggle}
+          disabled={isLiking}
+          className={`px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 ${
             isLiked ? 'bg-gray-800 text-gray-200' : 'bg-gray-800 text-gray-200'
-          } px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300`}
+          } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label={isLiked ? 'Unlike instrumental' : 'Like instrumental'}
         >
-          <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-red-500'}`} />{' '}
-          {isLiked ? 'Unlike' : 'Like'}
+          <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-red-500'}`} />
+          {isLiking ? 'Loading...' : isLiked ? 'Unlike' : 'Like'}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowShareModal(true)}
           className="bg-gray-800 text-gray-200 px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300"
+          aria-label="Share instrumental"
         >
-          <Share2 className="w-5 h-5" /> Share
+          <Share2 className="w-5 ALPHA-6, h-5" /> Share
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.PatriciaALPHA-6, h-5" />
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowReportModal(true)}
           className="bg-gray-800 text-gray-200 px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300"
+          aria-label="Report instrumental"
         >
           <Flag className="w-5 h-5 text-pink-500" /> Report
         </motion.button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -161,7 +175,7 @@ export default function Bars({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed top-0 left-0 w-full h-full  bg-opacity-50 flex items-center justify-center backdrop-blur-sm z-[4]"
+              className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-sm z-[4]"
             >
               <motion.div
                 ref={shareModalRef}
@@ -171,7 +185,7 @@ export default function Bars({
                 transition={{ duration: 0.2 }}
                 className="bg-[#0000006f] border border-orange-500 backdrop-blur-md p-6 rounded-lg w-full max-w-md"
               >
-                <h3 className="text-lg font-semibold mb-4">Share Profile</h3>
+                <h3 className="text-lg font-semibold mb-4">Share Instrumental</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => shareProfile('whatsapp')}
@@ -200,7 +214,7 @@ export default function Bars({
                   <button
                     onClick={handleCp}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-200 rounded"
-                    aria-label="Copy profile link"
+                    aria-label="Copy instrumental link"
                   >
                     <Link2 className="w-5 h-5 mr-2" />
                     {cp ? <span className="text-green-500">Copied</span> : <span>Copy Link</span>}
@@ -211,6 +225,7 @@ export default function Bars({
                     type="button"
                     onClick={() => setShowShareModal(false)}
                     className="px-4 py-2 bg-orange-500 rounded"
+                    aria-label="Cancel share"
                   >
                     Cancel
                   </button>
@@ -229,7 +244,7 @@ export default function Bars({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed backdrop-blur-sm top-0 left-0 w-full h-full  bg-opacity-50 flex items-center justify-center z-[4]"
+              className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-sm z-[4]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="report-modal-title"
@@ -242,14 +257,14 @@ export default function Bars({
                 className="bg-[#0000006f] border border-orange-500 backdrop-blur-md p-6 rounded-lg w-full max-w-md"
               >
                 <h3 id="report-modal-title" className="text-lg font-semibold mb-4">
-                  Report Profile
+                  Report Instrumental
                 </h3>
                 <form onSubmit={handleReportSubmit}>
                   <textarea
                     ref={textareaRef}
                     className="w-full p-2 mb-4 bg-gray-900 text-gray-200 rounded"
                     rows={4}
-                    placeholder="Please provide the reason for reporting this profile"
+                    placeholder="Please provide the reason for reporting this instrumental"
                     value={reportReason}
                     onChange={(e) => setReportReason(e.target.value)}
                     aria-label="Report reason"
@@ -265,6 +280,7 @@ export default function Bars({
                         setError(null);
                       }}
                       className="px-4 py-2 bg-orange-500 rounded"
+                      aria-label="Cancel report"
                     >
                       Cancel
                     </button>
@@ -272,6 +288,7 @@ export default function Bars({
                       type="submit"
                       className="px-4 py-2 bg-red-500 rounded hover:bg-red-400"
                       disabled={!reportReason.trim()}
+                      aria-label="Submit report"
                     >
                       Submit Report
                     </button>
@@ -291,7 +308,7 @@ export default function Bars({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed backdrop-blur-sm top-0 left-0 w-full h-full  bg-opacity-50 flex items-center justify-center z-[3]"
+              className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-sm z-[3]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="success-modal-title"
@@ -313,7 +330,7 @@ export default function Bars({
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    onClick={() => setShowSuccessModal(false)}
+                    onClick={() => setShowSuccesModal(false)}
                     className="px-4 py-2 bg-orange-500 rounded hover:bg-orange-400"
                     aria-label="Close success modal"
                   >
@@ -328,4 +345,4 @@ export default function Bars({
     </div>
   );
 }
- 
+
