@@ -420,7 +420,6 @@ export default function Uploaded() {
           postId: `${replaceWhitespaceWithUnderscores(title)}_${ID.unique()}`,
           title,
           description,
-          description,
           name: `${resp.firstName} ${resp.lastName}`,
           email: resp.email,
           audioFileId,
