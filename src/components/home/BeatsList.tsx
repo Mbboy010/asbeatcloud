@@ -32,22 +32,34 @@ const BeatsList = () => {
   const params = useParams();
   const useridparams = typeof params.userid === 'string' ? params.userid : null;
 
-  const formatRelativeTime = (dateTime: string) => {
-    const date = new Date(dateTime);
-    const now = new Date('2025-07-08T13:16:00+01:00');
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    const month = date.toLocaleString('en-NG', { month: 'short', timeZone: 'Africa/Lagos' });
+ const formatRelativeTime = (dateTime: string) => {
+  const date = new Date(dateTime);
+  const now = new Date();
 
-    let relativeTime;
-    if (diffInSeconds < 60) relativeTime = `${diffInSeconds}s ago`;
-    else if (diffInSeconds < 3600) relativeTime = `${Math.floor(diffInSeconds / 60)}m ago`;
-    else if (diffInSeconds < 86400) relativeTime = `${Math.floor(diffInSeconds / 3600)}h ago`;
-    else if (diffInSeconds < 604800) relativeTime = `${Math.floor(diffInSeconds / 86400)}d ago`;
-    else if (diffInSeconds < 2592000) relativeTime = `${Math.floor(diffInSeconds / 2592000)}mo ago`;
-    else relativeTime = `${Math.floor(diffInSeconds / 31536000)}y ago`;
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    return `${month}, ${relativeTime}`;
-  };
+  // Skip future dates
+  if (diffInSeconds < 0) return '';
+
+  let relativeTime = '';
+  if (diffInSeconds < 60) {
+    relativeTime = `${diffInSeconds}s ago`;
+  } else if (diffInSeconds < 3600) {
+    relativeTime = `${Math.floor(diffInSeconds / 60)}m ago`;
+  } else if (diffInSeconds < 86400) {
+    relativeTime = `${Math.floor(diffInSeconds / 3600)}h ago`;
+  } else if (diffInSeconds < 604800) {
+    relativeTime = `${Math.floor(diffInSeconds / 86400)}d ago`;
+  } else if (diffInSeconds < 2592000) {
+    relativeTime = `${Math.floor(diffInSeconds / 604800)}w ago`;
+  } else if (diffInSeconds < 31536000) {
+    relativeTime = `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+  } else {
+    relativeTime = `${Math.floor(diffInSeconds / 31536000)}y ago`;
+  }
+
+  return relativeTime;
+};
 
   const truncateTitle = (title: string, maxLength: number = 20) => {
     return title.length > maxLength ? `${title.slice(0, maxLength)}...` : title;
