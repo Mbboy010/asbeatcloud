@@ -225,7 +225,7 @@ export default function Comment({ currentUserId }: Props) {
   };
   
   const openProfil = () =>{
-    router.push(`/profile/${comments.userId}`)
+    router.push(`/profile/${currentUser.$id}`)
   }
 
   return (
