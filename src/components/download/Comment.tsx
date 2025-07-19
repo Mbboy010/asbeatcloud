@@ -240,7 +240,7 @@ export default function Comment({ currentUserId }: Props) {
               >
                 <div className="flex items-start space-x-4">
                   <img
-                  onClick={() => router.push(`/profile/${currentUser.$id}`)}
+                  onClick={() => router.push(`/profile/${comment.user?.$id}`)}
                     src={comment.user?.image || 'https://example.com/avatars/default.png'}
                     alt={`${comment.user?.username || 'User'}'s avatar`}
                     className="w-12 h-12 rounded-full border-2 border-gray-800 object-cover transform hover:scale-105 transition-transform duration-200"
@@ -248,7 +248,7 @@ export default function Comment({ currentUserId }: Props) {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p 
-                      onClick={() => router.push(`/profile/${currentUser.$id}`)}
+                      onClick={() => router.push(`/profile/${comment.user?.$id}`)}
                       className="text-white font-semibold text-lg max-w-[6rem] md:w-auto overflow-hidden text-ellipsis whitespace-nowrap">
                         {comment.user?.username || 'Unknown User'}
                       </p>
