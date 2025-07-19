@@ -31,35 +31,33 @@ const UserBeat = () => {
 
   // Function to format dateTime as month + relative time (e.g., "Jul, 1m ago")
   const formatRelativeTime = (dateTime: string) => {
-    const date = new Date(dateTime);
-    const now = new Date('2025-07-08T13:16:00+01:00'); // Current time: 01:16 PM WAT, July 08, 2025
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const date = new Date(dateTime);
+  const now = new Date();
 
-    // Get month in Africa/Lagos time zone
-    const month = date.toLocaleString('en-NG', { month: 'short', timeZone: 'Africa/Lagos' });
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    let relativeTime;
-    if (diffInSeconds < 60) {
-      relativeTime = `${diffInSeconds}s ago`;
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      relativeTime = `${minutes}m ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      relativeTime = `${hours}h ago`;
-    } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      relativeTime = `${days}d ago`;
-    } else if (diffInSeconds < 2592000) { // Approx. 30 days for a month
-      const months = Math.floor(diffInSeconds / 2592000);
-      relativeTime = `${months}mo ago`;
-    } else {
-      const years = Math.floor(diffInSeconds / 31536000);
-      relativeTime = `${years}y ago`;
-    }
+  // Skip future dates
+  if (diffInSeconds < 0) return '';
 
-    return `${month}, ${relativeTime}`;
-  };
+  let relativeTime = '';
+  if (diffInSeconds < 60) {
+    relativeTime = `${diffInSeconds}s ago`;
+  } else if (diffInSeconds < 3600) {
+    relativeTime = `${Math.floor(diffInSeconds / 60)}m ago`;
+  } else if (diffInSeconds < 86400) {
+    relativeTime = `${Math.floor(diffInSeconds / 3600)}h ago`;
+  } else if (diffInSeconds < 604800) {
+    relativeTime = `${Math.floor(diffInSeconds / 86400)}d ago`;
+  } else if (diffInSeconds < 2592000) {
+    relativeTime = `${Math.floor(diffInSeconds / 604800)}w ago`;
+  } else if (diffInSeconds < 31536000) {
+    relativeTime = `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+  } else {
+    relativeTime = `${Math.floor(diffInSeconds / 31536000)}y ago`;
+  }
+
+  return relativeTime;
+};
 
   // Function to truncate title
   const truncateTitle = (title: string, maxLength: number = 20) => {
