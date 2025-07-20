@@ -18,13 +18,28 @@ interface Artist {
   href: string;
 }
 
-const SongCarousel = () => {
+interface Props {
+  userId: string;
+  genre: string;
+  scale: string;
+}
+
+const Related = ({ userId, genre, scale }: Props) => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '686a7cd100087c08444a';
+
+  // Function to shuffle an array
+  const shuffleArray = <T>(array: T[]): T[] => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -34,9 +49,12 @@ const SongCarousel = () => {
           DATABASE_ID!,
           COLLECTION_ID,
           [
-            Query.greaterThanEqual('tempo', 5),
-            Query.orderDesc('tempo'),
-            Query.limit(10),
+            Query.or([
+              Query.equal('genre', genre),
+              Query.equal('scale', scale),
+              Query.equal('userId', userId),
+            ]),
+            // Fetch up to 10 to ensure enough items to shuffle
           ]
         );
 
@@ -51,7 +69,9 @@ const SongCarousel = () => {
           duration: doc.duration,
         }));
 
-        setArtists(fetchedArtists);
+        // Shuffle the fetched artists and take only 5
+        const shuffledArtists = shuffleArray(fetchedArtists).slice(0, 10);
+        setArtists(shuffledArtists);
       } catch (err) {
         console.error('Error fetching artists:', err);
         setError('Failed to load artists');
@@ -61,12 +81,12 @@ const SongCarousel = () => {
     };
 
     fetchArtists();
-  }, []);
+  }, [userId, genre, scale]);
 
   if (loading) {
     return (
-      <div className="p-6 rounded-lg">
-        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Top instrumental</h2>
+      <div className="py-6 rounded-lg">
+        <h2 className="text-[1.3rem] font-bold mb-3 text-left">Relative song-</h2>
         <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
           {[...Array(5)].map((_, index) => (
             <div
@@ -92,8 +112,8 @@ const SongCarousel = () => {
   }
 
   return (
-    <div className="p-6 rounded-lg">
-      <h2 className="text-[1.3rem] font-bold mb-3 text-left">Top International</h2>
+    <div className="py-6 rounded-lg">
+      <h2 className="text-[1.3rem] pt-4 pb-2 text-gray-200 font-bold mb-3 text-left">Top International</h2>
       <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
         {artists.map((artist) => (
           <Link key={artist.$id} href={artist.href} passHref>
@@ -129,4 +149,4 @@ const SongCarousel = () => {
   );
 };
 
-export default SongCarousel;
+export default Related;

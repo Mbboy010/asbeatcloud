@@ -1,5 +1,6 @@
 'use client';
 
+import Related from './Related';
 import Comment from './Comment';
 import { databases } from '../../lib/appwrite';
 import Details from './Details';
@@ -432,6 +433,13 @@ export default function InstrumentalPage() {
             <Download className="w-5 h-5" /> Download
           </motion.button>
         </div>
+        
+        <Related 
+          userId={instrumental.userId}
+          genre={instrumental.genre}
+          scale={instrumental.scale}
+          
+        />
 
         {/* Comment Section */}
         <Comment

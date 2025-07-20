@@ -79,9 +79,6 @@ export default function MusicHero() {
 
           {/* Image */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
             className="relative flex justify-end"
           >
             <div className="w-48 h-60 md:w-60 md:h-[18rem] lg:w-[18rem] lg:h-[22rem]  relative ">
