@@ -24,7 +24,7 @@ interface Props {
   scale: string;
 }
 
-const Related = ({ userId, genre, scale }: Props) => {
+const NewRelated = ({ userId, genre, scale }: Props) => {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +81,7 @@ const Related = ({ userId, genre, scale }: Props) => {
     };
 
     fetchArtists();
-  }, [userId, genre, scale]);
+  },[userId, genre, scale]);
 
   if (loading) {
     return (
@@ -149,4 +149,4 @@ const Related = ({ userId, genre, scale }: Props) => {
   );
 };
 
-export default Related;
+export default NewRelated;

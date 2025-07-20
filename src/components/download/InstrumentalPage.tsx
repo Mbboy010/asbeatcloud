@@ -1,6 +1,6 @@
 'use client';
 
-import Related from './Related';
+import NewRelated from './NewRelated';
 import Comment from './Comment';
 import { databases } from '../../lib/appwrite';
 import Details from './Details';
@@ -434,7 +434,7 @@ export default function InstrumentalPage() {
           </motion.button>
         </div>
         
-        <Related 
+        <NewRelated 
           userId={instrumental.userId}
           genre={instrumental.genre}
           scale={instrumental.scale}
