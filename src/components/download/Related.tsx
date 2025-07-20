@@ -24,7 +24,7 @@ interface Props {
   scale: string;
 }
 
-const NewRelated = ({ userId, genre, scale }: Props) => {
+export default function NewRelated ({ userId, genre, scale }: Props){
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,4 +149,3 @@ const NewRelated = ({ userId, genre, scale }: Props) => {
   );
 };
 
-export default NewRelated;
