@@ -1,6 +1,6 @@
 'use client';
 
-import NewRelated from './NewRelated';
+import NewRelated from '@/Related';
 import Comment from './Comment';
 import { databases } from '../../lib/appwrite';
 import Details from './Details';
