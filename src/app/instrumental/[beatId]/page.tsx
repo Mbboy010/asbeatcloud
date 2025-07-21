@@ -1,7 +1,7 @@
+import DownloadClient from '../../../components/download/DownloadClient';
 import { Metadata } from 'next';
 import { databases } from '@/lib/appwrite';
 import { Query, Models } from 'appwrite';
-import InstrumentalPage from '../../../components/download/InstrumentalPage';
  // Adjust the import path as needed
 
 // Environment variables
@@ -135,5 +135,5 @@ export default async function SongsPage({ params }: PageProps) {
   const { beatId } = await params;
   const song = await getSong(beatId);
 
-  return <InstrumentalPage  />; // Adjust the component to handle song data
+  return <DownloadClient  /> ; // Adjust the component to handle song data
 }
