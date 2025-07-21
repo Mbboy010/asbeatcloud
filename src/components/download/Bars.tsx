@@ -137,13 +137,13 @@ export default function Bars({
           whileTap={{ scale: 0.95 }}
           onClick={handleLikesToggle}
           disabled={isLiking}
-          className={`px-4 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 ${
+          className={`px-5 md:px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 ${
             isLiked ? 'bg-gray-800 text-gray-200' : 'bg-gray-800 text-gray-200'
           } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
           aria-label={isLiked ? 'Unlike instrumental' : 'Like instrumental'}
         >
           <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-red-500'}`} />
-          {isLiking ? 'Loading...' : isLiked ? 'Unlike' : 'Like'}
+          {isLiked ? 'Unlike' : 'Like'}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
