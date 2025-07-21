@@ -54,7 +54,6 @@ export default function NewRelated ({ userId, genre, scale }: Props){
               Query.equal('scale', scale),
               Query.equal('userId', userId),
             ]),
-            // Fetch up to 10 to ensure enough items to shuffle
           ]
         );
 
@@ -69,10 +68,9 @@ export default function NewRelated ({ userId, genre, scale }: Props){
           duration: doc.duration,
         }));
 
-        // Shuffle the fetched artists and take only 5
         const shuffledArtists = shuffleArray(fetchedArtists).slice(0, 10);
         setArtists(shuffledArtists);
-      } catch (err) {
+      } catch (err : any) {
         console.error('Error fetching artists:', err);
         setError('Failed to load artists');
       } finally {
