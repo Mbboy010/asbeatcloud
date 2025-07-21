@@ -42,8 +42,8 @@ export default function RelatedSongs({ userId, genre, scale,title }: Props) {
             Query.equal('genre', genre),
             Query.equal('scale', scale),
             Query.equal('userId', userId),
-            Query.notEqual('title', title),
           ]),
+            Query.notEqual('title', title),
         ]);
 
 
