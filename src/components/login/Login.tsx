@@ -1,9 +1,9 @@
 'use client';
 
 import Loading from '../loading/Loading';
+import React, { useState,useEffect } from 'react';
 import LoginAuth from '../authsign/LoginAuth';
 import { useRouter, useParams } from 'next/navigation';
-import React, { useState,useEffect } from 'react';
 import { Lock, Mail, Loader2 } from 'lucide-react';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Link from 'next/link';

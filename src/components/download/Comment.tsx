@@ -1,7 +1,7 @@
-"use client"; // Mark as Client Component for Next.js App Router
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { FaCommentSlash } from 'react-icons/fa'; // Import icon for no comments placeholder
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FaCommentSlash } from 'react-icons/fa';
 import { useAppSelector } from '@/store/hooks';
 import { databases } from '../../lib/appwrite';
 import { Query } from 'appwrite';
@@ -27,15 +27,36 @@ interface Comment {
   user?: User;
 }
 
+// Skeleton Loader Component
+const CommentSkeleton = () => (
+  <div className="bg-gray-900 rounded-lg p-4 shadow-md animate-pulse">
+    <div className="flex items-start space-x-4">
+      <div className="w-12 h-12 rounded-full bg-gray-700" />
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <div className="h-4 bg-gray-700 rounded w-24" />
+          <div className="h-4 bg-gray-700 rounded w-16" />
+        </div>
+        <div className="mt-2 space-y-2">
+          <div className="h-4 bg-gray-700 rounded w-full" />
+          <div className="h-4 bg-gray-700 rounded w-3/4" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Comment({ currentUserId }: Props) {
-  // State and hooks
   const [newComment, setNewComment] = useState<string>('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedCommentText, setEditedCommentText] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [lastDocumentId, setLastDocumentId] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
   const authId = useAppSelector((state) => state.authId.value) as string | undefined;
   const isAuth = useAppSelector((state) => state.isAuth.value);
@@ -44,12 +65,15 @@ export default function Comment({ currentUserId }: Props) {
   const instrumentalId = params.beatId as string;
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COMMENTS_COLLECTION_ID = '686a7cad002cd0b8f879';
   const USERS_COLLECTION_ID = '6849aa4f000c032527a9';
+  const PAGE_SIZE = 10; // Number of comments to fetch per page
 
-  // useEffect for click outside
+  // Handle click outside for menu
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -62,11 +86,69 @@ export default function Comment({ currentUserId }: Props) {
     };
   }, []);
 
-  // useEffect for fetching data
+  // Fetch comments with pagination
+  const fetchComments = useCallback(async (lastId: string | null = null) => {
+    if (!DATABASE_ID || !hasMore) return;
+
+    try {
+      setLoading(lastId === null);
+      setLoadingMore(lastId !== null);
+
+      const queries = [
+        Query.equal('instrumentalId', instrumentalId),
+        Query.orderDesc('$createdAt'),
+        Query.limit(PAGE_SIZE),
+      ];
+
+      if (lastId) {
+        queries.push(Query.cursorAfter(lastId));
+      }
+
+      const commentsResponse = await databases.listDocuments(
+        DATABASE_ID,
+        COMMENTS_COLLECTION_ID,
+        queries
+      );
+
+      const newComments = await Promise.all(
+        commentsResponse.documents.map(async (comment) => {
+          const userResponse = await databases.getDocument(
+            DATABASE_ID,
+            USERS_COLLECTION_ID,
+            comment.userId
+          );
+          return {
+            $id: comment.$id,
+            userId: comment.userId,
+            text: comment.text,
+            timestamp: comment.timestamp || comment.$createdAt,
+            instrumentalId: comment.instrumentalId,
+            user: {
+              $id: userResponse.$id,
+              username: `${userResponse.firstName} ${userResponse.lastName}`,
+              image: userResponse.profileImageUrl,
+            },
+          };
+        })
+      );
+
+      setComments((prev) => (lastId ? [...prev, ...newComments] : newComments));
+      setLastDocumentId(commentsResponse.documents[commentsResponse.documents.length - 1]?.$id || null);
+      setHasMore(commentsResponse.documents.length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [instrumentalId, DATABASE_ID, hasMore]);
+
+  // Fetch initial data
   useEffect(() => {
-    async function fetchData() {
+    async function fetchInitialData() {
       if (!DATABASE_ID) {
         console.error('DATABASE_ID is not defined');
+        setLoading(false);
         return;
       }
 
@@ -84,43 +166,40 @@ export default function Comment({ currentUserId }: Props) {
           });
         }
 
-        const commentsResponse = await databases.listDocuments(
-          DATABASE_ID,
-          COMMENTS_COLLECTION_ID,
-          [Query.equal('instrumentalId', instrumentalId)]
-        );
-
-        const commentsWithUserData: Comment[] = await Promise.all(
-          commentsResponse.documents.map(async (comment) => {
-            const userResponse = await databases.getDocument(
-              DATABASE_ID,
-              USERS_COLLECTION_ID,
-              comment.userId
-            );
-            return {
-              $id: comment.$id,
-              userId: comment.userId,
-              text: comment.text,
-              timestamp: comment.timestamp || comment.$createdAt, // Fallback to $createdAt
-              instrumentalId: comment.instrumentalId,
-              user: {
-                $id: userResponse.$id,
-                username: `${userResponse.firstName} ${userResponse.lastName}`,
-                image: userResponse.profileImageUrl,
-              },
-            };
-          })
-        );
-
-        setComments(commentsWithUserData);
+        await fetchComments();
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching initial data:', error);
       }
     }
-    fetchData();
-  }, [authId, isAuth, instrumentalId, DATABASE_ID]);
 
-  // Handlers
+    fetchInitialData();
+  }, [authId, isAuth, DATABASE_ID, fetchComments]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchComments(lastDocumentId);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current && loadMoreRef.current) {
+        observerRef.current.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [lastDocumentId, hasMore, loadingMore, fetchComments]);
+
+  // Handlers (unchanged from original, included for completeness)
   const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newComment.trim() || !isAuth || !authId || !currentUser || !DATABASE_ID) {
@@ -144,7 +223,6 @@ export default function Comment({ currentUserId }: Props) {
         newCommentData
       );
 
-      // Explicitly construct the Comment object to match the interface
       const newCommentObj: Comment = {
         $id: response.$id,
         userId: authId,
@@ -154,7 +232,7 @@ export default function Comment({ currentUserId }: Props) {
         user: currentUser,
       };
 
-      setComments((prev) => [...prev, newCommentObj]);
+      setComments((prev) => [newCommentObj, ...prev]);
       setNewComment('');
     } catch (error) {
       console.error('Error submitting comment:', error);
@@ -229,7 +307,13 @@ export default function Comment({ currentUserId }: Props) {
       <div className="mb-8">
         <h2 className="text-[1.5rem] font-bold text-white mb-6 tracking-tight">Comments</h2>
 
-        {comments.length > 0 ? (
+        {loading && !comments.length ? (
+          <div className="space-y-6">
+            {[...Array(3)].map((_, index) => (
+              <CommentSkeleton key={index} />
+            ))}
+          </div>
+        ) : comments.length > 0 ? (
           <ul className="space-y-6 max-h-[500px] overflow-y-auto">
             {comments.map((comment) => (
               <li
@@ -242,10 +326,11 @@ export default function Comment({ currentUserId }: Props) {
                     src={comment.user?.image || 'https://example.com/avatars/default.png'}
                     alt={`${comment.user?.username || 'User'}'s avatar`}
                     className="w-12 h-12 rounded-full border-2 border-gray-800 object-cover transform hover:scale-105 transition-transform duration-200"
+                    loading="lazy"
                   />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <p 
+                      <p
                         onClick={() => router.push(`/profile/${comment.user?.$id}`)}
                         className="text-white font-semibold text-lg max-w-[6rem] md:w-auto overflow-hidden text-ellipsis whitespace-nowrap"
                       >
@@ -322,6 +407,11 @@ export default function Comment({ currentUserId }: Props) {
                 </div>
               </li>
             ))}
+            {hasMore && (
+              <div ref={loadMoreRef} className="mt-4">
+                {loadingMore && <CommentSkeleton />}
+              </div>
+            )}
           </ul>
         ) : (
           <div className="text-center py-8 bg-gray-900 rounded-lg shadow-md">
@@ -339,7 +429,7 @@ export default function Comment({ currentUserId }: Props) {
                 setNewComment(e.target.value)
               }
               placeholder="Add a comment..."
-              className="w-full p-3 rounded-md bg-gray-900 text-white relapsed border border-gray-600 focus:outline-none focus:border-orange-500 transition-colors duration-200"
+              className="w-full p-3 rounded-md bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-orange-500 transition-colors duration-200"
               rows={3}
             />
             <button
