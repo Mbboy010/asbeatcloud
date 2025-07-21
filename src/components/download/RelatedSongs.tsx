@@ -22,9 +22,10 @@ interface Props {
   userId: string;
   genre: string;
   scale: string;
+  title: string;
 }
 
-export default function RelatedSongs({ userId, genre, scale }: Props) {
+export default function RelatedSongs({ userId, genre, scale,title }: Props) {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +42,10 @@ export default function RelatedSongs({ userId, genre, scale }: Props) {
             Query.equal('genre', genre),
             Query.equal('scale', scale),
             Query.equal('userId', userId),
+            Query.notEqual('title', title),
           ]),
         ]);
+
 
         const fetchedArtists: Artist[] = response.documents.map((doc) => ({
           $id: doc.$id,

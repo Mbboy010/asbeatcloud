@@ -435,7 +435,7 @@ export default function InstrumentalPage() {
         </div>
         
         <RelatedSongs
-        
+        title={instrumental.title}
         userId={instrumental.userId}
         genre={instrumental.genre}
         scale={instrumental.scale}
