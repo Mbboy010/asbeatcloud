@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 // Dynamic metadata
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps.params): Promise<Metadata> {
   const genre = params.genre;
   const capitalizedGenre = genre.charAt(0).toUpperCase() + genre.slice(1);
 
