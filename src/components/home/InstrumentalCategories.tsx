@@ -36,34 +36,34 @@ export default function InstrumentalCategories() {
       <h2 className="text-[1.3rem]  font-bold mb-3 text-left text-gray-200">
         Instrumental Genres
       </h2>
-
+ 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <CategoryCard
           icon={<Heart className="h-6 w-6" />}
           title="Hausa"
-          href="/instrumentals/hausa"
-          isActive={pathname === '/instrumentals/hausa'}
+          href="/instrumental/type/hausa"
+          isActive={pathname === '/instrumental/type/hausa'}
           iconColor="text-red-400"
         />
         <CategoryCard
           icon={<Music className="h-6 w-6" />}
           title="Afro"
-          href="/instrumentals/afro"
-          isActive={pathname === '/instrumentals/afro'}
+          href="/instrumental/type/afro"
+          isActive={pathname === '/instrumental/type/afro'}
           iconColor="text-yellow-400"
         />
         <CategoryCard
           icon={<Mic className="h-6 w-6" />}
-          title="Rap"
-          href="/instrumentals/rap"
-          isActive={pathname === '/instrumentals/rap'}
+          title="Hip hop"
+          href="/instrumental/type/hiphop"
+          isActive={pathname === '/instrumental/type/hiphop'}
           iconColor="text-blue-400"
         />
         <CategoryCard
           icon={<MoreHorizontal className="h-6 w-6" />}
           title="Others"
-          href="/instrumentals/others"
-          isActive={pathname === '/instrumentals/others'}
+          href="/instrumental/type/others"
+          isActive={pathname === '/instrumental/type/others'}
           iconColor="text-purple-400"
         />
       </div>

@@ -25,10 +25,10 @@ const BeatsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const COLLECTION_ID = '686a7cd100087c08444a';
   const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID;
   const COLLECTION_I = '6849aa4f000c032527a9';
+  const DATABASE_ID = process.env.NEXT_PUBLIC_USERSDATABASE;
   const params = useParams();
   const useridparams = typeof params.userid === 'string' ? params.userid : null;
 

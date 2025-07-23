@@ -327,7 +327,7 @@ export default function InstrumentalPage() {
         likes: response.likes || 0,
         likers: Array.isArray(response.likers) ? response.likers : [],
         userId: response.userId || 'not-available',
-        date: response.date || 'Not Available',
+        date: response.uploadDate || 'Not Available',
         description: response.description || 'This instrumental may have been deleted or is temporarily unavailable.',
         comments: response.comments ? JSON.parse(response.comments) : [],
         postId: response.postId || 'not-available',
