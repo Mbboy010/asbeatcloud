@@ -1,21 +1,18 @@
-import Pagination from '../../../../components/instrumentalPag/Pagination';
-import Link from 'next/link';
-import BeatCard from '@/components/instrumentalPag/BeatCard';
-import { getBeatsByGenre, Beat } from '@/lib/getBeatsByGenre';
+import { NextPage } from 'next';
 import { Metadata } from 'next';
+import { getBeatsByGenre } from '@/lib/getBeatsByGenre';
+import GenreClient from '@/components/instrumentalPag/GenreClient';
+
 
 // Define PageProps using Next.js types
-import { NextPage } from 'next';
-import { Params } from 'next/dist/shared/lib/router/utils/route-matcher';
-
 interface PageProps {
-  params: { genre: string };
+  params: Promise<{ genre: string }>; // Update to reflect params as a Promise
   searchParams: { page?: string };
 }
 
 // Dynamic metadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const genre = params.genre;
+  const { genre } = await params; // Await params to resolve the genre
   const capitalizedGenre = genre.charAt(0).toUpperCase() + genre.slice(1);
 
   return {
@@ -37,36 +34,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const GenrePage: NextPage<PageProps> = async ({ params, searchParams }) => {
-  const genre = params.genre;
+  const { genre } = await params; // Await params to resolve the genre
   const page = parseInt(searchParams.page || '1', 10);
   const limit = 6; // Adjust as needed
   const { beats, total } = await getBeatsByGenre(genre, page, limit);
   const totalPages = Math.ceil(total / limit);
 
-  return (
-    <div className="min-h-screen flex mt-16 justify-center py-8">
-      <div className="max-w-4xl w-full rounded-lg p-6">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-200 mb-6">
-          {genre.charAt(0).toUpperCase() + genre.slice(1)} Beats
-        </h2>
-
-        <div className="w-full min-h-[48rem]">
-          {beats.length === 0 ? (
-            <p className="text-gray-600">No beats found in this genre.</p>
-          ) : (
-            <div className="space-y-6">
-              {beats.map((beat) => (
-                <BeatCard key={beat.id} beat={beat} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        <Pagination page={page} totalPages={totalPages} genre={genre} />
-      </div>
-    </div>
-  );
+  return <GenreClient genre={genre} beats={beats} page={page} totalPages={totalPages} />;
 };
 
 export default GenrePage;
