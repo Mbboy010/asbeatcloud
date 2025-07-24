@@ -7,7 +7,7 @@ import GenreClient from '@/components/instrumentalPag/GenreClient';
 // Define PageProps using Next.js types
 interface PageProps {
   params: Promise<{ genre: string }>; // Update to reflect params as a Promise
-  searchParams: { page?: string };
+  searchParams: { page?: string | undefined };
 }
 
 // Dynamic metadata
