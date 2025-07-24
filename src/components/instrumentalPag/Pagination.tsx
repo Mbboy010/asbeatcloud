@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 
 interface props {
   genre: string;
-  beats: Beat[];
   page: number;
   totalPages: number;
 }
