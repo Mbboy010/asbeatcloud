@@ -3,11 +3,10 @@ import { Metadata } from 'next';
 import { getBeatsByGenre } from '@/lib/getBeatsByGenre';
 import GenreClient from '@/components/instrumentalPag/GenreClient';
 
-
 // Define PageProps using Next.js types
 interface PageProps {
-  params: Promise<{ genre: string }>; // Update to reflect params as a Promise
-  searchParams: { page?: string | undefined };
+  params: Promise<{ genre: string }>; // params is a Promise
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // searchParams is a Promise
 }
 
 // Dynamic metadata
@@ -35,7 +34,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 const GenrePage: NextPage<PageProps> = async ({ params, searchParams }) => {
   const { genre } = await params; // Await params to resolve the genre
-  const page = parseInt(searchParams.page || '1', 10);
+  const resolvedSearchParams = await searchParams; // Await searchParams to resolve
+  const page = parseInt(resolvedSearchParams.page?.toString() || '1', 10);
   const limit = 6; // Adjust as needed
   const { beats, total } = await getBeatsByGenre(genre, page, limit);
   const totalPages = Math.ceil(total / limit);
