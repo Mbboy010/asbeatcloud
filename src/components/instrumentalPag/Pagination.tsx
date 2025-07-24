@@ -3,7 +3,14 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
-const Pagination = ({ page, totalPages, genre }) => {
+interface props {
+  genre: string;
+  beats: Beat[];
+  page: number;
+  totalPages: number;
+}
+
+const Pagination = ({ page, totalPages, genre }:props) => {
   return (
     <div className="mt-6 flex w-full justify-around items-center flex-wrap gap-2">
       <motion.div whileTap={{ scale: 0.9 }}>
