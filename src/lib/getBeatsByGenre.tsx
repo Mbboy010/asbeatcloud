@@ -30,9 +30,9 @@ export const getBeatsByGenre = async (genre: string, page: number, limit: number
     // Query Appwrite for beats filtered by genre
     let response;
     if(genre == "others"){
-       response = await databases.listDocuments<Beat>(
-      databaseId,
-      collectionId,
+       response = await databases.listDocuments(
+      databaseId!,
+      collectionId!,
       [
         
            
@@ -47,9 +47,9 @@ export const getBeatsByGenre = async (genre: string, page: number, limit: number
       ]
     );
     } else{
-      response = await databases.listDocuments<Beat>(
-      databaseId,
-      collectionId,
+      response = await databases.listDocuments(
+      databaseId!,
+      collectionId!,
       [
         Query.equal('genre', genre.toLowerCase()), // Case-insensitive matching
         Query.limit(limit),
