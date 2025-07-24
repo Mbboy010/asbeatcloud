@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const GenrePage: NextPage<PageProps> = async ({ params, searchParams }) => {
-  const { genre } = await params; // Await params to resolve the genre
+  const { genre } = await params; // Await params to the resolve the genre
   const resolvedSearchParams = await searchParams; // Await searchParams to resolve
   const page = parseInt(resolvedSearchParams.page?.toString() || '1', 10);
   const limit = 6; // Adjust as needed
