@@ -9,6 +9,7 @@ export interface Beat {
   tempo: number;
   key: string;
   postId: string;
+  scale: string;
   duration: string;
   userId: string;
   dateTime: string;
