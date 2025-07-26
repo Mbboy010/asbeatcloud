@@ -77,7 +77,7 @@ export default function BeatModal({ beat, isOpen, closeModal, updateBeat }: Beat
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
-        setShowShareModal(false);
+        setShowShareModal(true);
       }
       if (successModalRef.current && !successModalRef.current.contains(event.target as Node)) {
         setShowSuccessModal(false);
