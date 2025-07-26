@@ -77,7 +77,7 @@ export default function BeatModal({ beat, isOpen, closeModal, updateBeat }: Beat
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
-        setShowShareModal(true);
+        setShowShareModal(false);
       }
       if (successModalRef.current && !successModalRef.current.contains(event.target as Node)) {
         setShowSuccessModal(false);
@@ -308,7 +308,7 @@ export default function BeatModal({ beat, isOpen, closeModal, updateBeat }: Beat
         default:
           throw new Error("Unsupported platform");
       }
-      setShowShareModal(false);
+      setShowShareModal(true);
     } catch (err: any) {
       setError(`Failed to share beat: ${err.message}`);
       console.error("Share error:", err);
