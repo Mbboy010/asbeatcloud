@@ -1,8 +1,15 @@
 'use client';
 import { motion } from 'framer-motion';
 import { ClockArrowDown, Music, Music2, Headphones, Download } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function MusicHero() {
+  const router = useRouter();
+  const navigate = () =>{
+    router.push('/instrumental');
+  }
+  
+  
   return (
     <div className="min-h-[33rem] md:min-h-[30rem] flex items-center justify-center px-4 md:px-6 lg:px-10 relative overflow-hidden">
       <div className="w-full h-[32rem] md:h-auto rounded-lg flex items-center justify-center py-1 md:py-16 relative">
@@ -76,6 +83,7 @@ export default function MusicHero() {
               </p>
 
               <motion.button
+                onClick={navigate}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-full font-semibold shadow-lg justify-center items-center flex gap-2 transition"

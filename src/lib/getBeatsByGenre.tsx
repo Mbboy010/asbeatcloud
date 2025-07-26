@@ -10,9 +10,12 @@ export interface Beat {
   key: string;
   postId: string;
   scale: string;
+  beatId: string;
   duration: string;
   userId: string;
+  beatId: string;
   dateTime: string;
+  downloadUrl: string;
   imageUrl: string; // Directly uses imageField
   downloads: number;
   likes: number;
@@ -70,8 +73,10 @@ export const getBeatsByGenre = async (genre: string, page: number, limit: number
       tempo: doc.tempo || 0,
       key: doc.key || '',
       postId: doc.postId || '',
+      downloadUrl: doc.downloadUrl || '',
       scale: doc.scale || '',
       userId: doc.userId || '',
+      beatId: doc.beatId || '',
       imageUrl: doc.imageFileId || '', // Use imageField directly as imageUrl
       downloads: doc.downloads || 0,
       duration: doc.duration || "00:00",

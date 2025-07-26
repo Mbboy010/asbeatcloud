@@ -23,7 +23,7 @@ const GenreClient: React.FC<GenreClientProps> = ({ genre, beats, page, totalPage
           {beats.length === 0 ? (
             <p className="text-gray-600">No beats found in this genre.</p>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-2">
               {beats.map((beat) => (
                 <BeatCard key={beat.id} beat={beat} />
               ))}
