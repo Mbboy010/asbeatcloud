@@ -73,6 +73,7 @@ export const getBeatsByGenre = async (genre: string, page: number, limit: number
       dateTime: doc.uploadDate || '',
       tempo: doc.tempo || 0,
       key: doc.key || '',
+      fileUrl: doc.fileUrl || '',
       postId: doc.postId || '',
       downloadUrl: doc.downloadUrl || '',
       scale: doc.scale || '',
@@ -83,6 +84,8 @@ export const getBeatsByGenre = async (genre: string, page: number, limit: number
       duration: doc.duration || "00:00",
       likes: doc.likes || 0,
       comments: doc.comments || [],
+      likers: doc.likers || [],
+      
     }));
 
     return {
