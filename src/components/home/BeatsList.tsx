@@ -1,5 +1,6 @@
 'use client';
 
+import BeatCard from '../instrumentalPag/BeatCard';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
@@ -10,13 +11,23 @@ import { databases } from '@/lib/appwrite';
 interface Beat {
   id: string;
   title: string;
-  imageUrl: string;
-  dateTime: string;
-  duration: string;
-  musicType: string;
-  name: string;
-  userId: string;
+  artist: string;
+  genre: string;
+  tempo: number;
+  key: string;
   postId: string;
+  scale: string;
+  duration: string;
+  userId: string;
+  beatId: string;
+  dateTime: string;
+  fileUrl: string;
+  downloadUrl: string;
+  imageUrl: string; // Directly uses imageField
+  downloads: number;
+  likes: number;
+  comments: string[];
+  likers: string[];
 }
 
 const BeatsList = () => {
@@ -88,15 +99,25 @@ const BeatsList = () => {
         );
 
         const fetchedBeats: Beat[] = response.documents.map((doc) => ({
-          id: doc.$id,
-          title: doc.title,
-          imageUrl: doc.imageFileId || null,
-          dateTime: doc.uploadDate,
-          duration: doc.duration,
-          musicType: doc.genre,
-          userId: doc.userId,
-          name: doc.name,
-          postId: doc.postId,
+      id: doc.$id,
+      title: doc.title || '',
+      artist: doc.name || '', // Assuming 'name' is the artist
+      genre: doc.genre || '',
+      dateTime: doc.uploadDate || '',
+      tempo: doc.tempo || 0,
+      key: doc.key || '',
+      fileUrl: doc.fileUrl || '',
+      postId: doc.postId || '',
+      downloadUrl: doc.downloadUrl || '',
+      scale: doc.scale || '',
+      userId: doc.userId || '',
+      beatId: doc.beatId || '',
+      imageUrl: doc.imageFileId || '', // Use imageField directly as imageUrl
+      downloads: doc.downloads || 0,
+      duration: doc.duration || "00:00",
+      likes: doc.likes || 0,
+      comments: doc.comments || [],
+      likers: doc.likers || [],
         }));
 
         setBeats(fetchedBeats);
@@ -132,6 +153,7 @@ const BeatsList = () => {
                 <div className="h-4 bg-gray-700 animate-pulse rounded w-2/3"></div>
                 <div className="h-4 bg-gray-700 animate-pulse rounded w-1/2"></div>
               </div>
+              
             </div>
           ))}
         </div>
@@ -150,30 +172,9 @@ const BeatsList = () => {
         {beats.length === 0 ? (
           <p className="text-gray-400">No beats found for this user.</p>
         ) : (
-          beats.map((beat) => (
-            <Link key={beat.id} href={`/instrumental/${beat.postId}`}>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="w-full rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition duration-200 flex items-center space-x-3"
-              >
-                <img
-                  src={beat.imageUrl}
-                  alt={beat.title}
-                  className="w-20 h-20 object-cover rounded-md"
-                />
-                <div className="flex-1">
-                  <h3 className="font-medium text-lg max-w-[200px] truncate">
-                    {truncateTitle(beat.title)}
-                  </h3>
-                  <p className="text-sm text-gray-300">
-                    Artist: {artistNames[beat.userId] || 'Loading...'}
-                  </p>
-                  <p className="text-sm text-gray-300">Duration: {beat.duration}</p>
-                  <p className="text-sm text-gray-400">Added: {formatRelativeTime(beat.dateTime)}</p>
-                </div>
-              </motion.div>
-            </Link>
-          ))
+        beats.map((beat) => (
+         <BeatCard key={beat.id} beat={beat} />
+             ))
         )}
       </div>
 
