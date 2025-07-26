@@ -21,6 +21,7 @@ interface Beat {
   comments: string[];
   userId: string;
   postId: string;
+  beatId: string;
   dateTime: string;
   duration: string;
   fileUrl: string;
