@@ -15,11 +15,13 @@ export interface Beat {
   userId: string;
   beatId: string;
   dateTime: string;
+  fileUrl: string;
   downloadUrl: string;
   imageUrl: string; // Directly uses imageField
   downloads: number;
   likes: number;
   comments: string[];
+  likers: string[];
 }
 
 export const getBeatsByGenre = async (genre: string, page: number, limit: number) => {
