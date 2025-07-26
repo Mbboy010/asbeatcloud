@@ -10,7 +10,6 @@ export interface Beat {
   key: string;
   postId: string;
   scale: string;
-  beatId: string;
   duration: string;
   userId: string;
   beatId: string;
